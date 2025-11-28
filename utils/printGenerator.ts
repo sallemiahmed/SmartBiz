@@ -58,7 +58,11 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
         .totals-table .value { text-align: ${isRTL ? 'left' : 'right'}; font-weight: 600; }
         .totals-table .grand-total { font-size: 18px; border-top: 2px solid #eee; padding-top: 10px; color: ${isCredit ? '#c0392b' : '#2c3e50'}; }
         
-        .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #95a5a6; font-size: 12px; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #95a5a6; font-size: 12px; }
+        .notes-section { margin-top: 30px; font-size: 12px; color: #555; background-color: #f9f9f9; padding: 15px; border-radius: 5px; }
+        .notes-section h4 { margin: 0 0 5px; font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .notes-grid { display: flex; gap: 40px; }
+        .note-column { flex: 1; }
         
         @media print {
           body { padding: 0; }
@@ -123,15 +127,32 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
             <td class="label">Subtotal</td>
             <td class="value">${currencyFormatter.format(invoice.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}</td>
           </tr>
-          <!-- Simple Tax calculation logic for display, assumes tax is difference between total and sum of lines if applicable, 
-               or simpler logic: Total in Invoice is final. 
-               Ideally, we should pass tax details explicitly. For now, showing Total. -->
+          <!-- Simple Tax calculation logic for display -->
           <tr class="grand-total">
             <td class="label">Total ${isCredit ? '(Credit)' : ''}</td>
             <td class="value">${currencyFormatter.format(invoice.amount)}</td>
           </tr>
         </table>
       </div>
+
+      <!-- Payment & Notes Section -->
+      ${(invoice.paymentTerms || invoice.paymentMethod || invoice.notes) ? `
+      <div class="notes-section">
+        <div class="notes-grid">
+          ${invoice.paymentTerms || invoice.paymentMethod ? `
+          <div class="note-column">
+            <h4>Payment Information</h4>
+            ${invoice.paymentTerms ? `<p><strong>Terms:</strong> ${invoice.paymentTerms}</p>` : ''}
+            ${invoice.paymentMethod ? `<p><strong>Method:</strong> ${invoice.paymentMethod}</p>` : ''}
+          </div>` : ''}
+          
+          ${invoice.notes ? `
+          <div class="note-column">
+            <h4>Notes / Conditions</h4>
+            <p>${invoice.notes.replace(/\n/g, '<br>')}</p>
+          </div>` : ''}
+        </div>
+      </div>` : ''}
 
       <div class="footer">
         <p>Thank you for your business!</p>

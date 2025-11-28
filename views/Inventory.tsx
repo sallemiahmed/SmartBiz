@@ -97,7 +97,7 @@ const Inventory: React.FC = () => {
   const handleWarehouseStockChange = (warehouseId: string, value: string) => {
     const qty = parseInt(value) || 0;
     setFormData(prev => {
-      const currentWhStock = { ...(prev.warehouseStock || {}) };
+      const currentWhStock: Record<string, number> = { ...(prev.warehouseStock || {}) };
       currentWhStock[warehouseId] = qty;
       
       // Recalculate total stock
@@ -115,7 +115,7 @@ const Inventory: React.FC = () => {
     e.preventDefault();
     
     // Use manual distribution or default to 0
-    const currentWhStock = formData.warehouseStock || {};
+    const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
     // Ensure all warehouses exist in the map
     warehouses.forEach(w => {
         if (currentWhStock[w.id] === undefined) currentWhStock[w.id] = 0;
@@ -140,7 +140,7 @@ const Inventory: React.FC = () => {
     e.preventDefault();
     if (!selectedProduct) return;
     
-    const currentWhStock = formData.warehouseStock || {};
+    const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
     const totalStock = Object.values(currentWhStock).reduce((a, b) => a + (Number(b) || 0), 0);
 
     const updatedProduct = { 

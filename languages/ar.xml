@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <!-- Sidebar -->
@@ -27,6 +28,11 @@
     <string name="products">المنتجات</string>
     <string name="warehouses">المستودعات</string>
     <string name="stock_transfers">نقل المخزون</string>
+
+    <!-- Banking Submenus -->
+    <string name="overview">نظرة عامة</string>
+    <string name="accounts">الحسابات</string>
+    <string name="transactions">المعاملات</string>
 
     <!-- Dashboard -->
     <string name="dashboard_overview">نظرة عامة</string>
@@ -111,6 +117,13 @@
     <string name="confirm_order">تأكيد الطلب</string>
     <string name="create_delivery">إنشاء مذكرة تسليم</string>
     <string name="charge_create">دفع وإنشاء فاتورة</string>
+    <string name="payment_terms">شروط الدفع</string>
+    <string name="payment_method">طريقة الدفع</string>
+    <string name="notes_conditions">ملاحظات / شروط</string>
+    <string name="due_on_receipt">الدفع عند الاستلام</string>
+    <string name="bank_transfer">تحويل بنكي</string>
+    <string name="cash">نقد</string>
+    <string name="check">شيك</string>
 
     <string name="estimates_quotes">عروض الأسعار</string>
     <string name="estimates_desc">إدارة عروض الأسعار والمقترحات للعملاء.</string>
@@ -251,6 +264,17 @@
     <string name="payment">دفع</string>
     <string name="cleared">تمت</string>
     <string name="reconciled">تمت التسوية</string>
+    <string name="new_account">حساب جديد</string>
+    <string name="edit_account">تعديل الحساب</string>
+    <string name="delete_account_confirm_msg">هل أنت متأكد من حذف هذا الحساب؟ لن يتم حذف المعاملات المرتبطة به من السجل، ولكن قد يؤثر ذلك على التقارير.</string>
+    <string name="account_type">نوع الحساب</string>
+    <string name="checking">جاري</string>
+    <string name="savings">توفير</string>
+    <string name="credit">ائتمان</string>
+    <string name="investment">استثمار</string>
+    <string name="initial_balance">الرصيد الأولي</string>
+    <string name="no_transactions">لا توجد معاملات.</string>
+    <string name="no_accounts">لا توجد حسابات.</string>
 
     <!-- Cash Register -->
     <string name="cash_register_management">الخزينة</string>

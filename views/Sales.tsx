@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, Plus, Trash2, User, CreditCard, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Send, Printer, Building
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Send, Printer, Building, FilePenLine
 } from 'lucide-react';
 import { Product, SalesDocumentType, Invoice } from '../types';
 import { useApp } from '../context/AppContext';
@@ -35,6 +35,11 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   const [discount, setDiscount] = useState<number>(0);
   
+  // New Fields
+  const [paymentTerms, setPaymentTerms] = useState('Due on Receipt');
+  const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
+  const [notes, setNotes] = useState('');
+  
   // Initialize tax rate with default from settings
   const defaultRate = settings.taxRates.find(r => r.isDefault)?.rate || 0;
   const [taxRate, setTaxRate] = useState<number>(defaultRate);
@@ -45,6 +50,9 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
     setSelectedClient('');
     setDiscount(0);
     setTaxRate(defaultRate);
+    setPaymentTerms('Due on Receipt');
+    setPaymentMethod('Bank Transfer');
+    setNotes('');
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
   }, [mode, defaultRate]);
@@ -174,7 +182,11 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
 
     const clientName = clients.find(c => c.id === selectedClient)?.company || 'Unknown Client';
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 30); // Net 30 default
+    
+    // Simple logic for due date based on terms
+    if (paymentTerms === 'Net 15') dueDate.setDate(dueDate.getDate() + 15);
+    else if (paymentTerms === 'Net 30') dueDate.setDate(dueDate.getDate() + 30);
+    else if (paymentTerms === 'Net 60') dueDate.setDate(dueDate.getDate() + 60);
 
     const status = mode === 'estimate' ? 'draft' : mode === 'order' ? 'pending' : mode === 'invoice' ? 'paid' : 'completed';
 
@@ -185,7 +197,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       dueDate: dueDate.toISOString().split('T')[0],
       amount: total,
       status: status,
-      warehouseId: selectedWarehouse
+      warehouseId: selectedWarehouse,
+      paymentTerms,
+      paymentMethod,
+      notes
     }, invoiceItems);
 
     setLastCreatedDoc(createdDoc);
@@ -203,6 +218,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
     setCart([]);
     setSelectedClient('');
     setDiscount(0);
+    setNotes('');
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
   };
@@ -278,7 +294,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                     </span>
                     <div className="text-xs text-gray-400">
                       Stock: {stockInSelected} 
-                      {/* Show total if multi-warehouse visual cues needed, but confusing here */}
                     </div>
                   </div>
                 </div>
@@ -382,6 +397,50 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               </div>
             ))
           )}
+        </div>
+
+        {/* Payment & Conditions - New Section */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('payment_terms')}</label>
+              <select 
+                value={paymentTerms} 
+                onChange={(e) => setPaymentTerms(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white"
+              >
+                <option value="Due on Receipt">{t('due_on_receipt')}</option>
+                <option value="Net 15">Net 15</option>
+                <option value="Net 30">Net 30</option>
+                <option value="Net 60">Net 60</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('payment_method')}</label>
+              <select 
+                value={paymentMethod} 
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white"
+              >
+                <option value="Bank Transfer">{t('bank_transfer')}</option>
+                <option value="Cash">{t('cash')}</option>
+                <option value="Check">{t('check')}</option>
+                <option value="Credit Card">Credit Card</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('notes_conditions')}</label>
+            <div className="relative">
+              <textarea 
+                value={notes} 
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="E.g. Delivery between 9am-5pm..."
+                className="w-full pl-2 pr-2 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white resize-none h-12"
+              />
+              <FilePenLine className="absolute right-2 bottom-2 w-3 h-3 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
         {/* Totals Section */}

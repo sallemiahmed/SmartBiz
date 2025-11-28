@@ -126,7 +126,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       ]
     },
     { id: 'invoices', labelKey: 'documents', icon: FileStack, emoji: '🧮' },
-    { id: 'banking', labelKey: 'banking', icon: Landmark, emoji: '🏦' },
+    { 
+      id: 'banking', 
+      labelKey: 'banking', 
+      icon: Landmark, 
+      emoji: '🏦',
+      subItems: [
+        { id: 'banking', labelKey: 'overview' },
+        { id: 'banking-accounts', labelKey: 'accounts' },
+        { id: 'banking-transactions', labelKey: 'transactions' },
+      ]
+    },
     { id: 'cash_register', labelKey: 'cash_register', icon: Wallet, emoji: '💵' },
     { id: 'reports', labelKey: 'reports', icon: LineChart, emoji: '📈' },
     { 

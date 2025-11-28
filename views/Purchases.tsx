@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine
 } from 'lucide-react';
 import { Product, PurchaseDocumentType } from '../types';
 import { useApp } from '../context/AppContext';
@@ -19,7 +19,7 @@ interface PurchasesProps {
 }
 
 const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
-  const { products, suppliers, warehouses, createPurchaseDocument, formatCurrency, settings } = useApp();
+  const { products, suppliers, warehouses, createPurchaseDocument, formatCurrency, settings, t } = useApp();
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +33,11 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   
+  // New Fields
+  const [paymentTerms, setPaymentTerms] = useState('Due on Receipt');
+  const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
+  const [notes, setNotes] = useState('');
+
   // Initialize tax rate
   const defaultRate = settings.taxRates.find(r => r.isDefault)?.rate || 0;
   const [taxRate, setTaxRate] = useState<number>(defaultRate); 
@@ -41,6 +46,9 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setCart([]);
     setSelectedSupplier('');
     setTaxRate(defaultRate);
+    setPaymentTerms('Due on Receipt');
+    setPaymentMethod('Bank Transfer');
+    setNotes('');
     setShowSuccessModal(false);
   }, [mode, defaultRate]);
 
@@ -175,7 +183,10 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       date: new Date().toISOString().split('T')[0],
       amount: total,
       status: mode === 'order' ? 'pending' : 'completed',
-      warehouseId: selectedWarehouse
+      warehouseId: selectedWarehouse,
+      paymentTerms,
+      paymentMethod,
+      notes
     }, purchaseItems);
 
     setLastDocNumber('(Auto-generated)');
@@ -185,6 +196,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const resetForm = () => {
     setCart([]);
     setSelectedSupplier('');
+    setNotes('');
     setShowSuccessModal(false);
   };
 
@@ -370,6 +382,50 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
               </div>
             ))
           )}
+        </div>
+
+        {/* Payment & Conditions - New Section */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('payment_terms')}</label>
+              <select 
+                value={paymentTerms} 
+                onChange={(e) => setPaymentTerms(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white"
+              >
+                <option value="Due on Receipt">{t('due_on_receipt')}</option>
+                <option value="Net 15">Net 15</option>
+                <option value="Net 30">Net 30</option>
+                <option value="Net 60">Net 60</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('payment_method')}</label>
+              <select 
+                value={paymentMethod} 
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white"
+              >
+                <option value="Bank Transfer">{t('bank_transfer')}</option>
+                <option value="Cash">{t('cash')}</option>
+                <option value="Check">{t('check')}</option>
+                <option value="Credit Card">Credit Card</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('notes_conditions')}</label>
+            <div className="relative">
+              <textarea 
+                value={notes} 
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="E.g. Delivery dock instructions..."
+                className="w-full pl-2 pr-2 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white resize-none h-12"
+              />
+              <FilePenLine className="absolute right-2 bottom-2 w-3 h-3 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
         {/* Totals Section */}

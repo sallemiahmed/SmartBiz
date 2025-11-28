@@ -167,6 +167,11 @@ function AppContent() {
         if (mode === 'transfers') return <InventoryTransfers />;
     }
 
+    // --- Banking Routing ---
+    if (currentView.startsWith('banking')) {
+      return <BankManagement view={currentView} />;
+    }
+
     // --- Main Modules ---
 
     switch (currentView) {
@@ -178,8 +183,6 @@ function AppContent() {
         return <Suppliers />;
       case 'invoices':
         return <Invoices />; 
-      case 'banking':
-        return <BankManagement />; // New View
       case 'cash_register':
         return <CashRegister />; // New View
       case 'reports':

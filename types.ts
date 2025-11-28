@@ -7,7 +7,7 @@ export type AppView =
   | 'purchases' | 'purchases-order' | 'purchases-order-create' | 'purchases-delivery' | 'purchases-delivery-create' | 'purchases-invoice' | 'purchases-invoice-create'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
   | 'invoices' 
-  | 'banking'
+  | 'banking' | 'banking-accounts' | 'banking-transactions'
   | 'cash_register'
   | 'reports' 
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications' | 'settings-custom-fields';
@@ -93,6 +93,9 @@ export interface Invoice {
   items: InvoiceItem[];
   linkedDocumentId?: string; // For Credit Notes linking to Invoices
   warehouseId?: string; // The warehouse items were deducted from
+  paymentTerms?: string;
+  paymentMethod?: string;
+  notes?: string;
 }
 
 export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice';
@@ -108,6 +111,9 @@ export interface Purchase {
   status: 'completed' | 'pending' | 'received';
   items: InvoiceItem[];
   warehouseId?: string; // The warehouse items were added to
+  paymentTerms?: string;
+  paymentMethod?: string;
+  notes?: string;
 }
 
 export interface InvoiceItem {
@@ -166,7 +172,7 @@ export interface BankAccount {
   accountNumber: string;
   balance: number;
   currency: string;
-  type: 'checking' | 'savings' | 'credit';
+  type: 'checking' | 'savings' | 'credit' | 'investment';
 }
 
 export interface BankTransaction {

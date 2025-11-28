@@ -55,8 +55,11 @@ interface AppContextType {
   updatePurchase: (purchase: Purchase) => void;
 
   // Banking Actions
-  addBankTransaction: (transaction: BankTransaction) => void;
+  addBankAccount: (account: BankAccount) => void;
   updateBankAccount: (account: BankAccount) => void;
+  deleteBankAccount: (id: string) => void;
+  addBankTransaction: (transaction: BankTransaction) => void;
+  deleteBankTransaction: (id: string) => void;
 
   // Cash Actions
   openCashSession: (amount: number) => void;
@@ -248,6 +251,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Banking
+  const addBankAccount = (account: BankAccount) => {
+    setBankAccounts(prev => [...prev, account]);
+  };
+
+  const updateBankAccount = (account: BankAccount) => {
+    setBankAccounts(prev => prev.map(a => a.id === account.id ? account : a));
+  };
+
+  const deleteBankAccount = (id: string) => {
+    setBankAccounts(prev => prev.filter(a => a.id !== id));
+  };
+
   const addBankTransaction = (transaction: BankTransaction) => {
     setBankTransactions(prev => [transaction, ...prev]);
     // Update account balance
@@ -259,8 +274,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
   };
 
-  const updateBankAccount = (account: BankAccount) => {
-    setBankAccounts(prev => prev.map(a => a.id === account.id ? account : a));
+  const deleteBankTransaction = (id: string) => {
+    const tx = bankTransactions.find(t => t.id === id);
+    if (tx) {
+        setBankTransactions(prev => prev.filter(t => t.id !== id));
+        // Revert balance
+        setBankAccounts(prev => prev.map(acc => {
+            if (acc.id === tx.accountId) {
+                return { ...acc, balance: acc.balance - tx.amount };
+            }
+            return acc;
+        }));
+    }
   };
 
   // Cash Register
@@ -520,7 +545,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addProduct, updateProduct, deleteProduct,
       deleteInvoice, updateInvoice,
       deletePurchase, updatePurchase,
-      addBankTransaction, updateBankAccount,
+      addBankAccount, updateBankAccount, deleteBankAccount,
+      addBankTransaction, deleteBankTransaction,
       openCashSession, closeCashSession, addCashTransaction,
       addWarehouse, updateWarehouse, deleteWarehouse, transferStock,
       updateSettings,
