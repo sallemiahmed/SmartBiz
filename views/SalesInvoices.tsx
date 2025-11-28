@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Filter, CheckCircle, Printer, RotateCcw, AlertCircle } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Filter, CheckCircle, Printer, RotateCcw, AlertCircle, CreditCard } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -241,6 +241,35 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                 <span className="text-gray-500">{t('due_date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.dueDate}</span>
               </div>
+
+              {/* Payment & Conditions - Read Only */}
+              {(selectedDoc.paymentTerms || selectedDoc.paymentMethod || selectedDoc.notes) && (
+                <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                    <CreditCard className="w-4 h-4" /> Payment & Conditions
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {selectedDoc.paymentTerms && (
+                      <div>
+                        <span className="text-gray-500 block">Terms:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedDoc.paymentTerms}</span>
+                      </div>
+                    )}
+                    {selectedDoc.paymentMethod && (
+                      <div>
+                        <span className="text-gray-500 block">Method:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedDoc.paymentMethod}</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedDoc.notes && (
+                    <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                      <span className="text-gray-500 block">Notes:</span>
+                      <span className="text-gray-700 dark:text-gray-300 italic">{selectedDoc.notes}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Line Items</h4>

@@ -1,14 +1,16 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
+import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseOrdersProps {
   onAddNew: () => void;
 }
 
 const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, formatCurrency, t } = useApp();
+  const { purchases, deletePurchase, formatCurrency, settings, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -32,6 +34,12 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
       deletePurchase(selectedOrder.id);
       setIsDeleteModalOpen(false);
       setSelectedOrder(null);
+    }
+  };
+
+  const handlePrint = () => {
+    if (selectedOrder) {
+      printInvoice(selectedOrder, settings);
     }
   };
 
@@ -171,6 +179,35 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                   {t(selectedOrder.status)}
                 </span>
               </div>
+
+              {/* Payment & Conditions - Read Only */}
+              {(selectedOrder.paymentTerms || selectedOrder.paymentMethod || selectedOrder.notes) && (
+                <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                    <CreditCard className="w-4 h-4" /> Payment & Conditions
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {selectedOrder.paymentTerms && (
+                      <div>
+                        <span className="text-gray-500 block">Terms:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedOrder.paymentTerms}</span>
+                      </div>
+                    )}
+                    {selectedOrder.paymentMethod && (
+                      <div>
+                        <span className="text-gray-500 block">Method:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedOrder.paymentMethod}</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedOrder.notes && (
+                    <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                      <span className="text-gray-500 block">Notes:</span>
+                      <span className="text-gray-700 dark:text-gray-300 italic">{selectedOrder.notes}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
@@ -194,12 +231,18 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={handlePrint}
+                className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Printer className="w-4 h-4" /> Print Order
+              </button>
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                {t('cancel')}
+                {t('close')}
               </button>
             </div>
           </div>

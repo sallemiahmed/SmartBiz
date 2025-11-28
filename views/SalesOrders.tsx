@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CheckCircle, Truck, ArrowRightCircle } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CheckCircle, Truck, ArrowRightCircle, CreditCard } from 'lucide-react';
 import { Invoice, SalesDocumentType } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -46,6 +47,9 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       dueDate: selectedOrder.dueDate,
       amount: selectedOrder.amount,
       status: targetType === 'invoice' ? 'pending' : 'completed', // Delivery usually completed instantly
+      paymentTerms: selectedOrder.paymentTerms,
+      paymentMethod: selectedOrder.paymentMethod,
+      notes: selectedOrder.notes
     }, selectedOrder.items);
 
     // Update Order status
@@ -194,6 +198,35 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                   {t(selectedOrder.status)}
                 </span>
               </div>
+
+              {/* Payment & Conditions - Read Only */}
+              {(selectedOrder.paymentTerms || selectedOrder.paymentMethod || selectedOrder.notes) && (
+                <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                    <CreditCard className="w-4 h-4" /> Payment & Conditions
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {selectedOrder.paymentTerms && (
+                      <div>
+                        <span className="text-gray-500 block">Terms:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedOrder.paymentTerms}</span>
+                      </div>
+                    )}
+                    {selectedOrder.paymentMethod && (
+                      <div>
+                        <span className="text-gray-500 block">Method:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedOrder.paymentMethod}</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedOrder.notes && (
+                    <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                      <span className="text-gray-500 block">Notes:</span>
+                      <span className="text-gray-700 dark:text-gray-300 italic">{selectedOrder.notes}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>

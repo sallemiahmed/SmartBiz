@@ -1,14 +1,16 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Filter } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Filter, CreditCard, Printer } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
+import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseInvoicesProps {
   onAddNew: () => void;
 }
 
 const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, formatCurrency, t } = useApp();
+  const { purchases, deletePurchase, formatCurrency, settings, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -24,6 +26,12 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
     const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handlePrint = () => {
+    if (selectedDoc) {
+      printInvoice(selectedDoc, settings);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -163,6 +171,35 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                   {t(selectedDoc.status)}
                 </span>
               </div>
+
+              {/* Payment & Conditions - Read Only */}
+              {(selectedDoc.paymentTerms || selectedDoc.paymentMethod || selectedDoc.notes) && (
+                <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                    <CreditCard className="w-4 h-4" /> Payment & Conditions
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {selectedDoc.paymentTerms && (
+                      <div>
+                        <span className="text-gray-500 block">Terms:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedDoc.paymentTerms}</span>
+                      </div>
+                    )}
+                    {selectedDoc.paymentMethod && (
+                      <div>
+                        <span className="text-gray-500 block">Method:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedDoc.paymentMethod}</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedDoc.notes && (
+                    <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                      <span className="text-gray-500 block">Notes:</span>
+                      <span className="text-gray-700 dark:text-gray-300 italic">{selectedDoc.notes}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('received_items')}</h4>
@@ -186,7 +223,13 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={handlePrint}
+                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Printer className="w-4 h-4" /> Print Invoice
+              </button>
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"

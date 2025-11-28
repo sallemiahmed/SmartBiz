@@ -4,8 +4,9 @@ import {
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
   X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine
 } from 'lucide-react';
-import { Product, PurchaseDocumentType } from '../types';
+import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
+import { printInvoice } from '../utils/printGenerator';
 
 interface POItem extends Product {
   cartId: string;
@@ -27,6 +28,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastDocNumber, setLastDocNumber] = useState('');
+  const [lastCreatedDoc, setLastCreatedDoc] = useState<Purchase | null>(null);
   
   // Transaction State
   const [cart, setCart] = useState<POItem[]>([]);
@@ -50,6 +52,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setPaymentMethod('Bank Transfer');
     setNotes('');
     setShowSuccessModal(false);
+    setLastCreatedDoc(null);
   }, [mode, defaultRate]);
 
   // Helpers
@@ -177,7 +180,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
 
     const supplierName = suppliers.find(s => s.id === selectedSupplier)?.company || 'Unknown Supplier';
 
-    createPurchaseDocument(mode, {
+    const createdDoc = createPurchaseDocument(mode, {
       supplierId: selectedSupplier,
       supplierName: supplierName,
       date: new Date().toISOString().split('T')[0],
@@ -189,14 +192,22 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       notes
     }, purchaseItems);
 
-    setLastDocNumber('(Auto-generated)');
+    setLastCreatedDoc(createdDoc);
+    setLastDocNumber(createdDoc.number);
     setShowSuccessModal(true);
+  };
+
+  const handlePrint = () => {
+    if (lastCreatedDoc) {
+      printInvoice(lastCreatedDoc, settings);
+    }
   };
 
   const resetForm = () => {
     setCart([]);
     setSelectedSupplier('');
     setNotes('');
+    setLastCreatedDoc(null);
     setShowSuccessModal(false);
   };
 
@@ -566,7 +577,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                 New {mode}
               </button>
               <button 
-                onClick={resetForm} 
+                onClick={handlePrint} 
                 className="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center justify-center gap-2"
               >
                 <Printer className="w-4 h-4" /> Print

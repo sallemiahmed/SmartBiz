@@ -1,7 +1,7 @@
 
-import { Invoice, AppSettings } from '../types';
+import { Invoice, AppSettings, Purchase } from '../types';
 
-export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
+export const printInvoice = (document: Invoice | Purchase, settings: AppSettings) => {
   const isRTL = settings.language === 'ar';
   const currencyFormatter = new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : 'en-US', {
     style: 'currency',
@@ -11,25 +11,31 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
+      // Sales Types
       case 'estimate': return 'ESTIMATE / QUOTE';
       case 'order': return 'SALES ORDER';
       case 'delivery': return 'DELIVERY NOTE';
-      case 'invoice': return 'INVOICE';
+      case 'invoice': return 'INVOICE'; // Can be Sales or Purchase Invoice based on context, but label is same
       case 'issue': return 'ISSUE NOTE';
       case 'return': return 'RETURN NOTE';
       case 'credit': return 'CREDIT NOTE';
+      // Purchase Specifics
+      case 'grn': return 'GOODS RECEIVED NOTE';
       default: return type.toUpperCase();
     }
   };
 
-  const isCredit = invoice.type === 'credit';
+  // Determine if it is a Purchase or Sales document based on field existence
+  const isPurchase = 'supplierName' in document;
+  const entityName = isPurchase ? (document as Purchase).supplierName : (document as Invoice).clientName;
+  const isCredit = document.type === 'credit';
 
   const html = `
     <!DOCTYPE html>
     <html lang="${settings.language}" dir="${isRTL ? 'rtl' : 'ltr'}">
     <head>
       <meta charset="UTF-8">
-      <title>${getTypeLabel(invoice.type)} - ${invoice.number}</title>
+      <title>${getTypeLabel(document.type)} - ${document.number}</title>
       <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; font-size: 14px; line-height: 1.5; }
         .header-container { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
@@ -79,25 +85,25 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
           ${settings.companyVatId ? `<p><strong>VAT ID:</strong> ${settings.companyVatId}</p>` : ''}
         </div>
         <div class="invoice-info">
-          <h2>${getTypeLabel(invoice.type)}</h2>
+          <h2>${getTypeLabel(document.type)}</h2>
           <table class="invoice-meta" dir="${isRTL ? 'rtl' : 'ltr'}">
             <tr>
               <td>Ref #:</td>
-              <td>${invoice.number}</td>
+              <td>${document.number}</td>
             </tr>
-            ${invoice.linkedDocumentId ? `<tr><td>Original Inv:</td><td>${invoice.linkedDocumentId}</td></tr>` : ''}
+            ${(document as Invoice).linkedDocumentId ? `<tr><td>Original Ref:</td><td>${(document as Invoice).linkedDocumentId}</td></tr>` : ''}
             <tr>
               <td>Date:</td>
-              <td>${invoice.date}</td>
+              <td>${document.date}</td>
             </tr>
-            ${invoice.dueDate ? `<tr><td>Due Date:</td><td>${invoice.dueDate}</td></tr>` : ''}
+            ${(document as Invoice).dueDate ? `<tr><td>Due Date:</td><td>${(document as Invoice).dueDate}</td></tr>` : ''}
           </table>
         </div>
       </div>
 
       <div class="client-container">
-        <div class="bill-to">${isCredit ? 'Credit To:' : 'Bill To:'}</div>
-        <div class="client-name">${invoice.clientName}</div>
+        <div class="bill-to">${isPurchase ? 'From Supplier:' : (isCredit ? 'Credit To:' : 'Bill To:')}</div>
+        <div class="client-name">${entityName}</div>
       </div>
 
       <table class="items-table">
@@ -110,7 +116,7 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
           </tr>
         </thead>
         <tbody>
-          ${invoice.items.map(item => `
+          ${document.items.map(item => `
             <tr>
               <td>${item.description}</td>
               <td class="text-center">${item.quantity}</td>
@@ -125,31 +131,30 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
         <table class="totals-table">
           <tr>
             <td class="label">Subtotal</td>
-            <td class="value">${currencyFormatter.format(invoice.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}</td>
+            <td class="value">${currencyFormatter.format(document.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}</td>
           </tr>
-          <!-- Simple Tax calculation logic for display -->
           <tr class="grand-total">
             <td class="label">Total ${isCredit ? '(Credit)' : ''}</td>
-            <td class="value">${currencyFormatter.format(invoice.amount)}</td>
+            <td class="value">${currencyFormatter.format(document.amount)}</td>
           </tr>
         </table>
       </div>
 
       <!-- Payment & Notes Section -->
-      ${(invoice.paymentTerms || invoice.paymentMethod || invoice.notes) ? `
+      ${(document.paymentTerms || document.paymentMethod || document.notes) ? `
       <div class="notes-section">
         <div class="notes-grid">
-          ${invoice.paymentTerms || invoice.paymentMethod ? `
+          ${document.paymentTerms || document.paymentMethod ? `
           <div class="note-column">
             <h4>Payment Information</h4>
-            ${invoice.paymentTerms ? `<p><strong>Terms:</strong> ${invoice.paymentTerms}</p>` : ''}
-            ${invoice.paymentMethod ? `<p><strong>Method:</strong> ${invoice.paymentMethod}</p>` : ''}
+            ${document.paymentTerms ? `<p><strong>Terms:</strong> ${document.paymentTerms}</p>` : ''}
+            ${document.paymentMethod ? `<p><strong>Method:</strong> ${document.paymentMethod}</p>` : ''}
           </div>` : ''}
           
-          ${invoice.notes ? `
+          ${document.notes ? `
           <div class="note-column">
             <h4>Notes / Conditions</h4>
-            <p>${invoice.notes.replace(/\n/g, '<br>')}</p>
+            <p>${document.notes.replace(/\n/g, '<br>')}</p>
           </div>` : ''}
         </div>
       </div>` : ''}
