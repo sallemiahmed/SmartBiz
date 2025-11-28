@@ -25,6 +25,7 @@ import Reports from './views/Reports';
 import Settings from './views/Settings';
 import BankManagement from './views/BankManagement'; 
 import CashRegister from './views/CashRegister'; 
+import CostAnalysis from './views/CostAnalysis';
 import { AppView } from './types';
 import { AppProvider, useApp } from './context/AppContext';
 
@@ -184,7 +185,9 @@ function AppContent() {
       case 'invoices':
         return <Invoices />; 
       case 'cash_register':
-        return <CashRegister />; // New View
+        return <CashRegister />; 
+      case 'cost_analysis':
+        return <CostAnalysis />;
       case 'reports':
         return <Reports />;
       default:
