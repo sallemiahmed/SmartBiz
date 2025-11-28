@@ -1,7 +1,8 @@
+
 {
   "available": [
-    { "code": "en", "name": "English", "file": "en.xml", "dir": "ltr" },
-    { "code": "fr", "name": "Français", "file": "fr.xml", "dir": "ltr" },
-    { "code": "ar", "name": "العربية", "file": "ar.xml", "dir": "rtl" }
+    { "code": "en", "name": "English", "file": "en.json", "dir": "ltr" },
+    { "code": "fr", "name": "Français", "file": "fr.json", "dir": "ltr" },
+    { "code": "ar", "name": "العربية", "file": "ar.json", "dir": "rtl" }
   ]
 }
