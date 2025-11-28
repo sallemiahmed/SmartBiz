@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, Bot, User as UserIcon, Loader2 } from 'lucide-react';
+import { X, Send, Sparkles, Bot, User as UserIcon, Loader2, Settings } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { useApp } from '../context/AppContext';
 
@@ -13,38 +13,62 @@ interface Message {
   id: string;
   role: 'user' | 'model';
   text: string;
+  isError?: boolean;
 }
 
+const APP_KNOWLEDGE = `
+APP FUNCTIONALITY & NAVIGATION GUIDE:
+- **Dashboard**: View real-time financial stats (Revenue, Expenses, Profit).
+- **Clients**: Manage customer database. Click '+ Add Client' to create.
+- **Suppliers**: Manage vendor database. Click '+ Add Supplier' to create.
+- **Sales Module**:
+  - **Estimates**: Create quotes. Can convert to Orders or Invoices.
+  - **Orders**: Confirm customer requests.
+  - **Deliveries**: Ship items (deducts stock).
+  - **Invoices**: Finalize sales (updates revenue).
+  - **Issues**: Manual stock issuance.
+- **Purchases Module**:
+  - **Orders (PO)**: Send orders to suppliers.
+  - **Deliveries (GRN)**: Receive goods (adds stock).
+  - **Invoices**: Log expenses.
+- **Inventory**:
+  - **Products**: Manage items, pricing, and stock levels.
+  - **Warehouses**: Manage multiple locations.
+  - **Transfers**: Move stock between warehouses.
+- **Banking**: Manage bank accounts and reconcile transactions.
+- **Cash Register**: Manage daily cash shifts (Open/Close register).
+- **Reports**: View Sales, Purchase, and Financial analytics.
+- **Settings**: Configure Company Info, Tax Rates, Currency, and API Keys.
+`;
+
 const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
-  const { stats, clients, products, invoices, settings, formatCurrency, t } = useApp();
+  const { stats, clients, products, invoices, settings, formatCurrency, t, setIsLoading: setAppLoading } = useApp();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize greeting with translation, handling async loading
+  // Initialize greeting with translation
   useEffect(() => {
-    const greetingText = t('ai_greeting');
-    
-    // Check if we need to initialize or update the greeting
-    // Update if list is empty OR if the first message is the raw key (meaning translation wasn't ready)
-    if (messages.length === 0 || (messages.length === 1 && messages[0].role === 'model' && messages[0].text === 'ai_greeting')) {
-      if (greetingText && greetingText !== 'ai_greeting') {
+    // Only set greeting if messages are empty to avoid overwriting conversation
+    if (messages.length === 0) {
+      const greeting = t('ai_greeting');
+      // Ensure we don't show the raw key if translation isn't loaded yet
+      if (greeting && greeting !== 'ai_greeting') {
         setMessages([{ 
-          id: '1', 
+          id: 'init', 
           role: 'model', 
-          text: greetingText 
-        }]);
-      } else if (messages.length === 0) {
-        // Initial placeholder while loading
-        setMessages([{ 
-          id: '1', 
-          role: 'model', 
-          text: '...' 
+          text: greeting 
         }]);
       }
+    } else if (messages.length === 1 && messages[0].id === 'init' && messages[0].text === 'ai_greeting') {
+      // Update if the existing message is the raw key
+      const greeting = t('ai_greeting');
+      if (greeting && greeting !== 'ai_greeting') {
+        setMessages([{ ...messages[0], text: greeting }]);
+      }
     }
-  }, [t, messages]); // Depend on t to trigger re-render when translations load
+  }, [t, messages.length]); 
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -57,14 +81,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const generateContextPrompt = () => {
-    // Summarize data to avoid token limits while providing useful context
     const topClients = [...clients].sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 5)
       .map(c => `${c.company} (${formatCurrency(c.totalSpent)})`).join(', ');
     
     const lowStockItems = products.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock')
       .map(p => `${p.name} (${p.stock})`).join(', ');
 
-    const recentInvoices = invoices.slice(0, 5).map(i => `${i.number} for ${i.clientName}: ${formatCurrency(i.amount)} (${i.status})`).join(', ');
+    const recentInvoices = invoices.slice(0, 3).map(i => `${i.number}: ${formatCurrency(i.amount)} (${i.status})`).join(', ');
 
     // Determine target language name
     const languageMap: Record<string, string> = {
@@ -75,22 +98,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     const targetLanguage = languageMap[settings.language] || 'English';
 
     return `
-      Current Business Context:
-      - Company Name: ${settings.companyName}
-      - Total Revenue: ${formatCurrency(stats.revenue)}
-      - Total Expenses: ${formatCurrency(stats.expenses)}
-      - Net Profit: ${formatCurrency(stats.profit)}
-      - Pending Invoices: ${stats.pendingInvoices}
-      - Top 5 Clients: ${topClients || 'None'}
-      - Low Stock Items: ${lowStockItems || 'None'}
+      ${APP_KNOWLEDGE}
+
+      CURRENT BUSINESS DATA:
+      - Company: ${settings.companyName}
+      - Revenue: ${formatCurrency(stats.revenue)} | Expenses: ${formatCurrency(stats.expenses)}
+      - Top Clients: ${topClients || 'None'}
+      - Low Stock: ${lowStockItems || 'None'}
       - Recent Invoices: ${recentInvoices}
       
-      You are a helpful business assistant embedded in the SmartBiz SaaS application. 
-      Answer questions based on the context provided above. 
-      Keep answers concise, professional, and helpful.
-      If asked to perform actions (like creating invoices), explain that you can't execute actions yet but can guide them.
-
-      IMPORTANT: You must answer in ${targetLanguage}.
+      ROLE & INSTRUCTIONS:
+      You are a smart business assistant embedded in this app.
+      1. Answer questions about the business data provided above.
+      2. If asked how to perform a task, use the "APP FUNCTIONALITY" guide to provide specific navigation steps.
+      3. Keep answers concise and professional.
+      4. IMPORTANT: Answer in ${targetLanguage}.
     `;
   };
 
@@ -104,36 +126,42 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const apiKey = settings.geminiApiKey;
+      // Prioritize Environment Variable, then Settings
+      // We assume process.env.API_KEY is valid if present.
+      const apiKey = process.env.API_KEY || settings.geminiApiKey;
 
       if (!apiKey) {
-        throw new Error("API Key not found. Please configure it in Settings > General.");
+        throw new Error("MISSING_KEY");
       }
 
       const ai = new GoogleGenAI({ apiKey });
       
       const context = generateContextPrompt();
-      const prompt = `${context}\n\nUser Query: ${userMessage.text}`;
+      const prompt = `${context}\n\nUser Question: ${userMessage.text}`;
 
-      // Using gemini-2.5-flash for reliability and speed
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt
       });
 
-      const responseText = response.text || "I'm sorry, I couldn't generate a response at this time.";
+      const responseText = response.text || "I couldn't generate a response.";
 
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'model', text: responseText }]);
     } catch (error: any) {
       console.error("AI Error:", error);
       let errorMessage = t('ai_error_generic');
-      if (error.message && (error.message.includes("API Key") || error.message.includes("403") || error.message.includes("400"))) {
+      let isConfigError = false;
+
+      if (error.message === "MISSING_KEY" || (error.message && (error.message.includes("API Key") || error.message.includes("403") || error.message.includes("400")))) {
         errorMessage = t('ai_error_config');
+        isConfigError = true;
       }
+      
       setMessages(prev => [...prev, { 
         id: (Date.now() + 1).toString(), 
         role: 'model', 
-        text: errorMessage
+        text: errorMessage,
+        isError: true
       }]);
     } finally {
       setIsLoading(false);
@@ -162,17 +190,27 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
           >
             <div className={`
               w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-              ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white'}
+              ${msg.role === 'user' ? 'bg-indigo-600 text-white' : msg.isError ? 'bg-red-500 text-white' : 'bg-emerald-600 text-white'}
             `}>
               {msg.role === 'user' ? <UserIcon className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
             </div>
             <div className={`
-              max-w-[75%] p-3 rounded-2xl text-sm
+              max-w-[85%] p-3 rounded-2xl text-sm
               ${msg.role === 'user' 
                 ? 'bg-indigo-600 text-white rounded-tr-none' 
-                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none shadow-sm'}
+                : msg.isError
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-tl-none'
+                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none shadow-sm'}
             `}>
               {msg.text}
+              {msg.isError && (
+                <button 
+                  onClick={() => { onClose(); window.location.hash = '#settings-general'; }}
+                  className="mt-2 flex items-center gap-1 text-xs font-bold underline hover:no-underline"
+                >
+                  <Settings className="w-3 h-3" /> Go to Settings
+                </button>
+              )}
             </div>
           </div>
         ))}
