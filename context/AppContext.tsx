@@ -374,13 +374,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setStockTransfers(prev => [newTransfer, ...prev]);
 
     // 2. Log Movements
-    const ref = `TR-${newTransfer.id.substr(-4)}`;
+    const ref = transferData.reference || `TR-${newTransfer.id.substr(-4)}`;
     // Out from source
     addStockMovement({
       productId: product.id,
       productName: product.name,
       warehouseId: transferData.fromWarehouseId,
       warehouseName: sourceWarehouseName,
+      relatedWarehouseId: transferData.toWarehouseId,
+      relatedWarehouseName: destWarehouseName,
       date: new Date().toISOString(),
       quantity: -transferData.quantity,
       type: 'transfer_out',
@@ -396,6 +398,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       productName: product.name,
       warehouseId: transferData.toWarehouseId,
       warehouseName: destWarehouseName,
+      relatedWarehouseId: transferData.fromWarehouseId,
+      relatedWarehouseName: sourceWarehouseName,
       date: new Date().toISOString(),
       quantity: transferData.quantity,
       type: 'transfer_in',

@@ -784,39 +784,48 @@ const Inventory: React.FC = () => {
                   {stockMovements
                     .filter(m => m.productId === selectedProduct.id)
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map(movement => (
-                      <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-6 py-4 text-gray-500">{new Date(movement.date).toLocaleString()}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase
-                            ${movement.type === 'purchase' || movement.type === 'return' || movement.type === 'initial' || movement.type === 'transfer_in' 
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
-                          `}>
-                            {t(movement.type)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 font-mono text-gray-900 dark:text-white">{movement.reference}</td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{movement.warehouseName}</td>
-                        <td className={`px-6 py-4 text-right font-mono font-bold ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {movement.quantity > 0 ? '+' : ''}{movement.quantity}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
-                          {movement.unitCost ? formatCurrency(movement.unitCost) : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          {movement.costBefore && movement.costAfter && movement.costBefore !== movement.costAfter ? (
-                            <div className="flex flex-col items-end">
-                               <span className="text-xs line-through text-gray-400">{formatCurrency(movement.costBefore)}</span>
-                               <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(movement.costAfter)}</span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 text-xs">-</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500 italic truncate max-w-xs" title={movement.notes}>{movement.notes}</td>
-                      </tr>
-                    ))}
+                    .map(movement => {
+                      const relatedInfo = movement.relatedWarehouseName 
+                        ? (movement.type === 'transfer_in' ? `From: ${movement.relatedWarehouseName}` : `To: ${movement.relatedWarehouseName}`)
+                        : '';
+                      
+                      return (
+                        <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-6 py-4 text-gray-500">{new Date(movement.date).toLocaleString()}</td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase
+                              ${movement.type === 'purchase' || movement.type === 'return' || movement.type === 'initial' || movement.type === 'transfer_in' 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
+                            `}>
+                              {t(movement.type)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 font-mono text-gray-900 dark:text-white">{movement.reference}</td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{movement.warehouseName}</td>
+                          <td className={`px-6 py-4 text-right font-mono font-bold ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                          </td>
+                          <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                            {movement.unitCost ? formatCurrency(movement.unitCost) : '-'}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {movement.costBefore && movement.costAfter && movement.costBefore !== movement.costAfter ? (
+                              <div className="flex flex-col items-end">
+                                <span className="text-xs line-through text-gray-400">{formatCurrency(movement.costBefore)}</span>
+                                <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(movement.costAfter)}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 italic truncate max-w-xs" title={movement.notes}>
+                            {movement.notes}
+                            {relatedInfo && <span className="text-xs text-indigo-500 block not-italic font-medium">{relatedInfo}</span>}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   {stockMovements.filter(m => m.productId === selectedProduct.id).length === 0 && (
                     <tr>
                       <td colSpan={8} className="p-8 text-center text-gray-500 dark:text-gray-400">

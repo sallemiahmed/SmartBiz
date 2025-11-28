@@ -184,6 +184,8 @@ export interface StockMovement {
   productName: string;
   warehouseId: string;
   warehouseName: string;
+  relatedWarehouseId?: string; // For transfers: the 'other' warehouse
+  relatedWarehouseName?: string; // For transfers: the 'other' warehouse name
   date: string;
   quantity: number; // positive = in, negative = out
   type: 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return' | 'initial';

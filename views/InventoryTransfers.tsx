@@ -16,12 +16,14 @@ const InventoryTransfers: React.FC = () => {
     fromWarehouseId: '',
     toWarehouseId: '',
     quantity: 1,
+    reference: '',
     notes: ''
   });
 
   const filteredTransfers = stockTransfers.filter(tr => 
     tr.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tr.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+    tr.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (tr.reference && tr.reference.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleTransferSubmit = (e: React.FormEvent) => {
@@ -35,7 +37,7 @@ const InventoryTransfers: React.FC = () => {
     transferStock(transferData);
     setIsTransferModalOpen(false);
     // Reset form
-    setTransferData({ productId: '', fromWarehouseId: '', toWarehouseId: '', quantity: 1, notes: '' });
+    setTransferData({ productId: '', fromWarehouseId: '', toWarehouseId: '', quantity: 1, reference: '', notes: '' });
   };
 
   const openTransferModal = () => {
@@ -44,6 +46,7 @@ const InventoryTransfers: React.FC = () => {
       fromWarehouseId: warehouses[0]?.id || '',
       toWarehouseId: warehouses[1]?.id || '',
       quantity: 1,
+      reference: '',
       notes: ''
     });
     setIsTransferModalOpen(true);
@@ -85,6 +88,7 @@ const InventoryTransfers: React.FC = () => {
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0">
               <tr>
                 <th className="px-6 py-4">{t('date')}</th>
+                <th className="px-6 py-4">{t('ref_num')}</th>
                 <th className="px-6 py-4">{t('product')}</th>
                 <th className="px-6 py-4">{t('from')}</th>
                 <th className="px-6 py-4"></th>
@@ -97,6 +101,7 @@ const InventoryTransfers: React.FC = () => {
               {filteredTransfers.map((tr) => (
                 <tr key={tr.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-6 py-4 text-gray-500">{new Date(tr.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 font-mono text-indigo-600 dark:text-indigo-400">{tr.reference || '-'}</td>
                   <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{tr.productName}</td>
                   <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{getWarehouseName(tr.fromWarehouseId)}</td>
                   <td className="px-2 py-4 text-center">
@@ -109,7 +114,7 @@ const InventoryTransfers: React.FC = () => {
               ))}
               {filteredTransfers.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={8} className="p-12 text-center text-gray-500 dark:text-gray-400">
                     <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     <p>No transfer history found.</p>
                   </td>
@@ -131,6 +136,16 @@ const InventoryTransfers: React.FC = () => {
               <button onClick={() => setIsTransferModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <form onSubmit={handleTransferSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('ref_num')} (Optional)</label>
+                <input 
+                  type="text" 
+                  value={transferData.reference}
+                  onChange={(e) => setTransferData({...transferData, reference: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white font-mono"
+                  placeholder="TR-..."
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product')}</label>
                 <select 
