@@ -75,13 +75,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     companyPhone: '+1 (555) 123-4567',
     companyAddress: '123 Tech Blvd, Silicon Valley, CA',
     companyVatId: 'TAX-12345678',
-    currency: 'USD',
-    language: 'en',
-    timezone: 'UTC-5',
+    currency: 'EUR', // Default to Euro
+    language: 'fr',  // Default to French
+    timezone: 'UTC+1', // Default to Paris Time
     taxRates: [
-      { id: '1', name: 'Standard VAT', rate: 19, isDefault: true },
-      { id: '2', name: 'Reduced Rate', rate: 7 },
-      { id: '3', name: 'Zero Rate', rate: 0 }
+      { id: '1', name: 'TVA Standard', rate: 20, isDefault: true },
+      { id: '2', name: 'Taux Réduit', rate: 5.5 },
+      { id: '3', name: 'Zéro', rate: 0 }
     ]
   });
 
@@ -160,7 +160,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : 'en-US', {
+    return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-FR' : 'en-US'), {
       style: 'currency',
       currency: settings.currency,
       minimumFractionDigits: 2
