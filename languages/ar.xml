@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- Sidebar -->
+    <string name="dashboard">لوحة القيادة</string>
+    <string name="clients">العملاء</string>
+    <string name="suppliers">الموردين</string>
+    <string name="sales">المبيعات</string>
+    <string name="purchases">المشتريات</string>
+    <string name="inventory">المخزون</string>
+    <string name="documents">المستندات</string>
+    <string name="reports">التقارير</string>
+    <string name="settings">الإعدادات</string>
+
+    <!-- Submenus -->
+    <string name="estimate">عرض سعر</string>
+    <string name="client_order">طلب عميل</string>
+    <string name="delivery_note">مذكرة تسليم</string>
+    <string name="invoice">فاتورة</string>
+    <string name="issue_note">مذكرة صرف</string>
+    <string name="supplier_order">طلب مورد</string>
+    <string name="supplier_delivery">استلام بضاعة</string>
+    <string name="supplier_invoice">فاتورة مورد</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_overview">نظرة عامة</string>
+    <string name="welcome_message">مرحباً بعودتك! إليك ما يحدث اليوم.</string>
+    <string name="export_report">تصدير تقرير</string>
+    <string name="new_invoice">فاتورة جديدة</string>
+    <string name="revenue_vs_expenses">الإيرادات والمصروفات</string>
+    <string name="monthly_sales">المبيعات الشهرية</string>
+    <string name="total_revenue">إجمالي الإيرادات</string>
+    <string name="total_expenses">إجمالي المصروفات</string>
+    <string name="net_profit">صافي الربح</string>
+    <string name="active_clients">العملاء النشطين</string>
+
+    <!-- Clients -->
+    <string name="client_management">إدارة العملاء</string>
+    <string name="client_desc">إدارة علاقات العملاء.</string>
+    <string name="add_client">إضافة عميل</string>
+    <string name="search_clients">بحث بالشركة، الاسم أو البريد...</string>
+    <string name="contact_details">تفاصيل الاتصال</string>
+    <string name="total_spent">إجمالي الإنفاق</string>
+    <string name="no_clients">لم يتم العثور على عملاء.</string>
+    <string name="company_contact">الشركة / جهة الاتصال</string>
+    <string name="edit_client">تعديل عميل</string>
+    <string name="client_details">تفاصيل العميل</string>
+
+    <!-- Suppliers -->
+    <string name="supplier_management">إدارة الموردين</string>
+    <string name="supplier_desc">إدارة الموردين والمشتريات.</string>
+    <string name="add_supplier">إضافة مورد</string>
+    <string name="add_new_supplier">إضافة مورد جديد</string>
+    <string name="search_suppliers">بحث بالشركة أو جهة الاتصال...</string>
+    <string name="total_purchased">إجمالي المشتريات</string>
+    <string name="no_suppliers">لم يتم العثور على موردين.</string>
+    <string name="contact_name">اسم جهة الاتصال</string>
+    <string name="delete_supplier_title">حذف المورد؟</string>
+    <string name="delete_supplier_msg">هل أنت متأكد من أنك تريد حذف هذا المورد؟ لا يمكن التراجع عن هذا الإجراء.</string>
+
+    <!-- Inventory -->
+    <string name="inventory_management">إدارة المخزون</string>
+    <string name="inventory_desc">تتبع مستويات المخزون والمنتجات.</string>
+    <string name="add_product">إضافة منتج</string>
+    <string name="total_products">إجمالي المنتجات</string>
+    <string name="needs_attention">يحتاج انتباه</string>
+    <string name="total_value">قيمة المخزون</string>
+    <string name="search_products">بحث بالاسم، الرمز أو الفئة...</string>
+    <string name="product_name">اسم المنتج</string>
+    <string name="sku">الرمز (SKU)</string>
+    <string name="category">الفئة</string>
+    <string name="stock_level">مستوى المخزون</string>
+    <string name="price">السعر</string>
+    <string name="cost">التكلفة</string>
+    <string name="stock_qty">الكمية</string>
+    <string name="no_products">لم يتم العثور على منتجات.</string>
+    <string name="edit_product">تعديل منتج</string>
+
+    <!-- Documents -->
+    <string name="documents_history">سجل المستندات</string>
+    <string name="documents_desc">عرض وإدارة جميع مستندات المبيعات.</string>
+    <string name="search_documents">بحث برقم المستند أو العميل...</string>
+    <string name="ref_num">رقم مرجعي</string>
+    <string name="type">النوع</string>
+    <string name="client">العميل</string>
+    <string name="date">التاريخ</string>
+    <string name="due_date">تاريخ الاستحقاق</string>
+    <string name="amount">المبلغ</string>
+    <string name="no_documents">لم يتم العثور على مستندات.</string>
+
+    <!-- Sales Pages -->
+    <string name="catalog">الكتالوج</string>
+    <string name="cart">البيع الحالي</string>
+    <string name="select_customer">اختر العميل...</string>
+    <string name="subtotal">المجموع الفرعي</string>
+    <string name="discount">خصم</string>
+    <string name="tax">ضريبة</string>
+    <string name="clear">مسح</string>
+    <string name="success">نجاح!</string>
+    <string name="print">طباعة</string>
+    <string name="custom_item">عنصر مخصص</string>
+    <string name="add_custom_item">إضافة عنصر</string>
+    <string name="item_name">اسم العنصر</string>
+    <string name="save_estimate">حفظ عرض السعر</string>
+    <string name="confirm_order">تأكيد الطلب</string>
+    <string name="create_delivery">إنشاء مذكرة تسليم</string>
+    <string name="charge_create">دفع وإنشاء فاتورة</string>
+
+    <string name="estimates_quotes">عروض الأسعار</string>
+    <string name="estimates_desc">إدارة عروض الأسعار والمقترحات للعملاء.</string>
+    <string name="new_estimate">عرض سعر جديد</string>
+    <string name="search_estimates">بحث في عروض الأسعار...</string>
+    <string name="estimate_details">تفاصيل عرض السعر</string>
+    <string name="issued_date">تاريخ الإصدار</string>
+    <string name="valid_until">ساري حتى</string>
+    <string name="convert_to_order">تحويل إلى طلب</string>
+    <string name="convert_to_invoice">تحويل إلى فاتورة</string>
+
+    <string name="sales_orders">طلبات العملاء</string>
+    <string name="sales_orders_desc">إدارة طلبات العملاء.</string>
+    <string name="new_order">طلب جديد</string>
+    <string name="search_orders">بحث برقم الطلب أو العميل...</string>
+    <string name="order_details">تفاصيل الطلب</string>
+    <string name="generate_invoice">إنشاء فاتورة</string>
+
+    <string name="delivery_notes">مذكرات التسليم</string>
+    <string name="delivery_notes_desc">تتبع الشحنات وحالة التسليم.</string>
+    <string name="new_delivery">مذكرة تسليم جديدة</string>
+    <string name="search_deliveries">بحث في مذكرات التسليم...</string>
+    <string name="delivery_details">تفاصيل التسليم</string>
+    <string name="shipped_date">تاريخ الشحن</string>
+    <string name="shipped_items">العناصر المشحونة</string>
+
+    <string name="sales_invoices">فواتير المبيعات</string>
+    <string name="sales_invoices_desc">إدارة الفواتير الصادرة والمدفوعات.</string>
+    <string name="new_invoice_btn">فاتورة جديدة</string>
+    <string name="search_invoices">بحث في الفواتير...</string>
+    <string name="invoice_details">تفاصيل الفاتورة</string>
+    <string name="mark_paid">تحديد كمدفوع</string>
+    <string name="print_invoice">طباعة الفاتورة</string>
+
+    <string name="issue_notes">مذكرات الصرف</string>
+    <string name="issue_notes_desc">إدارة صرف المخزون والمذكرات الصادرة يدوياً.</string>
+    <string name="new_issue_note">مذكرة صرف جديدة</string>
+    <string name="search_issue_notes">بحث في مذكرات الصرف...</string>
+    <string name="issue_note_details">تفاصيل مذكرة الصرف</string>
+    <string name="recipient">المستلم</string>
+    <string name="issued_items">العناصر المصروفة</string>
+
+    <!-- Purchase Pages -->
+    <string name="purchase_orders">طلبات الشراء</string>
+    <string name="purchase_orders_desc">إدارة طلبات الموردين والمشتريات.</string>
+    <string name="new_po">طلب شراء جديد</string>
+    <string name="search_pos">بحث برقم الطلب أو المورد...</string>
+    <string name="po_details">تفاصيل طلب الشراء</string>
+
+    <string name="goods_received_grn">استلام البضائع (GRN)</string>
+    <string name="goods_received_desc">تتبع شحنات المخزون الواردة من الموردين.</string>
+    <string name="receive_goods">استلام بضائع</string>
+    <string name="search_grns">بحث في سندات الاستلام...</string>
+    <string name="date_received">تاريخ الاستلام</string>
+    <string name="received_items">العناصر المستلمة</string>
+
+    <string name="purchase_invoices">فواتير الشراء</string>
+    <string name="purchase_invoices_desc">إدارة فواتير الموردين والمصاريف.</string>
+    <string name="register_invoice">تسجيل فاتورة</string>
+    <string name="search_purchase_invoices">بحث برقم الفاتورة أو المورد...</string>
+
+    <!-- Reports -->
+    <string name="reports_analytics">التقارير والتحليلات</string>
+    <string name="reports_desc">اختر فئة لعرض المقاييس التفصيلية.</string>
+    <string name="sales_report">تقرير المبيعات</string>
+    <string name="purchase_report">تقرير المشتريات</string>
+    <string name="inventory_stock_report">المخزون والمستودع</string>
+    <string name="financials_report">المالية</string>
+    <string name="rep_sales_customer">مبيعات العملاء</string>
+    <string name="rep_sales_vat">ضريبة المبيعات</string>
+    <string name="rep_cust_trans">معاملات العملاء</string>
+    <string name="rep_supp_purch">مشتريات الموردين</string>
+    <string name="rep_purch_vat">ضريبة المشتريات</string>
+    <string name="rep_stock_mov">حركات المخزون</string>
+    <string name="rep_prod_perf">أداء المنتجات</string>
+    <string name="rep_monthly_profit">الربح الشهري</string>
+    <string name="rep_aging_receivables">الذمم المدينة القديمة</string>
+
+    <!-- Settings -->
+    <string name="general">عام</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="security">الأمان</string>
+    <string name="billing">الفوترة</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="company_details">تفاصيل الشركة</string>
+    <string name="company_name">اسم الشركة</string>
+    <string name="company_email">البريد الإلكتروني</string>
+    <string name="company_phone">الهاتف</string>
+    <string name="company_vat_id">الرقم الضريبي</string>
+    <string name="address">العنوان</string>
+    <string name="localization">الموقع والتفضيلات</string>
+    <string name="language">اللغة</string>
+    <string name="currency">العملة</string>
+    <string name="timezone">المنطقة الزمنية</string>
+    <string name="tax_configuration">إعدادات الضرائب</string>
+    <string name="tax_rates_list">معدلات الضرائب المكونة</string>
+    <string name="rate_name">الاسم (مثل ضريبة القيمة المضافة)</string>
+    <string name="rate_value">المعدل (%)</string>
+    <string name="add_rate">إضافة معدل</string>
+    <string name="save_changes">حفظ التغييرات</string>
+    <string name="settings_saved">تم حفظ الإعدادات بنجاح</string>
+    <string name="manage_preferences">إدارة تفضيلاتك ومعلومات الشركة.</string>
+    <string name="password_auth">كلمة المرور والمصادقة</string>
+    <string name="current_password">كلمة المرور الحالية</string>
+    <string name="new_password">كلمة المرور الجديدة</string>
+    <string name="confirm_password">تأكيد كلمة المرور الجديدة</string>
+    <string name="two_factor_auth">المصادقة الثنائية</string>
+    <string name="secure_account">تأمين حسابك</string>
+    <string name="secure_account_desc">أضف طبقة إضافية من الأمان.</string>
+    <string name="enable_2fa">تفعيل المصادقة الثنائية</string>
+    <string name="disable_2fa">تعطيل المصادقة الثنائية</string>
+    <string name="personal_information">المعلومات الشخصية</string>
+    <string name="email_notifications">إشعارات البريد الإلكتروني</string>
+    <string name="change_avatar">تغيير الصورة</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="email_address">عنوان البريد الإلكتروني</string>
+    <string name="role">الدور</string>
+
+    <!-- Common / Status -->
+    <string name="search">بحث...</string>
+    <string name="new">جديد</string>
+    <string name="view_details">عرض التفاصيل</string>
+    <string name="delete">حذف</string>
+    <string name="edit">تعديل</string>
+    <string name="status">الحالة</string>
+    <string name="actions">إجراءات</string>
+    <string name="total">المجموع</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="ask_ai">مساعد ذكي</string>
+
+    <string name="all_status">كل الحالات</string>
+    <string name="all_categories">كل الفئات</string>
+    <string name="all_types">كل الأنواع</string>
+
+    <string name="active">نشط</string>
+    <string name="inactive">غير نشط</string>
+    <string name="paid">مدفوع</string>
+    <string name="pending">معلق</string>
+    <string name="overdue">متأخر</string>
+    <string name="draft">مسودة</string>
+    <string name="completed">مكتمل</string>
+    <string name="received">مستلم</string>
+    <string name="in_stock">متوفر</string>
+    <string name="low_stock">منخفض</string>
+    <string name="out_of_stock">نفذ</string>
+    
+    <string name="delete_confirm_title">حذف العنصر؟</string>
+    <string name="delete_confirm_msg">هل أنت متأكد من أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="yes_delete">نعم، حذف</string>
+</resources>

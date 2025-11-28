@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
-import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings } from '../types';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
+import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language } from '../types';
 import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases } from '../services/mockData';
-import { translations } from '../services/translations';
+import { loadTranslations } from '../services/translations';
 
 interface ChartDataPoint {
   name: string;
@@ -48,15 +48,15 @@ interface AppContextType {
   // Complex Logic
   createSalesDocument: (
     type: SalesDocumentType, 
-    docData: Omit<Invoice, 'id' | 'number' | 'type'>, 
+    docData: Omit<Invoice, 'id' | 'number' | 'type' | 'items'>, 
     items: InvoiceItem[]
-  ) => Invoice; // Changed return type to Invoice
+  ) => Invoice; 
   
   createPurchaseDocument: (
     type: PurchaseDocumentType,
-    docData: Omit<Purchase, 'id' | 'number' | 'type'>, 
+    docData: Omit<Purchase, 'id' | 'number' | 'type' | 'items'>, 
     items: InvoiceItem[]
-  ) => Purchase; // Changed return type to Purchase
+  ) => Purchase;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -84,6 +84,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       { id: '3', name: 'Zero Rate', rate: 0 }
     ]
   });
+
+  const [currentTranslations, setCurrentTranslations] = useState<Record<string, string>>({});
+
+  // Load translations when language changes
+  useEffect(() => {
+    loadTranslations(settings.language).then(data => {
+      setCurrentTranslations(data);
+    });
+  }, [settings.language]);
 
   // --- DERIVED STATE (STATS & CHARTS) ---
 
@@ -147,8 +156,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // --- HELPERS ---
   const t = (key: string): string => {
-    const langData = translations[settings.language] || translations['en'];
-    return langData[key] || key;
+    return currentTranslations[key] || key;
   };
 
   const formatCurrency = (amount: number): string => {
@@ -190,7 +198,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // --- BUSINESS LOGIC ---
 
-  const createSalesDocument = (type: SalesDocumentType, docData: Omit<Invoice, 'id' | 'number' | 'type'>, items: InvoiceItem[]): Invoice => {
+  const createSalesDocument = (type: SalesDocumentType, docData: Omit<Invoice, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Invoice => {
     const newId = `${Date.now()}`;
     const prefix = type === 'estimate' ? 'EST' : type === 'order' ? 'ORD' : type === 'delivery' ? 'DEL' : type === 'issue' ? 'ISS' : 'INV';
     const newNumber = `${prefix}-${new Date().getFullYear()}-${String(invoices.length + 1001).padStart(4, '0')}`;
@@ -237,7 +245,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return newDoc;
   };
 
-  const createPurchaseDocument = (type: PurchaseDocumentType, docData: Omit<Purchase, 'id' | 'number' | 'type'>, items: InvoiceItem[]): Purchase => {
+  const createPurchaseDocument = (type: PurchaseDocumentType, docData: Omit<Purchase, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Purchase => {
     const newId = `PO-${Date.now()}`;
     const prefix = type === 'order' ? 'PO' : type === 'delivery' ? 'GRN' : 'PINV';
     const newNumber = `${prefix}-${new Date().getFullYear()}-${String(purchases.length + 5001).padStart(4, '0')}`;

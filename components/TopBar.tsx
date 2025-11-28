@@ -12,7 +12,7 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNavigate, onToggleAI }) => {
-  const { clients, suppliers, products, invoices, formatCurrency } = useApp();
+  const { clients, suppliers, products, invoices, formatCurrency, t } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -59,7 +59,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNav
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search..." 
+              placeholder={t('search')}
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); }}
               onFocus={() => setShowResults(true)}
@@ -76,7 +76,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNav
                 <div className="py-2">
                   {filteredResults.clients.length > 0 && (
                     <div className="px-2 mb-2">
-                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">Clients</div>
+                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">{t('clients')}</div>
                       {filteredResults.clients.map(c => (
                         <button key={c.id} onClick={() => handleResultClick('clients')} className="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg group">
                           <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-md"><Users className="w-4 h-4" /></div>
@@ -91,7 +91,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNav
 
                   {filteredResults.invoices.length > 0 && (
                     <div className="px-2 mb-2">
-                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">Invoices</div>
+                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">{t('documents')}</div>
                       {filteredResults.invoices.map(i => (
                         <button key={i.id} onClick={() => handleResultClick('invoices')} className="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg group">
                           <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-md"><FileText className="w-4 h-4" /></div>
@@ -106,7 +106,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNav
 
                   {filteredResults.products.length > 0 && (
                     <div className="px-2 mb-2">
-                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">Products</div>
+                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">{t('inventory')}</div>
                       {filteredResults.products.map(p => (
                         <button key={p.id} onClick={() => handleResultClick('inventory')} className="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg group">
                           <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-md"><Package className="w-4 h-4" /></div>
@@ -121,7 +121,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNav
 
                   {filteredResults.suppliers.length > 0 && (
                     <div className="px-2 mb-2">
-                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">Suppliers</div>
+                      <div className="text-xs font-semibold text-gray-400 uppercase px-2 mb-1">{t('suppliers')}</div>
                       {filteredResults.suppliers.map(s => (
                         <button key={s.id} onClick={() => handleResultClick('suppliers')} className="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg group">
                           <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded-md"><Store className="w-4 h-4" /></div>
@@ -148,7 +148,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, isDark, toggleTheme, onNav
           title="Ask AI Assistant"
         >
           <Sparkles className="w-5 h-5" />
-          <span className="hidden sm:inline text-sm font-medium">Ask AI</span>
+          <span className="hidden sm:inline text-sm font-medium">{t('ask_ai')}</span>
         </button>
 
         <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>

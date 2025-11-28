@@ -8,7 +8,7 @@ interface SalesDeliveriesProps {
 }
 
 const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice } = useApp();
+  const { invoices, deleteInvoice, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -25,15 +25,15 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delivery Notes 🚚</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Track shipments and delivery status.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('delivery_notes')} 🚚</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('delivery_notes_desc')}</p>
         </div>
         <button 
           onClick={onAddNew}
           className="px-4 py-2 bg-slate-700 text-white rounded-lg flex items-center gap-2 hover:bg-slate-800 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          New Delivery
+          {t('new_delivery')}
         </button>
       </div>
 
@@ -43,7 +43,7 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search delivery notes..." 
+              placeholder={t('search_deliveries')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:text-white"
@@ -55,12 +55,12 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
               <tr>
-                <th className="px-6 py-4">Delivery #</th>
-                <th className="px-6 py-4">Client</th>
-                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">{t('ref_num')}</th>
+                <th className="px-6 py-4">{t('client')}</th>
+                <th className="px-6 py-4">{t('date')}</th>
                 <th className="px-6 py-4">Items Count</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">{t('status')}</th>
+                <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -80,14 +80,14 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
                       <button 
                         onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900/30 rounded-lg"
-                        title="View Details"
+                        title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteInvoice(doc.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
-                        title="Delete"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -100,7 +100,7 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
           {filteredDocs.length === 0 && (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400">
               <Truck className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>No delivery notes found.</p>
+              <p>{t('no_documents')}</p>
             </div>
           )}
         </div>
@@ -112,7 +112,7 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Delivery Details</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('delivery_details')}</h3>
                 <span className="text-sm text-slate-600 dark:text-slate-400 font-mono">{selectedDoc.number}</span>
               </div>
               <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
@@ -120,16 +120,16 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
             
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-500">Client</span>
+                <span className="text-gray-500">{t('client')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.clientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Shipped Date</span>
+                <span className="text-gray-500">{t('shipped_date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Shipped Items</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('shipped_items')}</h4>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {selectedDoc.items.length > 0 ? (
                     selectedDoc.items.map((item, idx) => (
@@ -150,7 +150,7 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Close
+                {t('cancel')}
               </button>
             </div>
           </div>

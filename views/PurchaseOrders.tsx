@@ -8,7 +8,7 @@ interface PurchaseOrdersProps {
 }
 
 const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, formatCurrency } = useApp();
+  const { purchases, deletePurchase, formatCurrency, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -48,15 +48,15 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Purchase Orders 🧾</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Manage supplier orders and procurement.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('purchase_orders')} 🧾</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('purchase_orders_desc')}</p>
         </div>
         <button 
           onClick={onAddNew}
           className="px-4 py-2 bg-emerald-600 text-white rounded-lg flex items-center gap-2 hover:bg-emerald-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          New PO
+          {t('new_po')}
         </button>
       </div>
 
@@ -67,7 +67,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search by PO # or supplier..." 
+              placeholder={t('search_pos')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
@@ -80,10 +80,10 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="received">Received</option>
+              <option value="all">{t('all_status')}</option>
+              <option value="pending">{t('pending')}</option>
+              <option value="completed">{t('completed')}</option>
+              <option value="received">{t('received')}</option>
             </select>
           </div>
         </div>
@@ -93,12 +93,12 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
               <tr>
-                <th className="px-6 py-4">PO #</th>
-                <th className="px-6 py-4">Supplier</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">{t('ref_num')}</th>
+                <th className="px-6 py-4">{t('supplier_management')}</th>
+                <th className="px-6 py-4">{t('date')}</th>
+                <th className="px-6 py-4">{t('amount')}</th>
+                <th className="px-6 py-4">{t('status')}</th>
+                <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -110,7 +110,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(order.amount)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {t(order.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -118,14 +118,14 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                       <button 
                         onClick={() => { setSelectedOrder(order); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
-                        title="View Details"
+                        title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => { setSelectedOrder(order); setIsDeleteModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
-                        title="Delete"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -138,7 +138,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
           {processedOrders.length === 0 && (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>No purchase orders found.</p>
+              <p>{t('no_documents')}</p>
             </div>
           )}
         </div>
@@ -150,7 +150,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">PO Details</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('po_details')}</h3>
                 <span className="text-sm text-emerald-600 dark:text-emerald-400 font-mono">{selectedOrder.number}</span>
               </div>
               <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
@@ -158,17 +158,17 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
             
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-500">Supplier</span>
+                <span className="text-gray-500">{t('supplier_management')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.supplierName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Date</span>
+                <span className="text-gray-500">{t('date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.date}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Status</span>
+                <span className="text-gray-500">{t('status')}</span>
                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(selectedOrder.status)}`}>
-                  {selectedOrder.status.toUpperCase()}
+                  {t(selectedOrder.status)}
                 </span>
               </div>
               
@@ -189,7 +189,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
               </div>
 
               <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
-                <span className="text-gray-900 dark:text-white">Total</span>
+                <span className="text-gray-900 dark:text-white">{t('total')}</span>
                 <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedOrder.amount)}</span>
               </div>
             </div>
@@ -199,7 +199,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Close
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -213,22 +213,22 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-500">
                <AlertTriangle className="w-6 h-6" />
              </div>
-             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Purchase Order?</h3>
+             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('delete_confirm_title')}</h3>
              <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-               Are you sure you want to delete PO <span className="font-bold">{selectedOrder.number}</span>?
+               {t('delete_confirm_msg')} <span className="font-bold">{selectedOrder.number}</span>?
              </p>
              <div className="flex gap-3 justify-center">
                <button 
                  onClick={() => setIsDeleteModalOpen(false)}
                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
                >
-                 Cancel
+                 {t('cancel')}
                </button>
                <button 
                  onClick={handleDelete}
                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                >
-                 Delete
+                 {t('yes_delete')}
                </button>
              </div>
           </div>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- Sidebar -->
+    <string name="dashboard">Dashboard</string>
+    <string name="clients">Clients</string>
+    <string name="suppliers">Suppliers</string>
+    <string name="sales">Sales</string>
+    <string name="purchases">Purchases</string>
+    <string name="inventory">Inventory</string>
+    <string name="documents">Documents</string>
+    <string name="reports">Reports</string>
+    <string name="settings">Settings</string>
+
+    <!-- Submenus -->
+    <string name="estimate">Estimate</string>
+    <string name="client_order">Client Order</string>
+    <string name="delivery_note">Delivery Note</string>
+    <string name="invoice">Invoice</string>
+    <string name="issue_note">Issue Note</string>
+    <string name="supplier_order">Supplier Order</string>
+    <string name="supplier_delivery">Supplier Delivery</string>
+    <string name="supplier_invoice">Supplier Invoice</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_overview">Dashboard Overview</string>
+    <string name="welcome_message">Welcome back! Here's what's happening today.</string>
+    <string name="export_report">Export Report</string>
+    <string name="new_invoice">New Invoice</string>
+    <string name="revenue_vs_expenses">Revenue vs Expenses</string>
+    <string name="monthly_sales">Monthly Sales</string>
+    <string name="total_revenue">Total Revenue</string>
+    <string name="total_expenses">Total Expenses</string>
+    <string name="net_profit">Net Profit</string>
+    <string name="active_clients">Active Clients</string>
+
+    <!-- Clients -->
+    <string name="client_management">Client Management</string>
+    <string name="client_desc">Manage your customer relationships.</string>
+    <string name="add_client">Add Client</string>
+    <string name="search_clients">Search by company, name or email...</string>
+    <string name="contact_details">Contact Details</string>
+    <string name="total_spent">Total Spent</string>
+    <string name="no_clients">No clients found matching your search.</string>
+    <string name="company_contact">Company / Contact</string>
+    <string name="edit_client">Edit Client</string>
+    <string name="client_details">Client Details</string>
+
+    <!-- Suppliers -->
+    <string name="supplier_management">Supplier Management</string>
+    <string name="supplier_desc">Manage your vendor relationships and procurement.</string>
+    <string name="add_supplier">Add Supplier</string>
+    <string name="add_new_supplier">Add New Supplier</string>
+    <string name="search_suppliers">Search by company or contact name...</string>
+    <string name="total_purchased">Total Purchased</string>
+    <string name="no_suppliers">No suppliers found matching your criteria.</string>
+    <string name="contact_name">Contact Name</string>
+    <string name="delete_supplier_title">Delete Supplier?</string>
+    <string name="delete_supplier_msg">Are you sure you want to delete this supplier? This action cannot be undone.</string>
+
+    <!-- Inventory -->
+    <string name="inventory_management">Inventory Management</string>
+    <string name="inventory_desc">Track stock levels, value, and product details.</string>
+    <string name="add_product">Add Product</string>
+    <string name="total_products">Total Products</string>
+    <string name="needs_attention">Needs Attention</string>
+    <string name="total_value">Total Inventory Value</string>
+    <string name="search_products">Search by name, SKU or category...</string>
+    <string name="product_name">Product Name</string>
+    <string name="sku">SKU</string>
+    <string name="category">Category</string>
+    <string name="stock_level">Stock Level</string>
+    <string name="price">Price</string>
+    <string name="cost">Cost</string>
+    <string name="stock_qty">Stock Qty</string>
+    <string name="no_products">No products found matching your search.</string>
+    <string name="edit_product">Edit Product</string>
+
+    <!-- Documents -->
+    <string name="documents_history">Documents History</string>
+    <string name="documents_desc">View and manage all sales documents.</string>
+    <string name="search_documents">Search documents by # or client...</string>
+    <string name="ref_num">Ref #</string>
+    <string name="type">Type</string>
+    <string name="client">Client</string>
+    <string name="date">Date</string>
+    <string name="due_date">Due Date</string>
+    <string name="amount">Amount</string>
+    <string name="no_documents">No documents found matching criteria.</string>
+
+    <!-- Sales Pages -->
+    <string name="catalog">Catalog</string>
+    <string name="cart">Current Sale</string>
+    <string name="select_customer">Select Customer...</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="discount">Discount</string>
+    <string name="tax">Tax</string>
+    <string name="clear">Clear</string>
+    <string name="success">Success!</string>
+    <string name="print">Print</string>
+    <string name="custom_item">Custom Item</string>
+    <string name="add_custom_item">Add Custom Item</string>
+    <string name="item_name">Item Name</string>
+    <string name="save_estimate">Save Estimate</string>
+    <string name="confirm_order">Confirm Order</string>
+    <string name="create_delivery">Create Delivery Note</string>
+    <string name="charge_create">Charge &amp; Create Invoice</string>
+
+    <string name="estimates_quotes">Estimates / Quotes</string>
+    <string name="estimates_desc">Manage client quotations and proposals.</string>
+    <string name="new_estimate">New Estimate</string>
+    <string name="search_estimates">Search estimates...</string>
+    <string name="estimate_details">Estimate Details</string>
+    <string name="issued_date">Issued Date</string>
+    <string name="valid_until">Valid Until</string>
+    <string name="convert_to_order">Convert to Order</string>
+    <string name="convert_to_invoice">Convert to Invoice</string>
+
+    <string name="sales_orders">Sales Orders</string>
+    <string name="sales_orders_desc">Manage customer orders.</string>
+    <string name="new_order">New Order</string>
+    <string name="search_orders">Search by order # or client...</string>
+    <string name="order_details">Order Details</string>
+    <string name="generate_invoice">Generate Invoice</string>
+
+    <string name="delivery_notes">Delivery Notes</string>
+    <string name="delivery_notes_desc">Track shipments and delivery status.</string>
+    <string name="new_delivery">New Delivery</string>
+    <string name="search_deliveries">Search delivery notes...</string>
+    <string name="delivery_details">Delivery Details</string>
+    <string name="shipped_date">Shipped Date</string>
+    <string name="shipped_items">Shipped Items</string>
+
+    <string name="sales_invoices">Sales Invoices</string>
+    <string name="sales_invoices_desc">Manage issued invoices and payments.</string>
+    <string name="new_invoice_btn">New Invoice</string>
+    <string name="search_invoices">Search invoices...</string>
+    <string name="invoice_details">Invoice Details</string>
+    <string name="mark_paid">Mark Paid</string>
+    <string name="print_invoice">Print Invoice</string>
+
+    <string name="issue_notes">Issue Notes</string>
+    <string name="issue_notes_desc">Manage stock issues and manual outbound notes.</string>
+    <string name="new_issue_note">New Issue Note</string>
+    <string name="search_issue_notes">Search issue notes...</string>
+    <string name="issue_note_details">Issue Note Details</string>
+    <string name="recipient">Recipient</string>
+    <string name="issued_items">Issued Items</string>
+
+    <!-- Purchase Pages -->
+    <string name="purchase_orders">Purchase Orders</string>
+    <string name="purchase_orders_desc">Manage supplier orders and procurement.</string>
+    <string name="new_po">New PO</string>
+    <string name="search_pos">Search by PO # or supplier...</string>
+    <string name="po_details">PO Details</string>
+
+    <string name="goods_received_grn">Goods Received (GRN)</string>
+    <string name="goods_received_desc">Track incoming stock deliveries from suppliers.</string>
+    <string name="receive_goods">Receive Goods</string>
+    <string name="search_grns">Search GRNs...</string>
+    <string name="date_received">Date Received</string>
+    <string name="received_items">Received Items</string>
+
+    <string name="purchase_invoices">Purchase Invoices</string>
+    <string name="purchase_invoices_desc">Manage supplier invoices and expenses.</string>
+    <string name="register_invoice">Register Invoice</string>
+    <string name="search_purchase_invoices">Search by Invoice # or supplier...</string>
+
+    <!-- Reports -->
+    <string name="reports_analytics">Reports &amp; Analytics</string>
+    <string name="reports_desc">Select a category to view detailed metrics.</string>
+    <string name="sales_report">Sales Report</string>
+    <string name="purchase_report">Purchase Report</string>
+    <string name="inventory_stock_report">Inventory &amp; Stock</string>
+    <string name="financials_report">Financials</string>
+    <string name="rep_sales_customer">Customers Sales</string>
+    <string name="rep_sales_vat">Sales VAT</string>
+    <string name="rep_cust_trans">Customer Transactions</string>
+    <string name="rep_supp_purch">Suppliers Purchases</string>
+    <string name="rep_purch_vat">Purchase VAT</string>
+    <string name="rep_stock_mov">Stock Movements</string>
+    <string name="rep_prod_perf">Product Performance</string>
+    <string name="rep_monthly_profit">Monthly Profit</string>
+    <string name="rep_aging_receivables">Aging Receivables</string>
+
+    <!-- Settings -->
+    <string name="general">General</string>
+    <string name="profile">Profile</string>
+    <string name="security">Security</string>
+    <string name="billing">Billing</string>
+    <string name="notifications">Notifications</string>
+    <string name="company_details">Company Details</string>
+    <string name="company_name">Company Name</string>
+    <string name="company_email">Company Email</string>
+    <string name="company_phone">Company Phone</string>
+    <string name="company_vat_id">Company VAT / Tax ID</string>
+    <string name="address">Address</string>
+    <string name="localization">Localization &amp; Preferences</string>
+    <string name="language">Language</string>
+    <string name="currency">Currency</string>
+    <string name="timezone">Timezone</string>
+    <string name="tax_configuration">Tax Configuration</string>
+    <string name="tax_rates_list">Configured Tax Rates</string>
+    <string name="rate_name">Name (e.g. VAT)</string>
+    <string name="rate_value">Rate (%)</string>
+    <string name="add_rate">Add Rate</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="settings_saved">Settings Saved Successfully</string>
+    <string name="manage_preferences">Manage your preferences and company information.</string>
+    <string name="password_auth">Password &amp; Authentication</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm New Password</string>
+    <string name="two_factor_auth">Two-Factor Authentication</string>
+    <string name="secure_account">Secure your account</string>
+    <string name="secure_account_desc">Add an extra layer of security to your account.</string>
+    <string name="enable_2fa">Enable 2FA</string>
+    <string name="disable_2fa">Disable 2FA</string>
+    <string name="personal_information">Personal Information</string>
+    <string name="email_notifications">Email Notifications</string>
+    <string name="change_avatar">Change Avatar</string>
+    <string name="full_name">Full Name</string>
+    <string name="email_address">Email Address</string>
+    <string name="role">Role</string>
+
+    <!-- Common / Status -->
+    <string name="search">Search...</string>
+    <string name="new">New</string>
+    <string name="view_details">View Details</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="status">Status</string>
+    <string name="actions">Actions</string>
+    <string name="total">Total</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="ask_ai">Ask AI</string>
+    
+    <string name="all_status">All Status</string>
+    <string name="all_categories">All Categories</string>
+    <string name="all_types">All Types</string>
+    
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    <string name="paid">Paid</string>
+    <string name="pending">Pending</string>
+    <string name="overdue">Overdue</string>
+    <string name="draft">Draft</string>
+    <string name="completed">Completed</string>
+    <string name="received">Received</string>
+    <string name="in_stock">In Stock</string>
+    <string name="low_stock">Low Stock</string>
+    <string name="out_of_stock">Out of Stock</string>
+    
+    <string name="delete_confirm_title">Delete Item?</string>
+    <string name="delete_confirm_msg">Are you sure you want to delete this item? This action cannot be undone.</string>
+    <string name="yes_delete">Yes, Delete</string>
+</resources>

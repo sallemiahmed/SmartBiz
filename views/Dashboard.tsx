@@ -7,28 +7,28 @@ import StatsCard from '../components/StatsCard';
 import { useApp } from '../context/AppContext';
 
 const Dashboard: React.FC = () => {
-  const { stats, clients, formatCurrency, chartData } = useApp();
+  const { stats, clients, formatCurrency, chartData, t } = useApp();
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Welcome back! Here's what's happening today.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard_overview')}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('welcome_message')}</p>
         </div>
         <div className="flex gap-2">
            <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
-             Export Report
+             {t('export_report')}
            </button>
            <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-             + New Invoice
+             + {t('new_invoice')}
            </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard 
-          title="Total Revenue" 
+          title={t('total_revenue')} 
           value={formatCurrency(stats.revenue)} 
           trend="12%" 
           trendUp={true} 
@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
           color="bg-indigo-500" 
         />
         <StatsCard 
-          title="Total Expenses" 
+          title={t('total_expenses')}
           value={formatCurrency(stats.expenses)} 
           trend="4%" 
           trendUp={false} 
@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
           color="bg-rose-500" 
         />
         <StatsCard 
-          title="Net Profit" 
+          title={t('net_profit')}
           value={formatCurrency(stats.profit)} 
           trend="8%" 
           trendUp={true} 
@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
           color="bg-emerald-500" 
         />
         <StatsCard 
-          title="Active Clients" 
+          title={t('active_clients')}
           value={clients.length.toLocaleString()} 
           trend="15%" 
           trendUp={true} 
@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Revenue vs Expenses</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">{t('revenue_vs_expenses')}</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
@@ -87,7 +87,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Monthly Sales</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">{t('monthly_sales')}</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>

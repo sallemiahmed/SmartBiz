@@ -5,7 +5,7 @@ import { Invoice } from '../types';
 import Pagination from '../components/Pagination';
 
 const Invoices: React.FC = () => {
-  const { invoices, formatCurrency } = useApp();
+  const { invoices, formatCurrency, t } = useApp();
 
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,14 +18,7 @@ const Invoices: React.FC = () => {
 
   // --- Helpers ---
   const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'estimate': return 'ESTIMATE';
-      case 'order': return 'ORDER';
-      case 'delivery': return 'DELIVERY';
-      case 'issue': return 'ISSUE';
-      case 'invoice': return 'INVOICE';
-      default: return type.toUpperCase();
-    }
+    return t(type) || type.toUpperCase();
   };
 
   const getTypeStyle = (type: string) => {
@@ -122,8 +115,8 @@ const Invoices: React.FC = () => {
     <div className="p-6 h-full flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documents History 🧮</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">View and manage all sales documents.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('documents_history')} 🧮</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('documents_desc')}</p>
         </div>
       </div>
 
@@ -134,7 +127,7 @@ const Invoices: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search documents by # or client..." 
+              placeholder={t('search_documents')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
@@ -143,7 +136,7 @@ const Invoices: React.FC = () => {
           
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
-              <span className="text-xs text-gray-500">Date:</span>
+              <span className="text-xs text-gray-500">{t('date')}:</span>
               <input 
                 type="date" 
                 value={dateRange.start}
@@ -164,12 +157,12 @@ const Invoices: React.FC = () => {
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
             >
-              <option value="all">All Types</option>
-              <option value="estimate">Estimates</option>
-              <option value="order">Orders</option>
-              <option value="delivery">Deliveries</option>
-              <option value="invoice">Invoices</option>
-              <option value="issue">Issues</option>
+              <option value="all">{t('all_types')}</option>
+              <option value="estimate">{t('estimate')}</option>
+              <option value="order">{t('client_order')}</option>
+              <option value="delivery">{t('delivery_note')}</option>
+              <option value="invoice">{t('invoice')}</option>
+              <option value="issue">{t('issue_note')}</option>
             </select>
 
             <select 
@@ -177,12 +170,12 @@ const Invoices: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
             >
-              <option value="all">All Status</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="overdue">Overdue</option>
-              <option value="draft">Draft</option>
-              <option value="completed">Completed</option>
+              <option value="all">{t('all_status')}</option>
+              <option value="paid">{t('paid')}</option>
+              <option value="pending">{t('pending')}</option>
+              <option value="overdue">{t('overdue')}</option>
+              <option value="draft">{t('draft')}</option>
+              <option value="completed">{t('completed')}</option>
             </select>
 
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all' || dateRange.start || dateRange.end) && (
@@ -205,29 +198,29 @@ const Invoices: React.FC = () => {
                   className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => handleSort('number')}
                 >
-                  Ref # <SortIcon columnKey="number" />
+                  {t('ref_num')} <SortIcon columnKey="number" />
                 </th>
-                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4">{t('type')}</th>
                 <th 
                   className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => handleSort('clientName')}
                 >
-                  Client <SortIcon columnKey="clientName" />
+                  {t('client')} <SortIcon columnKey="clientName" />
                 </th>
                 <th 
                   className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => handleSort('date')}
                 >
-                  Date <SortIcon columnKey="date" />
+                  {t('date')} <SortIcon columnKey="date" />
                 </th>
                 <th 
                   className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => handleSort('amount')}
                 >
-                  Amount <SortIcon columnKey="amount" />
+                  {t('amount')} <SortIcon columnKey="amount" />
                 </th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">{t('status')}</th>
+                <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -253,7 +246,7 @@ const Invoices: React.FC = () => {
                       inv.status === 'completed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                       'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
                     }`}>
-                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
+                      {t(inv.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -271,7 +264,7 @@ const Invoices: React.FC = () => {
               {paginatedInvoices.length === 0 && (
                 <tr>
                    <td colSpan={7} className="p-8 text-center text-gray-500 dark:text-gray-400">
-                     No documents found matching criteria.
+                     {t('no_documents')}
                    </td>
                 </tr>
               )}

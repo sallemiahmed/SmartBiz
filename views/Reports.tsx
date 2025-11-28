@@ -22,7 +22,7 @@ interface ReportConfig {
 }
 
 const Reports: React.FC = () => {
-  const { invoices, clients, suppliers, products, purchases, formatCurrency, chartData } = useApp();
+  const { invoices, clients, suppliers, products, purchases, formatCurrency, chartData, t } = useApp();
   const [activeReport, setActiveReport] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -112,38 +112,37 @@ const Reports: React.FC = () => {
 
   // --- REPORT CONFIGURATION ---
 
-  const getReportConfig = (reportName: string): ReportConfig => {
-    switch (reportName) {
+  const getReportConfig = (reportKey: string): ReportConfig => {
+    switch (reportKey) {
       // === SALES ===
-      case 'Customers sales':
-      case 'Customer turnover':
+      case 'rep_sales_customer':
         const salesData = getSalesByCustomer();
         return {
-          title: 'Sales by Customer',
+          title: t('rep_sales_customer'),
           type: 'summary',
           columns: [
-            { header: 'Customer', key: 'company' },
+            { header: t('company_contact'), key: 'company' },
             { header: 'Contact', key: 'name' },
-            { header: 'Total Revenue', key: 'totalSpent', isCurrency: true }
+            { header: t('total_revenue'), key: 'totalSpent', isCurrency: true }
           ],
           dataGenerator: () => salesData,
           summary: [
-            { label: 'Total Revenue', value: formatCurrency(salesData.reduce((acc, c) => acc + c.totalSpent, 0)) },
-            { label: 'Active Clients', value: salesData.length.toString() }
+            { label: t('total_revenue'), value: formatCurrency(salesData.reduce((acc, c) => acc + c.totalSpent, 0)) },
+            { label: t('active_clients'), value: salesData.length.toString() }
           ]
         };
 
-      case 'Sales VAT':
+      case 'rep_sales_vat':
         const vatData = getSalesVAT();
         return {
-          title: 'Sales VAT Declaration (19%)',
+          title: t('rep_sales_vat'),
           type: 'transactions',
           columns: [
-            { header: 'Date', key: 'date' },
-            { header: 'Invoice', key: 'ref' },
-            { header: 'Client', key: 'entity' },
-            { header: 'Net Amount', key: 'amount', isCurrency: true },
-            { header: 'VAT (19%)', key: 'vat', isCurrency: true }
+            { header: t('date'), key: 'date' },
+            { header: t('invoice'), key: 'ref' },
+            { header: t('client'), key: 'entity' },
+            { header: t('amount'), key: 'amount', isCurrency: true },
+            { header: t('tax'), key: 'vat', isCurrency: true }
           ],
           dataGenerator: () => vatData,
           summary: [
@@ -151,45 +150,45 @@ const Reports: React.FC = () => {
           ]
         };
 
-      case 'Customers transactions':
+      case 'rep_cust_trans':
         return {
-          title: 'Customer Transaction History',
+          title: t('rep_cust_trans'),
           type: 'transactions',
           columns: [
-            { header: 'Date', key: 'date' },
-            { header: 'Invoice', key: 'number' }, 
-            { header: 'Customer', key: 'clientName' },
-            { header: 'Status', key: 'status', color: (v) => v === 'paid' ? 'text-green-600' : 'text-orange-600' },
-            { header: 'Amount', key: 'amount', isCurrency: true }
+            { header: t('date'), key: 'date' },
+            { header: t('invoice'), key: 'number' }, 
+            { header: t('client'), key: 'clientName' },
+            { header: t('status'), key: 'status', color: (v) => v === 'paid' ? 'text-green-600' : 'text-orange-600' },
+            { header: t('amount'), key: 'amount', isCurrency: true }
           ],
           dataGenerator: () => invoices
         };
 
       // === PURCHASES ===
-      case 'Suppliers purchases':
+      case 'rep_supp_purch':
         const suppData = getSupplierPurchases();
         return {
-          title: 'Purchases by Supplier',
+          title: t('rep_supp_purch'),
           type: 'summary',
           columns: [
-            { header: 'Supplier', key: 'company' },
-            { header: 'Category', key: 'category' },
-            { header: 'Net Amount', key: 'netAmount', isCurrency: true },
-            { header: 'Total (inc. Tax)', key: 'total', isCurrency: true }
+            { header: t('supplier_management'), key: 'company' },
+            { header: t('category'), key: 'category' },
+            { header: t('amount'), key: 'netAmount', isCurrency: true },
+            { header: t('total'), key: 'total', isCurrency: true }
           ],
           dataGenerator: () => suppData
         };
 
-      case 'Purchase VAT':
+      case 'rep_purch_vat':
         const purVatData = getSupplierPurchases();
         return {
-          title: 'Input VAT (Recoverable)',
+          title: t('rep_purch_vat'),
           type: 'transactions',
           columns: [
-            { header: 'Supplier', key: 'company' },
-            { header: 'Category', key: 'category' },
-            { header: 'Total Spend', key: 'total', isCurrency: true },
-            { header: 'VAT Portion', key: 'tax', isCurrency: true }
+            { header: t('supplier_management'), key: 'company' },
+            { header: t('category'), key: 'category' },
+            { header: t('total'), key: 'total', isCurrency: true },
+            { header: t('tax'), key: 'tax', isCurrency: true }
           ],
           dataGenerator: () => purVatData,
           summary: [
@@ -198,17 +197,15 @@ const Reports: React.FC = () => {
         };
 
       // === PRODUCT / INVENTORY ===
-      case 'Sales Details by Product Line':
-      case 'Profit by Product':
-      case 'Commercial profit per product.':
+      case 'rep_prod_perf':
         const prodData = getProductPerformance();
         return {
-          title: 'Product Performance & Margins',
+          title: t('rep_prod_perf'),
           type: 'product_metrics',
           columns: [
-            { header: 'Product', key: 'name' },
+            { header: t('product_name'), key: 'name' },
             { header: 'Est. Sold', key: 'unitsSold' },
-            { header: 'Revenue', key: 'revenue', isCurrency: true },
+            { header: t('total_revenue'), key: 'revenue', isCurrency: true },
             { header: 'Profit', key: 'profit', isCurrency: true, color: (v) => v > 0 ? 'text-green-600' : 'text-red-600' },
             { header: 'Margin %', key: 'margin', color: (v) => v > 30 ? 'text-green-600' : 'text-gray-600' }
           ],
@@ -218,23 +215,23 @@ const Reports: React.FC = () => {
           ]
         };
 
-      case 'Detailed Stock Movements':
+      case 'rep_stock_mov':
         return {
-          title: 'Stock Movements Log',
+          title: t('rep_stock_mov'),
           type: 'transactions',
           columns: [
-            { header: 'Date', key: 'date' },
-            { header: 'Reference', key: 'ref' },
-            { header: 'Product', key: 'entity' },
-            { header: 'Type', key: 'type', color: (v) => v === 'In' ? 'text-green-600' : 'text-red-600' },
-            { header: 'Qty', key: 'qty' },
+            { header: t('date'), key: 'date' },
+            { header: t('ref_num'), key: 'ref' },
+            { header: t('product_name'), key: 'entity' },
+            { header: t('type'), key: 'type', color: (v) => v === 'In' ? 'text-green-600' : 'text-red-600' },
+            { header: t('stock_qty'), key: 'qty' },
             { header: 'Balance', key: 'balance' }
           ],
           dataGenerator: () => getStockMovements()
         };
 
       // === FINANCIALS ===
-      case 'Monthly Profit':
+      case 'rep_monthly_profit':
         // Use real chartData from context instead of mock
         const financialData = chartData.map(d => ({
           ...d,
@@ -242,14 +239,14 @@ const Reports: React.FC = () => {
           margin: d.revenue > 0 ? ((d.revenue - d.expenses) / d.revenue * 100).toFixed(1) : 0
         }));
         return {
-          title: 'Monthly Financial Overview',
+          title: t('rep_monthly_profit'),
           type: 'chart',
           dataGenerator: () => financialData
         };
 
-      case 'Unpaid Invoices Over One Month':
+      case 'rep_aging_receivables':
         return {
-          title: 'Aging Receivables',
+          title: t('rep_aging_receivables'),
           type: 'invoice_list',
           dataGenerator: () => invoices.filter(i => i.status === 'overdue' || i.status === 'pending')
         };
@@ -257,7 +254,7 @@ const Reports: React.FC = () => {
       default:
         // Generic fallback for unmapped reports
         return {
-          title: reportName,
+          title: reportKey,
           type: 'summary',
           columns: [{ header: 'Name', key: 'name' }],
           dataGenerator: () => []
@@ -400,7 +397,7 @@ const Reports: React.FC = () => {
               <Printer className="w-5 h-5" />
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-              <Download className="w-4 h-4" /> Export
+              <Download className="w-4 h-4" /> {t('export_report')}
             </button>
           </div>
         </div>
@@ -419,28 +416,42 @@ const Reports: React.FC = () => {
 
   const reportSections = [
     {
-      title: 'Sales Report',
+      title: t('sales_report'),
       icon: FileOutput,
       color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
-      links: ['Customers sales', 'Sales Details by Product Line', 'Customers transactions', 'Sales VAT']
+      links: [
+        { key: 'rep_sales_customer', label: t('rep_sales_customer') },
+        { key: 'rep_prod_perf', label: t('rep_prod_perf') },
+        { key: 'rep_cust_trans', label: t('rep_cust_trans') },
+        { key: 'rep_sales_vat', label: t('rep_sales_vat') }
+      ]
     },
     {
-      title: 'Purchase Report',
+      title: t('purchase_report'),
       icon: FileInput,
       color: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20',
-      links: ['Suppliers purchases', 'Purchase VAT', 'Supplier turnover']
+      links: [
+        { key: 'rep_supp_purch', label: t('rep_supp_purch') },
+        { key: 'rep_purch_vat', label: t('rep_purch_vat') }
+      ]
     },
     {
-      title: 'Inventory & Stock',
+      title: t('inventory_stock_report'),
       icon: Package,
       color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20',
-      links: ['Detailed Stock Movements', 'Profit by Product']
+      links: [
+        { key: 'rep_stock_mov', label: t('rep_stock_mov') },
+        { key: 'rep_prod_perf', label: t('rep_prod_perf') }
+      ]
     },
     {
-      title: 'Financials',
+      title: t('financials_report'),
       icon: Banknote,
       color: 'text-purple-500 bg-purple-50 dark:bg-purple-900/20',
-      links: ['Monthly Profit', 'Unpaid Invoices Over One Month']
+      links: [
+        { key: 'rep_monthly_profit', label: t('rep_monthly_profit') },
+        { key: 'rep_aging_receivables', label: t('rep_aging_receivables') }
+      ]
     }
   ];
 
@@ -448,14 +459,14 @@ const Reports: React.FC = () => {
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h1>
-           <p className="text-sm text-gray-500 dark:text-gray-400">Select a category to view detailed metrics.</p>
+           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('reports_analytics')}</h1>
+           <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports_desc')}</p>
         </div>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Find a report..." 
+            placeholder={t('search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
@@ -479,14 +490,14 @@ const Reports: React.FC = () => {
             </div>
             
             <ul className="space-y-2 flex-1">
-              {section.links.filter(l => l.toLowerCase().includes(searchTerm.toLowerCase())).map((link, linkIndex) => (
+              {section.links.filter(l => l.label.toLowerCase().includes(searchTerm.toLowerCase())).map((link, linkIndex) => (
                 <li key={linkIndex}>
                   <button 
-                    onClick={() => setActiveReport(link)}
+                    onClick={() => setActiveReport(link.key)}
                     className="w-full text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-2 rounded-lg text-left flex items-center justify-between group transition-colors"
                   >
-                    <span>{link}</span>
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                    <span>{link.label}</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all rtl:rotate-180 rtl:translate-x-2 rtl:group-hover:translate-x-0" />
                   </button>
                 </li>
               ))}

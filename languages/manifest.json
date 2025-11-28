@@ -1,0 +1,7 @@
+{
+  "available": [
+    { "code": "en", "name": "English", "file": "en.xml", "dir": "ltr" },
+    { "code": "fr", "name": "Français", "file": "fr.xml", "dir": "ltr" },
+    { "code": "ar", "name": "العربية", "file": "ar.xml", "dir": "rtl" }
+  ]
+}

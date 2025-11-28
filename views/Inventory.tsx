@@ -9,7 +9,7 @@ import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
 
 const Inventory: React.FC = () => {
-  const { products, addProduct, updateProduct, deleteProduct, formatCurrency } = useApp();
+  const { products, addProduct, updateProduct, deleteProduct, formatCurrency, t } = useApp();
 
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -196,8 +196,8 @@ const Inventory: React.FC = () => {
       {/* Header & Stats */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventory Management 📦</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Track stock levels, value, and product details.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('inventory_management')} 📦</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('inventory_desc')}</p>
         </div>
         <div className="flex gap-2">
            <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors">
@@ -207,7 +207,7 @@ const Inventory: React.FC = () => {
              onClick={() => setIsAddModalOpen(true)}
              className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
            >
-             <Plus className="w-4 h-4" /> Add Product
+             <Plus className="w-4 h-4" /> {t('add_product')}
            </button>
         </div>
       </div>
@@ -218,7 +218,7 @@ const Inventory: React.FC = () => {
             <Package className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Products</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('total_products')}</p>
             <h4 className="text-xl font-bold text-gray-900 dark:text-white">{products.length}</h4>
           </div>
         </div>
@@ -228,7 +228,7 @@ const Inventory: React.FC = () => {
             <AlertCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Needs Attention</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('needs_attention')}</p>
             <h4 className="text-xl font-bold text-gray-900 dark:text-white">
               {lowStockCount + outOfStockCount} <span className="text-sm font-normal text-gray-400">(Low/Out)</span>
             </h4>
@@ -240,7 +240,7 @@ const Inventory: React.FC = () => {
             <LayoutGrid className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Inventory Value</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('total_value')}</p>
             <h4 className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(totalValue)}</h4>
           </div>
         </div>
@@ -254,7 +254,7 @@ const Inventory: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search by name, SKU or category..." 
+              placeholder={t('search_products')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
@@ -268,7 +268,7 @@ const Inventory: React.FC = () => {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white max-w-[150px]"
             >
-              <option value="all">All Categories</option>
+              <option value="all">{t('all_categories')}</option>
               {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
 
@@ -277,10 +277,10 @@ const Inventory: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
             >
-              <option value="all">All Status</option>
-              <option value="in_stock">In Stock</option>
-              <option value="low_stock">Low Stock</option>
-              <option value="out_of_stock">Out of Stock</option>
+              <option value="all">{t('all_status')}</option>
+              <option value="in_stock">{t('in_stock')}</option>
+              <option value="low_stock">{t('low_stock')}</option>
+              <option value="out_of_stock">{t('out_of_stock')}</option>
             </select>
 
             {(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
@@ -301,22 +301,22 @@ const Inventory: React.FC = () => {
              <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0">
               <tr>
                 <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('name')}>
-                  Product <SortIcon columnKey="name" />
+                  {t('product_name')} <SortIcon columnKey="name" />
                 </th>
                 <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('sku')}>
-                  SKU <SortIcon columnKey="sku" />
+                  {t('sku')} <SortIcon columnKey="sku" />
                 </th>
                 <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('category')}>
-                  Category <SortIcon columnKey="category" />
+                  {t('category')} <SortIcon columnKey="category" />
                 </th>
                 <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('stock')}>
-                  Stock Level <SortIcon columnKey="stock" />
+                  {t('stock_level')} <SortIcon columnKey="stock" />
                 </th>
                 <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('price')}>
-                  Price <SortIcon columnKey="price" />
+                  {t('price')} <SortIcon columnKey="price" />
                 </th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">{t('status')}</th>
+                <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -346,7 +346,7 @@ const Inventory: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                      {item.status.replace(/_/g, ' ').toUpperCase()}
+                      {t(item.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -354,14 +354,14 @@ const Inventory: React.FC = () => {
                       <button 
                         onClick={() => openEditModal(item)}
                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
-                        title="Edit Product"
+                        title={t('edit')}
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => openDeleteModal(item)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                        title="Delete Product"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -374,7 +374,7 @@ const Inventory: React.FC = () => {
                 <tr>
                   <td colSpan={7} className="p-12 text-center text-gray-500 dark:text-gray-400">
                     <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p>No products found matching your search.</p>
+                    <p>{t('no_products')}</p>
                   </td>
                 </tr>
               )}
@@ -393,14 +393,13 @@ const Inventory: React.FC = () => {
       </div>
 
       {/* --- MODALS --- */}
-      {/* Modals remain the same as previously implemented */}
       
       {/* ADD Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Product</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('add_product')}</h2>
               <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                 <X className="w-5 h-5" />
               </button>
@@ -408,7 +407,7 @@ const Inventory: React.FC = () => {
             <form onSubmit={handleAddSubmit} className="p-6 overflow-y-auto">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
                   <input
                     type="text"
                     name="name"
@@ -421,7 +420,7 @@ const Inventory: React.FC = () => {
                 {/* ... same fields as previous ... */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
                     <input
                       type="text"
                       name="sku"
@@ -432,7 +431,7 @@ const Inventory: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
                     <input
                       type="text"
                       name="category"
@@ -452,7 +451,7 @@ const Inventory: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -464,7 +463,7 @@ const Inventory: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -476,7 +475,7 @@ const Inventory: React.FC = () => {
                     />
                   </div>
                    <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stock Qty</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('stock_qty')}</label>
                     <input
                       type="number"
                       name="stock"
@@ -494,14 +493,14 @@ const Inventory: React.FC = () => {
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Product
+                  {t('add_product')}
                 </button>
               </div>
             </form>
@@ -514,16 +513,15 @@ const Inventory: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Product</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('edit_product')}</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleEditSubmit} className="p-6 overflow-y-auto">
-              {/* Form content same as add */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
                   <input
                     type="text"
                     name="name"
@@ -533,10 +531,9 @@ const Inventory: React.FC = () => {
                     required
                   />
                 </div>
-                {/* ... other fields ... */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
                     <input
                       type="text"
                       name="sku"
@@ -547,7 +544,7 @@ const Inventory: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
                     <input
                       type="text"
                       name="category"
@@ -560,7 +557,7 @@ const Inventory: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -572,7 +569,7 @@ const Inventory: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -584,7 +581,7 @@ const Inventory: React.FC = () => {
                     />
                   </div>
                    <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stock Qty</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('stock_qty')}</label>
                     <input
                       type="number"
                       name="stock"
@@ -602,14 +599,14 @@ const Inventory: React.FC = () => {
                   onClick={() => setIsEditModalOpen(false)}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
                 >
                   <Save className="w-4 h-4" />
-                  Save Changes
+                  {t('save_changes')}
                 </button>
               </div>
             </form>
@@ -624,22 +621,22 @@ const Inventory: React.FC = () => {
              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-500">
                <AlertCircle className="w-6 h-6" />
              </div>
-             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Product?</h3>
+             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('delete_confirm_title')}</h3>
              <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-               Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-white">{selectedProduct.name}</span>? This action cannot be undone.
+               {t('delete_confirm_msg')} <span className="font-bold text-gray-900 dark:text-white">{selectedProduct.name}</span>
              </p>
              <div className="flex gap-3 justify-center">
                <button 
                  onClick={() => setIsDeleteModalOpen(false)}
                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                >
-                 Cancel
+                 {t('cancel')}
                </button>
                <button 
                  onClick={handleDeleteConfirm}
                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
                >
-                 Yes, Delete
+                 {t('yes_delete')}
                </button>
              </div>
           </div>

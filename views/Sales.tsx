@@ -18,7 +18,7 @@ interface SalesProps {
 }
 
 const Sales: React.FC<SalesProps> = ({ mode }) => {
-  const { products, clients, createSalesDocument, formatCurrency, settings } = useApp();
+  const { products, clients, createSalesDocument, formatCurrency, settings, t } = useApp();
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,20 +50,20 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   // UI Helpers
   const getPageTitle = () => {
     switch (mode) {
-      case 'estimate': return 'New Estimate';
-      case 'order': return 'New Client Order';
-      case 'delivery': return 'New Delivery Note';
-      case 'issue': return 'Issue Note';
-      default: return 'New Invoice';
+      case 'estimate': return t('new_estimate');
+      case 'order': return t('new_order');
+      case 'delivery': return t('new_delivery');
+      case 'issue': return t('new_issue');
+      default: return t('new_invoice');
     }
   };
 
   const getButtonLabel = () => {
     switch (mode) {
-      case 'estimate': return 'Save Estimate';
-      case 'order': return 'Confirm Order';
-      case 'delivery': return 'Create Delivery Note';
-      default: return 'Charge & Create Invoice';
+      case 'estimate': return t('save_estimate');
+      case 'order': return t('confirm_order');
+      case 'delivery': return t('create_delivery');
+      default: return t('charge_create');
     }
   };
 
@@ -209,13 +209,13 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Package className="w-5 h-5 text-indigo-600" />
-              {getPageTitle()} <span className="text-sm font-normal text-gray-400">| Catalog</span>
+              {getPageTitle()} <span className="text-sm font-normal text-gray-400">| {t('catalog')}</span>
             </h2>
             <button 
               onClick={() => setShowCustomItemModal(true)}
               className="text-sm px-3 py-1.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors flex items-center gap-1 font-medium"
             >
-              <Plus className="w-4 h-4" /> Custom Item
+              <Plus className="w-4 h-4" /> {t('custom_item')}
             </button>
           </div>
           
@@ -224,7 +224,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
                 type="text" 
-                placeholder="Search products..." 
+                placeholder={t('search_products')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
@@ -235,7 +235,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white min-w-[120px]"
             >
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              <option value="All">{t('all_categories')}</option>
+              {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
@@ -265,7 +266,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   <span className="font-bold text-indigo-600 dark:text-indigo-400">
                     {formatCurrency(product.price)}
                   </span>
-                  <div className="text-xs text-gray-400">Stock: {product.stock}</div>
+                  <div className="text-xs text-gray-400">Qty: {product.stock}</div>
                 </div>
               </div>
             ))}
@@ -273,7 +274,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             {filteredProducts.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-400">
                 <Package className="w-12 h-12 mb-2 opacity-50" />
-                <p>No products found</p>
+                <p>{t('no_products')}</p>
               </div>
             )}
           </div>
@@ -287,7 +288,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <ShoppingCart className="w-5 h-5" />
-              {mode === 'invoice' ? 'Current Sale' : mode.charAt(0).toUpperCase() + mode.slice(1)}
+              {t('cart')}
             </h2>
             <span className="text-xs font-medium px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full">
               {cart.reduce((acc, item) => acc + item.quantity, 0)} Items
@@ -302,7 +303,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               onChange={(e) => setSelectedClient(e.target.value)}
               className={`w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border ${!selectedClient ? 'border-amber-300 dark:border-amber-700' : 'border-gray-200 dark:border-gray-700'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white appearance-none cursor-pointer`}
             >
-              <option value="">Select Customer...</option>
+              <option value="">{t('select_customer')}</option>
               {clients.map(client => (
                 <option key={client.id} value={client.id}>{client.company} ({client.name})</option>
               ))}
@@ -358,13 +359,13 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 space-y-3">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
-              <span>Subtotal</span>
+              <span>{t('subtotal')}</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
               <span className="flex items-center gap-1">
-                Discount
+                {t('discount')}
                 <div className="flex items-center bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 ml-2">
                   <input 
                     type="number" 
@@ -382,7 +383,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
 
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
               <span className="flex items-center gap-1">
-                Tax
+                {t('tax')}
                 <div className="flex items-center bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 ml-2">
                   <select
                     value={taxRate}
@@ -394,9 +395,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                         {rate.name} ({rate.rate}%)
                       </option>
                     ))}
-                    {/* Fallback custom option if somehow needed, but restricting to list is cleaner */}
                   </select>
-                  {/* Keep simple numeric display/edit if needed, but dropdown is requested */}
                   <div className="absolute right-2 pointer-events-none">
                     <ChevronRight className="w-3 h-3 text-gray-400 rotate-90" />
                   </div>
@@ -406,7 +405,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             </div>
             
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
-              <span className="font-bold text-gray-900 dark:text-white">Total</span>
+              <span className="font-bold text-gray-900 dark:text-white">{t('total')}</span>
               <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(total)}</span>
             </div>
           </div>
@@ -416,7 +415,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                onClick={() => setCart([])}
                className="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
              >
-               Clear
+               {t('clear')}
              </button>
              <button 
                onClick={handleSubmit}
@@ -436,12 +435,12 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Add Custom Item</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('add_custom_item')}</h3>
               <button onClick={() => setShowCustomItemModal(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <form onSubmit={addCustomItem} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Item Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('item_name')}</label>
                 <input 
                   autoFocus
                   type="text" 
@@ -453,7 +452,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price ($)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')} ($)</label>
                 <input 
                   type="number" 
                   step="0.01"
@@ -465,7 +464,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                 />
               </div>
               <button type="submit" className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
-                Add to List
+                {t('add_custom_item')}
               </button>
             </form>
           </div>
@@ -479,7 +478,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 dark:text-green-400">
               <CheckCircle className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('success')}</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               {mode === 'estimate' ? 'Estimate saved.' : mode === 'order' ? 'Order confirmed.' : mode === 'delivery' ? 'Stock deducted.' : 'Invoice generated & revenue updated.'}<br/>
               Ref <span className="font-mono font-medium text-gray-900 dark:text-white">{lastDocNumber}</span>
@@ -487,7 +486,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             
             <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg mb-6 text-left space-y-2">
                <div className="flex justify-between text-sm">
-                 <span className="text-gray-500">Customer:</span>
+                 <span className="text-gray-500">{t('client')}:</span>
                  <span className="font-medium text-gray-900 dark:text-white">{selectedClientData?.company || 'Walk-in Customer'}</span>
                </div>
                <div className="flex justify-between text-sm">
@@ -495,7 +494,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                  <span className="font-medium text-gray-900 dark:text-white">{cart.length}</span>
                </div>
                <div className="flex justify-between text-sm font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
-                 <span className="text-gray-900 dark:text-white">Total Value:</span>
+                 <span className="text-gray-900 dark:text-white">{t('total')}:</span>
                  <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(total)}</span>
                </div>
             </div>
@@ -505,13 +504,13 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                 onClick={resetSale}
                 className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium flex items-center justify-center gap-2"
               >
-                <Plus className="w-4 h-4" /> New {mode === 'order' ? 'Order' : 'Sale'}
+                <Plus className="w-4 h-4" /> {t('new')} {mode === 'order' ? 'Order' : 'Sale'}
               </button>
               <button 
                 onClick={handlePrint}
                 className="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center justify-center gap-2"
               >
-                <Printer className="w-4 h-4" /> Print
+                <Printer className="w-4 h-4" /> {t('print')}
               </button>
             </div>
           </div>

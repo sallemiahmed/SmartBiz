@@ -9,7 +9,7 @@ interface SalesInvoicesProps {
 }
 
 const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, updateInvoice, formatCurrency, settings } = useApp();
+  const { invoices, deleteInvoice, updateInvoice, formatCurrency, settings, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -51,15 +51,15 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sales Invoices 💸</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Manage issued invoices and payments.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('sales_invoices')} 💸</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('sales_invoices_desc')}</p>
         </div>
         <button 
           onClick={onAddNew}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          New Invoice
+          {t('new_invoice_btn')}
         </button>
       </div>
 
@@ -69,7 +69,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search invoices..." 
+              placeholder={t('search_invoices')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
@@ -80,12 +80,12 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+              className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
             >
-              <option value="all">All Status</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="overdue">Overdue</option>
+              <option value="all">{t('all_status')}</option>
+              <option value="paid">{t('paid')}</option>
+              <option value="pending">{t('pending')}</option>
+              <option value="overdue">{t('overdue')}</option>
             </select>
           </div>
         </div>
@@ -94,13 +94,13 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
               <tr>
-                <th className="px-6 py-4">Invoice #</th>
-                <th className="px-6 py-4">Client</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Due Date</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">{t('ref_num')}</th>
+                <th className="px-6 py-4">{t('client')}</th>
+                <th className="px-6 py-4">{t('date')}</th>
+                <th className="px-6 py-4">{t('due_date')}</th>
+                <th className="px-6 py-4">{t('amount')}</th>
+                <th className="px-6 py-4">{t('status')}</th>
+                <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -113,7 +113,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
-                       {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                       {t(doc.status)}
                      </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -121,14 +121,14 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                       <button 
                         onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
-                        title="View Details"
+                        title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteInvoice(doc.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
-                        title="Delete"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -141,7 +141,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
           {filteredDocs.length === 0 && (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>No sales invoices found.</p>
+              <p>{t('no_documents')}</p>
             </div>
           )}
         </div>
@@ -153,7 +153,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Invoice Details</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('invoice_details')}</h3>
                 <span className="text-sm text-indigo-600 dark:text-indigo-400 font-mono">{selectedDoc.number}</span>
               </div>
               <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
@@ -161,15 +161,15 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
             
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-500">Client</span>
+                <span className="text-gray-500">{t('client')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.clientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Issued Date</span>
+                <span className="text-gray-500">{t('issued_date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
                <div className="flex justify-between">
-                <span className="text-gray-500">Due Date</span>
+                <span className="text-gray-500">{t('due_date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.dueDate}</span>
               </div>
               
@@ -190,7 +190,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
               </div>
 
               <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
-                <span className="text-gray-900 dark:text-white">Total</span>
+                <span className="text-gray-900 dark:text-white">{t('total')}</span>
                 <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedDoc.amount)}</span>
               </div>
             </div>
@@ -201,14 +201,14 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                   onClick={handleMarkPaid}
                   className="py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
                 >
-                  <CheckCircle className="w-4 h-4" /> Mark Paid
+                  <CheckCircle className="w-4 h-4" /> {t('mark_paid')}
                 </button>
               )}
               <button 
                 onClick={handlePrint}
                 className={`py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 font-medium ${selectedDoc.status === 'paid' ? 'col-span-2' : ''}`}
               >
-                <Printer className="w-4 h-4" /> Print Invoice
+                <Printer className="w-4 h-4" /> {t('print_invoice')}
               </button>
             </div>
 
@@ -217,7 +217,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Close
+                {t('cancel')}
               </button>
             </div>
           </div>

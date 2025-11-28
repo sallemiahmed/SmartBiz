@@ -287,10 +287,10 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                           <table className="w-full text-sm text-left">
                             <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium">
                               <tr>
-                                <th className="px-4 py-2">Name</th>
-                                <th className="px-4 py-2">Rate</th>
+                                <th className="px-4 py-2">{t('rate_name')}</th>
+                                <th className="px-4 py-2">{t('rate_value')}</th>
                                 <th className="px-4 py-2 text-center">Default</th>
-                                <th className="px-4 py-2 text-right">Action</th>
+                                <th className="px-4 py-2 text-right">{t('actions')}</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
@@ -328,34 +328,32 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
               </div>
             </div>
           )}
-
-          {/* ... other tabs remain same ... */}
           
           {/* --- PROFILE TAB --- */}
           {activeTab === 'profile' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                Personal Information
+                {t('personal_information')}
               </h3>
               <div className="flex items-center gap-6 mb-6">
                 <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-4xl overflow-hidden border-4 border-white dark:border-gray-600 shadow-sm">
                   <img src="https://picsum.photos/200" alt="Avatar" className="w-full h-full object-cover" />
                 </div>
                 <button type="button" className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                  Change Avatar
+                  {t('change_avatar')}
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('full_name')}</label>
                   <input type="text" defaultValue="Alex Morgan" className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('email_address')}</label>
                   <input type="email" defaultValue="alex.morgan@company.com" className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('role')}</label>
                   <input type="text" defaultValue="Administrator" disabled className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 cursor-not-allowed" />
                 </div>
               </div>
@@ -437,7 +435,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
           {activeTab === 'notifications' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                Email Notifications
+                {t('email_notifications')}
               </h3>
               <div className="space-y-3">
                 {['New Order Received', 'Low Stock Alerts', 'Invoice Payment Received', 'Weekly Reports'].map((item, i) => (

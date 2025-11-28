@@ -8,7 +8,7 @@ interface PurchaseDeliveriesProps {
 }
 
 const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase } = useApp();
+  const { purchases, deletePurchase, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Purchase | null>(null);
@@ -25,15 +25,15 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Goods Received (GRN) 📦</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Track incoming stock deliveries from suppliers.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('goods_received_grn')} 📦</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('goods_received_desc')}</p>
         </div>
         <button 
           onClick={onAddNew}
           className="px-4 py-2 bg-emerald-600 text-white rounded-lg flex items-center gap-2 hover:bg-emerald-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Receive Goods
+          {t('receive_goods')}
         </button>
       </div>
 
@@ -43,7 +43,7 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search GRNs..." 
+              placeholder={t('search_grns')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
@@ -55,12 +55,12 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
               <tr>
-                <th className="px-6 py-4">Ref #</th>
-                <th className="px-6 py-4">Supplier</th>
-                <th className="px-6 py-4">Date Received</th>
+                <th className="px-6 py-4">{t('ref_num')}</th>
+                <th className="px-6 py-4">{t('supplier_management')}</th>
+                <th className="px-6 py-4">{t('date_received')}</th>
                 <th className="px-6 py-4">Items Count</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">{t('status')}</th>
+                <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -72,7 +72,7 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
                   <td className="px-6 py-4 text-gray-500">{doc.items.length} items</td>
                   <td className="px-6 py-4">
                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                       Received
+                       {t('received')}
                      </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -80,14 +80,14 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
                       <button 
                         onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg"
-                        title="View Details"
+                        title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deletePurchase(doc.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
-                        title="Delete"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -100,7 +100,7 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
           {filteredDocs.length === 0 && (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400">
               <Truck className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>No deliveries found.</p>
+              <p>{t('no_documents')}</p>
             </div>
           )}
         </div>
@@ -112,7 +112,7 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Delivery Details</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('grn_details')}</h3>
                 <span className="text-sm text-emerald-600 dark:text-emerald-400 font-mono">{selectedDoc.number}</span>
               </div>
               <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
@@ -120,16 +120,16 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
             
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-500">Supplier</span>
+                <span className="text-gray-500">{t('supplier_management')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.supplierName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Date Received</span>
+                <span className="text-gray-500">{t('date_received')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Received Items</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('received_items')}</h4>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {selectedDoc.items.length > 0 ? (
                     selectedDoc.items.map((item, idx) => (
@@ -150,7 +150,7 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Close
+                {t('cancel')}
               </button>
             </div>
           </div>
