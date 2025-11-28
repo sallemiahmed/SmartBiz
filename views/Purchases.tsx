@@ -201,7 +201,9 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       warehouseId: selectedWarehouse,
       paymentTerms,
       paymentMethod,
-      notes
+      notes,
+      taxRate: taxRate,
+      subtotal: subtotal
     }, purchaseItems);
 
     setLastCreatedDoc(createdDoc);
@@ -491,7 +493,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                   <select
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-24 px-1 py-0.5 text-xs bg-transparent outline-none cursor-pointer appearance-none"
+                    className="w-24 px-1 py-0.5 text-xs bg-transparent outline-none cursor-pointer appearance-none dark:text-white"
                   >
                     {settings.taxRates.map(rate => (
                       <option key={rate.id} value={rate.rate}>

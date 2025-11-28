@@ -101,6 +101,9 @@ export interface Invoice {
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
+  taxRate?: number;
+  subtotal?: number;
+  discount?: number;
 }
 
 export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice';
@@ -120,6 +123,8 @@ export interface Purchase {
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
+  taxRate?: number;
+  subtotal?: number;
 }
 
 export interface InvoiceItem {

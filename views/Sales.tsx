@@ -209,7 +209,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       warehouseId: selectedWarehouse,
       paymentTerms,
       paymentMethod,
-      notes
+      notes,
+      taxRate: taxRate,
+      subtotal: subtotal,
+      discount: discountAmount
     }, invoiceItems);
 
     setLastCreatedDoc(createdDoc);

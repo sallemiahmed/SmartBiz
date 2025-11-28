@@ -34,6 +34,24 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
     ? `<img src="${settings.companyLogo}" style="max-width: 150px; max-height: 80px; margin-bottom: 10px; display: block;" alt="Company Logo" />` 
     : '';
 
+  // Calculate totals for display
+  const taxRate = document.taxRate || 0;
+  
+  // Use stored subtotal or calculate it from items
+  const itemsSubtotal = document.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = (document as Invoice).subtotal !== undefined ? (document as Invoice).subtotal! : itemsSubtotal;
+  
+  // Sales specific fields
+  const discountAmount = (document as Invoice).discount || 0;
+  
+  // Purchase specific fields
+  const additionalCosts = (document as Purchase).additionalCosts || 0;
+
+  // Calculate Tax Amount based on Subtotal (Standard logic: Tax is on Gross Subtotal usually, but let's follow app logic)
+  // App Logic for Sales: Total = Subtotal + Tax - Discount. Tax was calculated on Subtotal.
+  // App Logic for Purchase: Total = Subtotal + Tax + Additional. Tax was calculated on Subtotal.
+  const taxAmount = subtotal * (taxRate / 100);
+
   const html = `
     <!DOCTYPE html>
     <html lang="${settings.language}" dir="${isRTL ? 'rtl' : 'ltr'}">
@@ -114,9 +132,10 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       <table class="items-table">
         <thead>
           <tr>
-            <th style="width: 50%">Description</th>
+            <th style="width: 40%">Description</th>
             <th class="text-center">Quantity</th>
             <th class="text-right">Price</th>
+            <th class="text-center" style="width: 15%">VAT %</th>
             <th class="text-right">Total</th>
           </tr>
         </thead>
@@ -126,6 +145,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
               <td>${item.description}</td>
               <td class="text-center">${item.quantity}</td>
               <td class="text-right">${currencyFormatter.format(item.price)}</td>
+              <td class="text-center">${taxRate}%</td>
               <td class="text-right">${currencyFormatter.format(item.price * item.quantity)}</td>
             </tr>
           `).join('')}
@@ -135,8 +155,22 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       <div class="totals-container">
         <table class="totals-table">
           <tr>
-            <td class="label">Subtotal</td>
-            <td class="value">${currencyFormatter.format(document.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}</td>
+            <td class="label">Subtotal (Excl. Tax)</td>
+            <td class="value">${currencyFormatter.format(subtotal)}</td>
+          </tr>
+          ${discountAmount > 0 ? `
+          <tr>
+            <td class="label" style="color: #c0392b;">Discount</td>
+            <td class="value" style="color: #c0392b;">-${currencyFormatter.format(discountAmount)}</td>
+          </tr>` : ''}
+          ${additionalCosts > 0 ? `
+          <tr>
+            <td class="label">Additional Costs</td>
+            <td class="value">${currencyFormatter.format(additionalCosts)}</td>
+          </tr>` : ''}
+          <tr>
+            <td class="label">VAT (${taxRate}%)</td>
+            <td class="value">${currencyFormatter.format(taxAmount)}</td>
           </tr>
           <tr class="grand-total">
             <td class="label">Total ${isCredit ? '(Credit)' : ''}</td>
