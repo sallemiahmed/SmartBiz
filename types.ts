@@ -91,6 +91,7 @@ export interface Invoice {
   status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'returned';
   items: InvoiceItem[];
   linkedDocumentId?: string; // For Credit Notes linking to Invoices
+  warehouseId?: string; // The warehouse items were deducted from
 }
 
 export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice';
@@ -105,6 +106,7 @@ export interface Purchase {
   amount: number;
   status: 'completed' | 'pending' | 'received';
   items: InvoiceItem[];
+  warehouseId?: string; // The warehouse items were added to
 }
 
 export interface InvoiceItem {
@@ -119,7 +121,8 @@ export interface Product {
   sku: string;
   name: string;
   category: string;
-  stock: number;
+  stock: number; // Total calculated stock across all warehouses
+  warehouseStock: Record<string, number>; // Map of warehouseId -> quantity
   price: number;
   cost: number;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
@@ -130,6 +133,27 @@ export interface DashboardStats {
   expenses: number;
   profit: number;
   pendingInvoices: number;
+}
+
+// --- WAREHOUSE MANAGEMENT ---
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  location: string;
+  isDefault?: boolean;
+}
+
+export interface StockTransfer {
+  id: string;
+  date: string;
+  productId: string;
+  productName: string;
+  fromWarehouseId: string;
+  toWarehouseId: string;
+  quantity: number;
+  reference?: string;
+  notes?: string;
 }
 
 // --- BANKING MODULE TYPES ---

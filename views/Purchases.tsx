@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building
 } from 'lucide-react';
 import { Product, PurchaseDocumentType } from '../types';
 import { useApp } from '../context/AppContext';
@@ -18,7 +19,7 @@ interface PurchasesProps {
 }
 
 const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
-  const { products, suppliers, createPurchaseDocument, formatCurrency, settings } = useApp();
+  const { products, suppliers, warehouses, createPurchaseDocument, formatCurrency, settings } = useApp();
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +31,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   // Transaction State
   const [cart, setCart] = useState<POItem[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   
   // Initialize tax rate
   const defaultRate = settings.taxRates.find(r => r.isDefault)?.rate || 0;
@@ -119,6 +121,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       name: customItem.name,
       category: 'Expensed',
       stock: 0,
+      warehouseStock: {},
       price: 0,
       cost: cost,
       status: 'in_stock',
@@ -152,6 +155,10 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       alert("Please select a supplier.");
       return;
     }
+    if (!selectedWarehouse) {
+      alert("Please select a destination warehouse.");
+      return;
+    }
 
     const purchaseItems = cart.map(item => ({
       id: item.id,
@@ -167,7 +174,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       supplierName: supplierName,
       date: new Date().toISOString().split('T')[0],
       amount: total,
-      status: mode === 'order' ? 'pending' : 'completed'
+      status: mode === 'order' ? 'pending' : 'completed',
+      warehouseId: selectedWarehouse
     }, purchaseItems);
 
     setLastDocNumber('(Auto-generated)');
@@ -246,7 +254,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                   </h3>
                   <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
                     <span>{product.category}</span>
-                    <span>Stock: {product.stock}</span>
+                    <span>Total Stock: {product.stock}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-auto">
@@ -276,8 +284,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       {/* RIGHT COLUMN: PURCHASE ORDER */}
       <div className="w-full lg:w-96 bg-white dark:bg-gray-800 shadow-xl flex flex-col h-[40vh] lg:h-full z-20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
+          <div className="flex items-center justify-between">
             <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <FileText className="w-5 h-5" />
               Document Draft
@@ -287,6 +295,21 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             </span>
           </div>
           
+          {/* Warehouse Select */}
+          <div className="relative">
+            <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <select
+              value={selectedWarehouse}
+              onChange={(e) => setSelectedWarehouse(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white appearance-none cursor-pointer"
+            >
+              {warehouses.map(w => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
+          </div>
+
           {/* Supplier Select */}
           <div className="relative">
             <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -464,6 +487,10 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">Supplier:</span>
                  <span className="font-medium text-gray-900 dark:text-white">{selectedSupplierData?.company || 'General Purchase'}</span>
+               </div>
+               <div className="flex justify-between text-sm">
+                 <span className="text-gray-500">Warehouse:</span>
+                 <span className="font-medium text-gray-900 dark:text-white">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span>
                </div>
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">Items:</span>

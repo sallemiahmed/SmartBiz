@@ -1,5 +1,5 @@
 
-import { Client, DashboardStats, Invoice, Product, Supplier, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction } from '../types';
+import { Client, DashboardStats, Invoice, Product, Supplier, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer } from '../types';
 
 // Helper to get a date string relative to today
 const getDate = (daysOffset: number) => {
@@ -7,6 +7,18 @@ const getDate = (daysOffset: number) => {
   d.setDate(d.getDate() + daysOffset);
   return d.toISOString().split('T')[0];
 };
+
+// Mock Warehouses
+export const mockWarehouses: Warehouse[] = [
+  { id: 'w1', name: 'Main Warehouse', location: 'New York HQ', isDefault: true },
+  { id: 'w2', name: 'West Coast Depot', location: 'California' },
+  { id: 'w3', name: 'Retail Store Backroom', location: 'Manhattan' }
+];
+
+// Mock Stock Transfers
+export const mockStockTransfers: StockTransfer[] = [
+  { id: 'tr1', date: getDate(-5), productId: 'p1', productName: 'Office Chair Ergonomic', fromWarehouseId: 'w1', toWarehouseId: 'w3', quantity: 5, notes: 'Restock retail' }
+];
 
 // Mock Clients
 export const mockClients: Client[] = [
@@ -28,34 +40,54 @@ export const mockSuppliers: Supplier[] = [
 
 // Mock Invoices
 export const mockInvoices: Invoice[] = [
-  { id: '101', number: 'INV-001', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-60), dueDate: getDate(-45), amount: 3500.00, status: 'paid', items: [] },
-  { id: '102', number: 'INV-002', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-45), dueDate: getDate(-30), amount: 12500.00, status: 'paid', items: [] },
-  { id: '103', number: 'INV-003', type: 'invoice', clientId: '2', clientName: 'Globex', date: getDate(-30), dueDate: getDate(-15), amount: 4200.00, status: 'paid', items: [] },
-  { id: '104', number: 'INV-004', type: 'invoice', clientId: '4', clientName: 'Umbrella Corp', date: getDate(-10), dueDate: getDate(5), amount: 8900.00, status: 'pending', items: [] },
-  { id: '105', number: 'INV-005', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-2), dueDate: getDate(14), amount: 1200.00, status: 'pending', items: [] },
-  { id: '106', number: 'INV-006', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-5), dueDate: getDate(10), amount: 15000.00, status: 'paid', items: [] },
-  { id: '201', number: 'ORD-001', type: 'order', clientId: '1', clientName: 'Acme Corp', date: getDate(-1), dueDate: getDate(14), amount: 3200.00, status: 'pending', items: [] },
-  { id: '202', number: 'ORD-002', type: 'order', clientId: '3', clientName: 'Soylent Corp', date: getDate(0), dueDate: getDate(15), amount: 1500.00, status: 'draft', items: [] },
-  { id: '301', number: 'EST-001', type: 'estimate', clientId: '2', clientName: 'Globex Corp', date: getDate(0), dueDate: getDate(30), amount: 5000.00, status: 'draft', items: [] },
-  { id: '401', number: 'DEL-001', type: 'delivery', clientId: '5', clientName: 'Stark Ind', date: getDate(-20), dueDate: getDate(-20), amount: 2200.00, status: 'completed', items: [] },
+  { id: '101', number: 'INV-001', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-60), dueDate: getDate(-45), amount: 3500.00, status: 'paid', items: [], warehouseId: 'w1' },
+  { id: '102', number: 'INV-002', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-45), dueDate: getDate(-30), amount: 12500.00, status: 'paid', items: [], warehouseId: 'w1' },
+  { id: '103', number: 'INV-003', type: 'invoice', clientId: '2', clientName: 'Globex', date: getDate(-30), dueDate: getDate(-15), amount: 4200.00, status: 'paid', items: [], warehouseId: 'w2' },
+  { id: '104', number: 'INV-004', type: 'invoice', clientId: '4', clientName: 'Umbrella Corp', date: getDate(-10), dueDate: getDate(5), amount: 8900.00, status: 'pending', items: [], warehouseId: 'w1' },
+  { id: '105', number: 'INV-005', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-2), dueDate: getDate(14), amount: 1200.00, status: 'pending', items: [], warehouseId: 'w1' },
+  { id: '106', number: 'INV-006', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-5), dueDate: getDate(10), amount: 15000.00, status: 'paid', items: [], warehouseId: 'w1' },
+  { id: '201', number: 'ORD-001', type: 'order', clientId: '1', clientName: 'Acme Corp', date: getDate(-1), dueDate: getDate(14), amount: 3200.00, status: 'pending', items: [], warehouseId: 'w1' },
+  { id: '202', number: 'ORD-002', type: 'order', clientId: '3', clientName: 'Soylent Corp', date: getDate(0), dueDate: getDate(15), amount: 1500.00, status: 'draft', items: [], warehouseId: 'w1' },
+  { id: '301', number: 'EST-001', type: 'estimate', clientId: '2', clientName: 'Globex Corp', date: getDate(0), dueDate: getDate(30), amount: 5000.00, status: 'draft', items: [], warehouseId: 'w1' },
+  { id: '401', number: 'DEL-001', type: 'delivery', clientId: '5', clientName: 'Stark Ind', date: getDate(-20), dueDate: getDate(-20), amount: 2200.00, status: 'completed', items: [], warehouseId: 'w1' },
 ];
 
 // Mock Purchases
 export const mockPurchases: Purchase[] = [
-  { id: 'p101', number: 'PO-001', type: 'order', supplierId: 's1', supplierName: 'Global Electronics Ltd', date: getDate(-10), amount: 4500.00, status: 'completed', items: [] },
-  { id: 'p102', number: 'PO-002', type: 'order', supplierId: 's3', supplierName: 'Heavy Metal Industries', date: getDate(-5), amount: 12000.00, status: 'pending', items: [] },
-  { id: 'p201', number: 'GRN-001', type: 'delivery', supplierId: 's1', supplierName: 'Global Electronics Ltd', date: getDate(-15), amount: 4500.00, status: 'received', items: [] },
-  { id: 'p301', number: 'PINV-001', type: 'invoice', supplierId: 's2', supplierName: 'Office Depot Wholesale', date: getDate(-40), amount: 1500.00, status: 'completed', items: [] },
-  { id: 'p302', number: 'PINV-002', type: 'invoice', supplierId: 's5', supplierName: 'Green Energy Solutions', date: getDate(-25), amount: 850.00, status: 'completed', items: [] },
-  { id: 'p303', number: 'PINV-003', type: 'invoice', supplierId: 's3', supplierName: 'Heavy Metal Industries', date: getDate(-5), amount: 6500.00, status: 'pending', items: [] }
+  { id: 'p101', number: 'PO-001', type: 'order', supplierId: 's1', supplierName: 'Global Electronics Ltd', date: getDate(-10), amount: 4500.00, status: 'completed', items: [], warehouseId: 'w1' },
+  { id: 'p102', number: 'PO-002', type: 'order', supplierId: 's3', supplierName: 'Heavy Metal Industries', date: getDate(-5), amount: 12000.00, status: 'pending', items: [], warehouseId: 'w1' },
+  { id: 'p201', number: 'GRN-001', type: 'delivery', supplierId: 's1', supplierName: 'Global Electronics Ltd', date: getDate(-15), amount: 4500.00, status: 'received', items: [], warehouseId: 'w1' },
+  { id: 'p301', number: 'PINV-001', type: 'invoice', supplierId: 's2', supplierName: 'Office Depot Wholesale', date: getDate(-40), amount: 1500.00, status: 'completed', items: [], warehouseId: 'w1' },
+  { id: 'p302', number: 'PINV-002', type: 'invoice', supplierId: 's5', supplierName: 'Green Energy Solutions', date: getDate(-25), amount: 850.00, status: 'completed', items: [], warehouseId: 'w1' },
+  { id: 'p303', number: 'PINV-003', type: 'invoice', supplierId: 's3', supplierName: 'Heavy Metal Industries', date: getDate(-5), amount: 6500.00, status: 'pending', items: [], warehouseId: 'w1' }
 ];
 
 export const mockInventory: Product[] = [
-  { id: 'p1', sku: 'SKU-001', name: 'Office Chair Ergonomic', category: 'Furniture', stock: 45, price: 199.99, cost: 85.00, status: 'in_stock' },
-  { id: 'p2', sku: 'SKU-002', name: 'Wireless Keyboard', category: 'Electronics', stock: 12, price: 59.99, cost: 25.00, status: 'low_stock' },
-  { id: 'p3', sku: 'SKU-003', name: '27" 4K Monitor', category: 'Electronics', stock: 8, price: 450.00, cost: 280.00, status: 'low_stock' },
-  { id: 'p4', sku: 'SKU-004', name: 'USB-C Cable', category: 'Accessories', stock: 200, price: 19.99, cost: 3.50, status: 'in_stock' },
-  { id: 'p5', sku: 'SKU-005', name: 'Laptop Stand', category: 'Accessories', stock: 0, price: 35.00, cost: 12.00, status: 'out_of_stock' },
+  { 
+    id: 'p1', sku: 'SKU-001', name: 'Office Chair Ergonomic', category: 'Furniture', 
+    stock: 45, warehouseStock: { 'w1': 30, 'w2': 10, 'w3': 5 },
+    price: 199.99, cost: 85.00, status: 'in_stock' 
+  },
+  { 
+    id: 'p2', sku: 'SKU-002', name: 'Wireless Keyboard', category: 'Electronics', 
+    stock: 12, warehouseStock: { 'w1': 5, 'w2': 5, 'w3': 2 },
+    price: 59.99, cost: 25.00, status: 'low_stock' 
+  },
+  { 
+    id: 'p3', sku: 'SKU-003', name: '27" 4K Monitor', category: 'Electronics', 
+    stock: 8, warehouseStock: { 'w1': 8, 'w2': 0, 'w3': 0 },
+    price: 450.00, cost: 280.00, status: 'low_stock' 
+  },
+  { 
+    id: 'p4', sku: 'SKU-004', name: 'USB-C Cable', category: 'Accessories', 
+    stock: 200, warehouseStock: { 'w1': 100, 'w2': 50, 'w3': 50 },
+    price: 19.99, cost: 3.50, status: 'in_stock' 
+  },
+  { 
+    id: 'p5', sku: 'SKU-005', name: 'Laptop Stand', category: 'Accessories', 
+    stock: 0, warehouseStock: { 'w1': 0, 'w2': 0, 'w3': 0 },
+    price: 35.00, cost: 12.00, status: 'out_of_stock' 
+  },
 ];
 
 // --- Banking Mock Data ---

@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, Plus, Trash2, User, CreditCard, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Send, Printer
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Send, Printer, Building
 } from 'lucide-react';
 import { Product, SalesDocumentType, Invoice } from '../types';
 import { useApp } from '../context/AppContext';
@@ -18,7 +19,7 @@ interface SalesProps {
 }
 
 const Sales: React.FC<SalesProps> = ({ mode }) => {
-  const { products, clients, createSalesDocument, formatCurrency, settings, t } = useApp();
+  const { products, clients, warehouses, createSalesDocument, formatCurrency, settings, t } = useApp();
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,6 +32,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   // Transaction State
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<string>('');
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   const [discount, setDiscount] = useState<number>(0);
   
   // Initialize tax rate with default from settings
@@ -124,6 +126,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       name: customItem.name,
       category: 'Custom',
       stock: 999,
+      warehouseStock: {},
       price: price,
       cost: 0,
       status: 'in_stock',
@@ -156,6 +159,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       alert("Please select a customer first.");
       return;
     }
+    if (!selectedWarehouse) {
+      alert("Please select a source warehouse.");
+      return;
+    }
 
     // Prepare Data for Context
     const invoiceItems = cart.map(item => ({
@@ -177,7 +184,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       date: new Date().toISOString().split('T')[0],
       dueDate: dueDate.toISOString().split('T')[0],
       amount: total,
-      status: status, 
+      status: status,
+      warehouseId: selectedWarehouse
     }, invoiceItems);
 
     setLastCreatedDoc(createdDoc);
@@ -244,32 +252,38 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
         {/* Product Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredProducts.map(product => (
-              <div 
-                key={product.id}
-                onClick={() => addToCart(product)}
-                className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
-                      {product.sku}
-                    </span>
-                    <div className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-green-500' : product.stock > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
+            {filteredProducts.map(product => {
+              const stockInSelected = product.warehouseStock?.[selectedWarehouse] || 0;
+              return (
+                <div 
+                  key={product.id}
+                  onClick={() => addToCart(product)}
+                  className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                        {product.sku}
+                      </span>
+                      <div className={`w-2 h-2 rounded-full ${stockInSelected > 10 ? 'bg-green-500' : stockInSelected > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
+                    </div>
+                    <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{product.category}</p>
                   </div>
-                  <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
-                    {product.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{product.category}</p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                      {formatCurrency(product.price)}
+                    </span>
+                    <div className="text-xs text-gray-400">
+                      Stock: {stockInSelected} 
+                      {/* Show total if multi-warehouse visual cues needed, but confusing here */}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                    {formatCurrency(product.price)}
-                  </span>
-                  <div className="text-xs text-gray-400">Qty: {product.stock}</div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             
             {filteredProducts.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-400">
@@ -284,8 +298,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       {/* RIGHT COLUMN: CART / CHECKOUT */}
       <div className="w-full lg:w-96 bg-white dark:bg-gray-800 shadow-xl flex flex-col h-[40vh] lg:h-full z-20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
         {/* Cart Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
+          <div className="flex items-center justify-between">
             <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <ShoppingCart className="w-5 h-5" />
               {t('cart')}
@@ -295,6 +309,21 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             </span>
           </div>
           
+          {/* Warehouse Select */}
+          <div className="relative">
+            <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <select
+              value={selectedWarehouse}
+              onChange={(e) => setSelectedWarehouse(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white appearance-none cursor-pointer"
+            >
+              {warehouses.map(w => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
+          </div>
+
           {/* Customer Select */}
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -488,6 +517,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">{t('client')}:</span>
                  <span className="font-medium text-gray-900 dark:text-white">{selectedClientData?.company || 'Walk-in Customer'}</span>
+               </div>
+               <div className="flex justify-between text-sm">
+                 <span className="text-gray-500">Warehouse:</span>
+                 <span className="font-medium text-gray-900 dark:text-white">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span>
                </div>
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">Items:</span>

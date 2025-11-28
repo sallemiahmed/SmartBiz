@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language, BankAccount, BankTransaction, CashSession, CashTransaction } from '../types';
-import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions } from '../services/mockData';
+import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer } from '../types';
+import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions, mockWarehouses, mockStockTransfers } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
 interface ChartDataPoint {
@@ -21,6 +21,8 @@ interface AppContextType {
   bankTransactions: BankTransaction[];
   cashSessions: CashSession[];
   cashTransactions: CashTransaction[];
+  warehouses: Warehouse[];
+  stockTransfers: StockTransfer[];
   stats: DashboardStats;
   chartData: ChartDataPoint[];
   settings: AppSettings;
@@ -57,6 +59,12 @@ interface AppContextType {
   closeCashSession: (amount: number, notes?: string) => void;
   addCashTransaction: (transaction: CashTransaction) => void;
 
+  // Warehouse Actions
+  addWarehouse: (warehouse: Warehouse) => void;
+  updateWarehouse: (warehouse: Warehouse) => void;
+  deleteWarehouse: (id: string) => void;
+  transferStock: (transfer: Omit<StockTransfer, 'id' | 'date' | 'productName'>) => void;
+
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   
   // Complex Logic
@@ -86,6 +94,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>(mockBankTransactions);
   const [cashSessions, setCashSessions] = useState<CashSession[]>(mockCashSessions);
   const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>(mockCashTransactions);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>(mockWarehouses);
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
   
   const [settings, setSettings] = useState<AppSettings>({
     companyName: 'My Smart Business',
@@ -284,6 +294,49 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
   };
 
+  // Warehouse Actions
+  const addWarehouse = (warehouse: Warehouse) => setWarehouses(prev => [...prev, warehouse]);
+  const updateWarehouse = (warehouse: Warehouse) => setWarehouses(prev => prev.map(w => w.id === warehouse.id ? warehouse : w));
+  const deleteWarehouse = (id: string) => setWarehouses(prev => prev.filter(w => w.id !== id));
+
+  const transferStock = (transferData: Omit<StockTransfer, 'id' | 'date' | 'productName'>) => {
+    const product = products.find(p => p.id === transferData.productId);
+    if (!product) return;
+
+    // Check availability
+    const currentSourceStock = product.warehouseStock[transferData.fromWarehouseId] || 0;
+    if (currentSourceStock < transferData.quantity) {
+      alert(`Insufficient stock in source warehouse. Available: ${currentSourceStock}`);
+      return;
+    }
+
+    // 1. Log Transfer
+    const newTransfer: StockTransfer = {
+      ...transferData,
+      id: `tr-${Date.now()}`,
+      date: new Date().toISOString(),
+      productName: product.name
+    };
+    setStockTransfers(prev => [newTransfer, ...prev]);
+
+    // 2. Update Product Stock
+    const updatedWarehouseStock = { ...product.warehouseStock };
+    updatedWarehouseStock[transferData.fromWarehouseId] = (updatedWarehouseStock[transferData.fromWarehouseId] || 0) - transferData.quantity;
+    updatedWarehouseStock[transferData.toWarehouseId] = (updatedWarehouseStock[transferData.toWarehouseId] || 0) + transferData.quantity;
+
+    // Recalculate total stock
+    const newTotalStock = (Object.values(updatedWarehouseStock) as number[]).reduce((a, b) => a + b, 0);
+
+    const updatedProduct = {
+      ...product,
+      stock: newTotalStock,
+      warehouseStock: updatedWarehouseStock,
+      status: newTotalStock <= 0 ? 'out_of_stock' : newTotalStock <= 10 ? 'low_stock' : 'in_stock'
+    } as Product;
+
+    updateProduct(updatedProduct);
+  };
+
   // --- BUSINESS LOGIC ---
 
   const createSalesDocument = (type: SalesDocumentType, docData: Omit<Invoice, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Invoice => {
@@ -311,36 +364,58 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // 2. Update Related Data
     
-    // IMPACT: Stock Deduction (Sales)
+    // IMPACT: Stock Deduction (Sales) - Updated for Warehouse Logic
     if (type === 'invoice' || type === 'delivery' || type === 'issue') {
-      setProducts(prevProducts => prevProducts.map(prod => {
-        const soldItem = items.find(item => item.id === prod.id);
-        if (soldItem) {
-          const newStock = prod.stock - soldItem.quantity;
-          return {
-            ...prod,
-            stock: newStock,
-            status: newStock <= 0 ? 'out_of_stock' : newStock <= 10 ? 'low_stock' : 'in_stock'
-          };
-        }
-        return prod;
-      }));
+      const warehouseId = docData.warehouseId;
+      if (!warehouseId && type !== 'invoice') { // Invoice might not always deduct stock immediately if it's service-based, but here we assume product sales need warehouse
+         console.warn("No warehouse selected for stock deduction!");
+      }
+
+      if (warehouseId) {
+        setProducts(prevProducts => prevProducts.map(prod => {
+          const soldItem = items.find(item => item.id === prod.id);
+          if (soldItem) {
+            const currentWhStock = prod.warehouseStock[warehouseId] || 0;
+            const newWhStock = currentWhStock - soldItem.quantity;
+            
+            const updatedWarehouseStock = { ...prod.warehouseStock, [warehouseId]: newWhStock };
+            const newTotalStock = (Object.values(updatedWarehouseStock) as number[]).reduce((a, b) => a + b, 0);
+
+            return {
+              ...prod,
+              stock: newTotalStock,
+              warehouseStock: updatedWarehouseStock,
+              status: newTotalStock <= 0 ? 'out_of_stock' : newTotalStock <= 10 ? 'low_stock' : 'in_stock'
+            };
+          }
+          return prod;
+        }));
+      }
     }
 
     // IMPACT: Stock Increase (Returns)
     if (type === 'return') {
-      setProducts(prevProducts => prevProducts.map(prod => {
-        const returnedItem = items.find(item => item.id === prod.id);
-        if (returnedItem) {
-          const newStock = prod.stock + returnedItem.quantity;
-          return {
-            ...prod,
-            stock: newStock,
-            status: newStock <= 0 ? 'out_of_stock' : newStock <= 10 ? 'low_stock' : 'in_stock'
-          };
-        }
-        return prod;
-      }));
+      const warehouseId = docData.warehouseId; // Where are returns going?
+      if (warehouseId) {
+        setProducts(prevProducts => prevProducts.map(prod => {
+          const returnedItem = items.find(item => item.id === prod.id);
+          if (returnedItem) {
+            const currentWhStock = prod.warehouseStock[warehouseId] || 0;
+            const newWhStock = currentWhStock + returnedItem.quantity;
+            
+            const updatedWarehouseStock = { ...prod.warehouseStock, [warehouseId]: newWhStock };
+            const newTotalStock = (Object.values(updatedWarehouseStock) as number[]).reduce((a, b) => a + b, 0);
+
+            return {
+              ...prod,
+              stock: newTotalStock,
+              warehouseStock: updatedWarehouseStock,
+              status: newTotalStock <= 0 ? 'out_of_stock' : newTotalStock <= 10 ? 'low_stock' : 'in_stock'
+            };
+          }
+          return prod;
+        }));
+      }
     }
 
     // IMPACT: Client Total Spent
@@ -357,7 +432,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (type === 'credit') {
       setClients(prevClients => prevClients.map(client => {
         if (client.id === docData.clientId) {
-          // Reducing the total spent because they got money back/credit
           return { ...client, totalSpent: Math.max(0, client.totalSpent - docData.amount) };
         }
         return client;
@@ -385,20 +459,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // 2. Update Related Data
     
-    // IMPACT: Stock Increase (Purchases)
+    // IMPACT: Stock Increase (Purchases / GRN)
     if (type === 'delivery') {
-      setProducts(prevProducts => prevProducts.map(prod => {
-        const purchasedItem = items.find(item => item.id === prod.id);
-        if (purchasedItem) {
-          const newStock = prod.stock + purchasedItem.quantity;
-          return {
-            ...prod,
-            stock: newStock,
-            status: newStock <= 0 ? 'out_of_stock' : newStock <= 10 ? 'low_stock' : 'in_stock'
-          };
-        }
-        return prod;
-      }));
+      const warehouseId = docData.warehouseId;
+      if (warehouseId) {
+        setProducts(prevProducts => prevProducts.map(prod => {
+          const purchasedItem = items.find(item => item.id === prod.id);
+          if (purchasedItem) {
+            const currentWhStock = prod.warehouseStock[warehouseId] || 0;
+            const newWhStock = currentWhStock + purchasedItem.quantity;
+            
+            const updatedWarehouseStock = { ...prod.warehouseStock, [warehouseId]: newWhStock };
+            const newTotalStock = (Object.values(updatedWarehouseStock) as number[]).reduce((a, b) => a + b, 0);
+
+            return {
+              ...prod,
+              stock: newTotalStock,
+              warehouseStock: updatedWarehouseStock,
+              status: newTotalStock <= 0 ? 'out_of_stock' : newTotalStock <= 10 ? 'low_stock' : 'in_stock'
+            };
+          }
+          return prod;
+        }));
+      }
     }
 
     // IMPACT: Supplier Total Purchased
@@ -418,6 +501,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       clients, suppliers, products, invoices, purchases, 
       bankAccounts, bankTransactions, cashSessions, cashTransactions,
+      warehouses, stockTransfers,
       stats, chartData, settings,
       t,
       formatCurrency,
@@ -428,6 +512,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       deletePurchase, updatePurchase,
       addBankTransaction, updateBankAccount,
       openCashSession, closeCashSession, addCashTransaction,
+      addWarehouse, updateWarehouse, deleteWarehouse, transferStock,
       updateSettings,
       createSalesDocument, createPurchaseDocument
     }}>
