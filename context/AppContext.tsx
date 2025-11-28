@@ -27,6 +27,10 @@ interface AppContextType {
   chartData: ChartDataPoint[];
   settings: AppSettings;
   
+  // UI State
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  
   // Helper
   t: (key: string) => string;
   formatCurrency: (amount: number) => string;
@@ -97,6 +101,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [warehouses, setWarehouses] = useState<Warehouse[]>(mockWarehouses);
   const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
   
+  const [isLoading, setIsLoading] = useState(false);
+
   const [settings, setSettings] = useState<AppSettings>({
     companyName: 'My Smart Business',
     companyEmail: 'admin@smartbiz.com',
@@ -122,8 +128,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Load translations when language changes
   useEffect(() => {
+    setIsLoading(true);
     loadTranslations(settings.language).then(data => {
       setCurrentTranslations(data);
+      setTimeout(() => setIsLoading(false), 500); // Simulate subtle load for effect
     });
   }, [settings.language]);
 
@@ -504,6 +512,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       bankAccounts, bankTransactions, cashSessions, cashTransactions,
       warehouses, stockTransfers,
       stats, chartData, settings,
+      isLoading, setIsLoading,
       t,
       formatCurrency,
       addClient, updateClient, deleteClient,

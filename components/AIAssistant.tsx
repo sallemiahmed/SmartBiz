@@ -22,16 +22,29 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize greeting with translation
+  // Initialize greeting with translation, handling async loading
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{ 
-        id: '1', 
-        role: 'model', 
-        text: t('ai_greeting') 
-      }]);
+    const greetingText = t('ai_greeting');
+    
+    // Check if we need to initialize or update the greeting
+    // Update if list is empty OR if the first message is the raw key (meaning translation wasn't ready)
+    if (messages.length === 0 || (messages.length === 1 && messages[0].role === 'model' && messages[0].text === 'ai_greeting')) {
+      if (greetingText && greetingText !== 'ai_greeting') {
+        setMessages([{ 
+          id: '1', 
+          role: 'model', 
+          text: greetingText 
+        }]);
+      } else if (messages.length === 0) {
+        // Initial placeholder while loading
+        setMessages([{ 
+          id: '1', 
+          role: 'model', 
+          text: '...' 
+        }]);
+      }
     }
-  }, [t, messages.length]);
+  }, [t, messages]); // Depend on t to trigger re-render when translations load
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -102,13 +115,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
       const context = generateContextPrompt();
       const prompt = `${context}\n\nUser Query: ${userMessage.text}`;
 
-      // Using gemini-3-pro-preview with Thinking Mode
+      // Using gemini-2.5-flash for reliability and speed
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt,
-        config: {
-          thinkingConfig: { thinkingBudget: 2048 }
-        }
+        model: 'gemini-2.5-flash',
+        contents: prompt
       });
 
       const responseText = response.text || "I'm sorry, I couldn't generate a response at this time.";
@@ -117,7 +127,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     } catch (error: any) {
       console.error("AI Error:", error);
       let errorMessage = t('ai_error_generic');
-      if (error.message && (error.message.includes("API Key") || error.message.includes("403"))) {
+      if (error.message && (error.message.includes("API Key") || error.message.includes("403") || error.message.includes("400"))) {
         errorMessage = t('ai_error_config');
       }
       setMessages(prev => [...prev, { 
