@@ -1,12 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Save, Globe, User, Shield, Bell, Building, CreditCard, 
-  CheckCircle, Plus, Trash2, Star
+  CheckCircle, Plus, Trash2, Star, List, Type
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { AppSettings, TaxRate } from '../types';
+import { AppSettings, TaxRate, CustomFieldDefinition } from '../types';
 
-type SettingsTab = 'general' | 'profile' | 'security' | 'billing' | 'notifications';
+type SettingsTab = 'general' | 'profile' | 'security' | 'billing' | 'notifications' | 'custom_fields';
 
 interface SettingsProps {
   view?: string;
@@ -42,6 +43,11 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
 
   // Local state for new tax rate input
   const [newTaxRate, setNewTaxRate] = useState<{name: string, rate: string}>({ name: '', rate: '' });
+
+  // Local state for custom fields
+  const [newField, setNewField] = useState<{label: string, type: 'text'|'number'|'date'|'boolean', entity: 'clients'|'suppliers'}>({ 
+    label: '', type: 'text', entity: 'clients' 
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -91,13 +97,43 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
     }));
   };
 
+  // Custom Field Handlers
+  const handleAddCustomField = () => {
+    if (newField.label) {
+      const fieldDef: CustomFieldDefinition = {
+        id: Date.now().toString(),
+        key: newField.label.toLowerCase().replace(/\s+/g, '_'),
+        label: newField.label,
+        type: newField.type,
+        required: false
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        customFields: {
+          ...prev.customFields,
+          [newField.entity]: [...prev.customFields[newField.entity], fieldDef]
+        }
+      }));
+      setNewField(prev => ({ ...prev, label: '' }));
+    }
+  };
+
+  const handleDeleteCustomField = (id: string, entity: 'clients' | 'suppliers') => {
+    setFormData(prev => ({
+      ...prev,
+      customFields: {
+        ...prev.customFields,
+        [entity]: prev.customFields[entity].filter(f => f.id !== id)
+      }
+    }));
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (activeTab === 'security') {
-      // Mock password update logic
       console.log("Updating security settings:", securityData);
-      // Reset password fields after 'save'
       setSecurityData(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
     } else {
       updateSettings(formData);
@@ -107,90 +143,113 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
     setTimeout(() => setShowSuccess(false), 3000);
   };
 
+  const tabs = [
+    { id: 'general', label: t('general'), icon: Building },
+    { id: 'profile', label: t('profile'), icon: User },
+    { id: 'custom_fields', label: 'Custom Fields', icon: List },
+    { id: 'security', label: t('security'), icon: Shield },
+    { id: 'notifications', label: t('notifications'), icon: Bell },
+    { id: 'billing', label: t('billing'), icon: CreditCard },
+  ];
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('settings')} ⚙️</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('manage_preferences')}</p>
-        </div>
-        {showSuccess && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg animate-fade-in">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">{t('settings_saved')}</span>
-          </div>
-        )}
+    <div className="p-6 max-w-5xl mx-auto flex flex-col md:flex-row gap-6">
+      {/* Sidebar Navigation */}
+      <div className="w-full md:w-64 flex-shrink-0">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('settings')} ⚙️</h1>
+        <nav className="space-y-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as SettingsTab)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === tab.id 
+                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <form onSubmit={handleSave} className="p-6 space-y-6">
+      {/* Main Content Area */}
+      <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            {tabs.find(t => t.id === activeTab)?.label}
+          </h2>
+          {showSuccess && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg animate-fade-in text-sm">
+              <CheckCircle className="w-4 h-4" />
+              <span>{t('settings_saved')}</span>
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={handleSave} className="p-6 flex-1 overflow-y-auto">
           
           {/* --- GENERAL TAB --- */}
           {activeTab === 'general' && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  {t('company_details')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_name')}</label>
-                    <input
-                      type="text"
-                      name="companyName"
-                      value={formData.companyName}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_email')}</label>
-                    <input
-                      type="email"
-                      name="companyEmail"
-                      value={formData.companyEmail}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_phone')}</label>
-                    <input
-                      type="text"
-                      name="companyPhone"
-                      value={formData.companyPhone}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_vat_id')}</label>
-                    <input
-                      type="text"
-                      name="companyVatId"
-                      value={formData.companyVatId}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('address')}</label>
-                    <textarea
-                      name="companyAddress"
-                      value={formData.companyAddress}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_name')}</label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_email')}</label>
+                  <input
+                    type="email"
+                    name="companyEmail"
+                    value={formData.companyEmail}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_phone')}</label>
+                  <input
+                    type="text"
+                    name="companyPhone"
+                    value={formData.companyPhone}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_vat_id')}</label>
+                  <input
+                    type="text"
+                    name="companyVatId"
+                    value={formData.companyVatId}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('address')}</label>
+                  <textarea
+                    name="companyAddress"
+                    value={formData.companyAddress}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
-                  <Globe className="w-5 h-5" /> {t('localization')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('localization')}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('language')}</label>
                     <select
@@ -203,7 +262,6 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       <option value="fr">Français (French)</option>
                       <option value="ar">العربية (Arabic)</option>
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">Switching to Arabic will enable Right-to-Left (RTL) layout.</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('currency')}</label>
@@ -239,10 +297,8 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
               </div>
 
               {/* Tax Configuration */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  {t('tax_configuration')}
-                </h3>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('tax_configuration')}</h3>
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <div className="space-y-4">
                     {/* Add New Rate */}
@@ -279,7 +335,6 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
 
                     {/* Rate List */}
                     <div className="mt-4 space-y-2">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">{t('tax_rates_list')}</label>
                       {formData.taxRates.length === 0 ? (
                         <p className="text-sm text-gray-400 italic">No tax rates configured.</p>
                       ) : (
@@ -324,6 +379,155 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       )}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- CUSTOM FIELDS TAB --- */}
+          {activeTab === 'custom_fields' && (
+            <div className="space-y-8 animate-in fade-in duration-300">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-blue-800 dark:text-blue-300 text-sm mb-6">
+                Define extra fields to track custom data for your Clients and Suppliers. These fields will appear in the creation forms and details views.
+              </div>
+
+              {/* Clients Fields */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-indigo-600" /> Client Fields
+                </h3>
+                
+                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700 mb-6">
+                  {/* Add Field */}
+                  <div className="flex gap-3 items-end mb-4">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Field Label</label>
+                      <input 
+                        type="text" 
+                        value={newField.entity === 'clients' ? newField.label : ''}
+                        onChange={(e) => setNewField({ ...newField, label: e.target.value, entity: 'clients' })}
+                        onFocus={() => setNewField(prev => ({...prev, entity: 'clients'}))}
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                        placeholder="e.g. Member ID"
+                      />
+                    </div>
+                    <div className="w-32">
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Type</label>
+                      <select 
+                        value={newField.entity === 'clients' ? newField.type : 'text'}
+                        onChange={(e) => setNewField({ ...newField, type: e.target.value as any, entity: 'clients' })}
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                      >
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="date">Date</option>
+                        <option value="boolean">Yes/No</option>
+                      </select>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleAddCustomField}
+                      disabled={newField.entity !== 'clients' || !newField.label}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm font-medium"
+                    >
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
+                  </div>
+
+                  {/* List */}
+                  {formData.customFields.clients.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">No custom fields defined for clients.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.customFields.clients.map(field => (
+                        <div key={field.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-3">
+                            <Type className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{field.label}</p>
+                              <p className="text-xs text-gray-500 uppercase">{field.type}</p>
+                            </div>
+                          </div>
+                          <button 
+                            type="button" 
+                            onClick={() => handleDeleteCustomField(field.id, 'clients')}
+                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Suppliers Fields */}
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Building className="w-5 h-5 text-orange-600" /> Supplier Fields
+                </h3>
+                
+                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  {/* Add Field */}
+                  <div className="flex gap-3 items-end mb-4">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Field Label</label>
+                      <input 
+                        type="text" 
+                        value={newField.entity === 'suppliers' ? newField.label : ''}
+                        onChange={(e) => setNewField({ ...newField, label: e.target.value, entity: 'suppliers' })}
+                        onFocus={() => setNewField(prev => ({...prev, entity: 'suppliers'}))}
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none dark:text-white"
+                        placeholder="e.g. Tax ID Type"
+                      />
+                    </div>
+                    <div className="w-32">
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Type</label>
+                      <select 
+                        value={newField.entity === 'suppliers' ? newField.type : 'text'}
+                        onChange={(e) => setNewField({ ...newField, type: e.target.value as any, entity: 'suppliers' })}
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none dark:text-white"
+                      >
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="date">Date</option>
+                        <option value="boolean">Yes/No</option>
+                      </select>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleAddCustomField}
+                      disabled={newField.entity !== 'suppliers' || !newField.label}
+                      className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors text-sm font-medium"
+                    >
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
+                  </div>
+
+                  {/* List */}
+                  {formData.customFields.suppliers.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">No custom fields defined for suppliers.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.customFields.suppliers.map(field => (
+                        <div key={field.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-3">
+                            <Type className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{field.label}</p>
+                              <p className="text-xs text-gray-500 uppercase">{field.type}</p>
+                            </div>
+                          </div>
+                          <button 
+                            type="button" 
+                            onClick={() => handleDeleteCustomField(field.id, 'suppliers')}
+                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -452,7 +656,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
           )}
 
           {/* Footer Actions */}
-          <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+          <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-gray-800 py-4">
             <button 
               type="button"
               onClick={() => { setFormData(settings); setSecurityData({currentPassword: '', newPassword: '', confirmPassword: '', is2FAEnabled: false}); }}

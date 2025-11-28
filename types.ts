@@ -3,14 +3,14 @@ export type AppView =
   | 'dashboard' 
   | 'clients' 
   | 'suppliers' 
-  | 'sales' | 'sales-estimate' | 'sales-estimate-create' | 'sales-order' | 'sales-order-create' | 'sales-delivery' | 'sales-delivery-create' | 'sales-invoice' | 'sales-invoice-create' | 'sales-issue' | 'sales-issue-create'
+  | 'sales' | 'sales-estimate' | 'sales-estimate-create' | 'sales-order' | 'sales-order-create' | 'sales-delivery' | 'sales-delivery-create' | 'sales-invoice' | 'sales-invoice-create' | 'sales-issue' | 'sales-issue-create' | 'sales-return' | 'sales-credit'
   | 'purchases' | 'purchases-order' | 'purchases-order-create' | 'purchases-delivery' | 'purchases-delivery-create' | 'purchases-invoice' | 'purchases-invoice-create'
   | 'inventory' 
   | 'invoices' 
   | 'banking'
   | 'cash_register'
   | 'reports' 
-  | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
+  | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications' | 'settings-custom-fields';
 
 export type Language = 'en' | 'fr' | 'ar';
 
@@ -19,6 +19,14 @@ export interface TaxRate {
   name: string;
   rate: number;
   isDefault?: boolean;
+}
+
+export interface CustomFieldDefinition {
+  id: string;
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'boolean';
+  required: boolean;
 }
 
 export interface AppSettings {
@@ -31,6 +39,10 @@ export interface AppSettings {
   language: Language;
   timezone: string;
   taxRates: TaxRate[];
+  customFields: {
+    clients: CustomFieldDefinition[];
+    suppliers: CustomFieldDefinition[];
+  };
 }
 
 export interface User {
@@ -50,6 +62,7 @@ export interface Client {
   company: string;
   status: 'active' | 'inactive';
   totalSpent: number;
+  customFields?: Record<string, any>;
 }
 
 export interface Supplier {
@@ -61,9 +74,10 @@ export interface Supplier {
   category: string;
   status: 'active' | 'inactive';
   totalPurchased: number;
+  customFields?: Record<string, any>;
 }
 
-export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue';
+export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue' | 'return' | 'credit';
 
 export interface Invoice {
   id: string;
@@ -74,8 +88,9 @@ export interface Invoice {
   date: string;
   dueDate: string;
   amount: number;
-  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed';
+  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'returned';
   items: InvoiceItem[];
+  linkedDocumentId?: string; // For Credit Notes linking to Invoices
 }
 
 export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice';

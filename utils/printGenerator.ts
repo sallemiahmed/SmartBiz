@@ -1,3 +1,4 @@
+
 import { Invoice, AppSettings } from '../types';
 
 export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
@@ -15,9 +16,13 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
       case 'delivery': return 'DELIVERY NOTE';
       case 'invoice': return 'INVOICE';
       case 'issue': return 'ISSUE NOTE';
+      case 'return': return 'RETURN NOTE';
+      case 'credit': return 'CREDIT NOTE';
       default: return type.toUpperCase();
     }
   };
+
+  const isCredit = invoice.type === 'credit';
 
   const html = `
     <!DOCTYPE html>
@@ -31,7 +36,7 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
         .company-info h1 { margin: 0 0 5px; font-size: 24px; color: #2c3e50; }
         .company-info p { margin: 2px 0; color: #7f8c8d; }
         .invoice-info { text-align: ${isRTL ? 'left' : 'right'}; }
-        .invoice-info h2 { margin: 0 0 10px; font-size: 20px; color: #2c3e50; text-transform: uppercase; }
+        .invoice-info h2 { margin: 0 0 10px; font-size: 20px; color: ${isCredit ? '#c0392b' : '#2c3e50'}; text-transform: uppercase; }
         .invoice-meta table { margin-left: auto; }
         .invoice-meta td { padding: 2px 10px; }
         .invoice-meta td:first-child { font-weight: bold; color: #7f8c8d; }
@@ -51,7 +56,7 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
         .totals-table td { padding: 8px 0; }
         .totals-table .label { font-weight: bold; color: #7f8c8d; padding-right: 20px; text-align: ${isRTL ? 'left' : 'right'}; }
         .totals-table .value { text-align: ${isRTL ? 'left' : 'right'}; font-weight: 600; }
-        .totals-table .grand-total { font-size: 18px; border-top: 2px solid #eee; padding-top: 10px; color: #2c3e50; }
+        .totals-table .grand-total { font-size: 18px; border-top: 2px solid #eee; padding-top: 10px; color: ${isCredit ? '#c0392b' : '#2c3e50'}; }
         
         .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #95a5a6; font-size: 12px; }
         
@@ -76,6 +81,7 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
               <td>Ref #:</td>
               <td>${invoice.number}</td>
             </tr>
+            ${invoice.linkedDocumentId ? `<tr><td>Original Inv:</td><td>${invoice.linkedDocumentId}</td></tr>` : ''}
             <tr>
               <td>Date:</td>
               <td>${invoice.date}</td>
@@ -86,7 +92,7 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
       </div>
 
       <div class="client-container">
-        <div class="bill-to">Bill To:</div>
+        <div class="bill-to">${isCredit ? 'Credit To:' : 'Bill To:'}</div>
         <div class="client-name">${invoice.clientName}</div>
       </div>
 
@@ -121,7 +127,7 @@ export const printInvoice = (invoice: Invoice, settings: AppSettings) => {
                or simpler logic: Total in Invoice is final. 
                Ideally, we should pass tax details explicitly. For now, showing Total. -->
           <tr class="grand-total">
-            <td class="label">Total</td>
+            <td class="label">Total ${isCredit ? '(Credit)' : ''}</td>
             <td class="value">${currencyFormatter.format(invoice.amount)}</td>
           </tr>
         </table>

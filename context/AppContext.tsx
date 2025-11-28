@@ -100,7 +100,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       { id: '1', name: 'TVA Standard', rate: 20, isDefault: true },
       { id: '2', name: 'Taux Réduit', rate: 5.5 },
       { id: '3', name: 'Zéro', rate: 0 }
-    ]
+    ],
+    customFields: {
+      clients: [],
+      suppliers: []
+    }
   });
 
   const [currentTranslations, setCurrentTranslations] = useState<Record<string, string>>({});
@@ -117,8 +121,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Dynamic Stats Calculation
   const stats: DashboardStats = useMemo(() => {
     const revenue = invoices
-      .filter(i => i.type === 'invoice' && i.status !== 'draft') // Count paid, pending, overdue
+      .filter(i => (i.type === 'invoice' && i.status !== 'draft')) 
       .reduce((sum, i) => sum + i.amount, 0);
+    
+    // Subtract Credit Notes from Revenue
+    const credits = invoices
+      .filter(i => i.type === 'credit')
+      .reduce((sum, i) => sum + i.amount, 0);
+
+    const netRevenue = revenue - credits;
 
     const expenses = purchases
       .filter(p => p.type === 'invoice') // Count all registered purchase invoices
@@ -127,9 +138,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const pendingInvoices = invoices.filter(i => i.type === 'invoice' && i.status === 'pending').length;
 
     return {
-      revenue,
+      revenue: netRevenue,
       expenses,
-      profit: revenue - expenses,
+      profit: netRevenue - expenses,
       pendingInvoices
     };
   }, [invoices, purchases]);
@@ -146,14 +157,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       data[key] = { name: key, revenue: 0, expenses: 0 };
     }
 
-    // Aggregate Revenue
+    // Aggregate Revenue (Invoices - Credit Notes)
     invoices.forEach(inv => {
-      if (inv.type === 'invoice' && inv.status !== 'draft') {
+      if ((inv.type === 'invoice' && inv.status !== 'draft') || inv.type === 'credit') {
         const date = new Date(inv.date);
         const key = date.toLocaleString('default', { month: 'short' });
-        // Only add if it falls within our 6-month window initialization (simple check)
         if (data[key]) {
-          data[key].revenue += inv.amount;
+          if (inv.type === 'credit') {
+            data[key].revenue -= inv.amount;
+          } else {
+            data[key].revenue += inv.amount;
+          }
         }
       }
     });
@@ -274,7 +288,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const createSalesDocument = (type: SalesDocumentType, docData: Omit<Invoice, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Invoice => {
     const newId = `${Date.now()}`;
-    const prefix = type === 'estimate' ? 'EST' : type === 'order' ? 'ORD' : type === 'delivery' ? 'DEL' : type === 'issue' ? 'ISS' : 'INV';
+    let prefix = 'INV';
+    if (type === 'estimate') prefix = 'EST';
+    if (type === 'order') prefix = 'ORD';
+    if (type === 'delivery') prefix = 'DEL';
+    if (type === 'issue') prefix = 'ISS';
+    if (type === 'return') prefix = 'RET';
+    if (type === 'credit') prefix = 'CR';
+
     const newNumber = `${prefix}-${new Date().getFullYear()}-${String(invoices.length + 1001).padStart(4, '0')}`;
     
     const newDoc: Invoice = {
@@ -306,11 +327,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }));
     }
 
+    // IMPACT: Stock Increase (Returns)
+    if (type === 'return') {
+      setProducts(prevProducts => prevProducts.map(prod => {
+        const returnedItem = items.find(item => item.id === prod.id);
+        if (returnedItem) {
+          const newStock = prod.stock + returnedItem.quantity;
+          return {
+            ...prod,
+            stock: newStock,
+            status: newStock <= 0 ? 'out_of_stock' : newStock <= 10 ? 'low_stock' : 'in_stock'
+          };
+        }
+        return prod;
+      }));
+    }
+
     // IMPACT: Client Total Spent
     if (type === 'invoice') {
       setClients(prevClients => prevClients.map(client => {
         if (client.id === docData.clientId) {
           return { ...client, totalSpent: client.totalSpent + docData.amount };
+        }
+        return client;
+      }));
+    }
+
+    // IMPACT: Credit Note (Reduce Total Spent or handle as credit)
+    if (type === 'credit') {
+      setClients(prevClients => prevClients.map(client => {
+        if (client.id === docData.clientId) {
+          // Reducing the total spent because they got money back/credit
+          return { ...client, totalSpent: Math.max(0, client.totalSpent - docData.amount) };
         }
         return client;
       }));

@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Filter, CheckCircle, Printer } from 'lucide-react';
-import { Invoice } from '../types';
+import { Search, Plus, Eye, Trash2, X, FileText, Filter, CheckCircle, Printer, RotateCcw, AlertCircle } from 'lucide-react';
+import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 
@@ -9,14 +10,18 @@ interface SalesInvoicesProps {
 }
 
 const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, updateInvoice, formatCurrency, settings, t } = useApp();
+  const { invoices, deleteInvoice, updateInvoice, createSalesDocument, formatCurrency, settings, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  
+  // Return Workflow State
+  const [returnItems, setReturnItems] = useState<{id: string, quantity: number, max: number}[]>([]);
 
-  const salesInvoices = invoices.filter(inv => inv.type === 'invoice');
+  const salesInvoices = invoices.filter(inv => inv.type === 'invoice' || inv.type === 'credit');
 
   const filteredDocs = salesInvoices.filter(doc => {
     const matchesSearch = doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -36,6 +41,63 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
     if (selectedDoc) {
       printInvoice(selectedDoc, settings);
     }
+  };
+
+  const openReturnModal = () => {
+    if (!selectedDoc) return;
+    // Initialize return quantities to 0
+    setReturnItems(selectedDoc.items.map(i => ({ id: i.id, quantity: 0, max: i.quantity })));
+    setIsViewModalOpen(false);
+    setIsReturnModalOpen(true);
+  };
+
+  const handleProcessReturn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDoc) return;
+
+    const itemsToReturn = selectedDoc.items.map(item => {
+      const returnInfo = returnItems.find(r => r.id === item.id);
+      if (returnInfo && returnInfo.quantity > 0) {
+        return { ...item, quantity: returnInfo.quantity };
+      }
+      return null;
+    }).filter(Boolean) as InvoiceItem[];
+
+    if (itemsToReturn.length === 0) {
+      alert("Please select at least one item to return.");
+      return;
+    }
+
+    const returnTotal = itemsToReturn.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // 1. Create Return Note (Updates Stock)
+    createSalesDocument('return', {
+      clientId: selectedDoc.clientId,
+      clientName: selectedDoc.clientName,
+      date: new Date().toISOString().split('T')[0],
+      dueDate: new Date().toISOString().split('T')[0],
+      amount: returnTotal,
+      status: 'completed', // Confirmed return
+      linkedDocumentId: selectedDoc.id
+    }, itemsToReturn);
+
+    // 2. Create Credit Note (Financial Impact)
+    createSalesDocument('credit', {
+      clientId: selectedDoc.clientId,
+      clientName: selectedDoc.clientName,
+      date: new Date().toISOString().split('T')[0],
+      dueDate: new Date().toISOString().split('T')[0],
+      amount: returnTotal,
+      status: 'paid', // Immediately valid credit
+      linkedDocumentId: selectedDoc.id
+    }, itemsToReturn);
+
+    // 3. Update Original Invoice Status (Optional - strictly speaking it stays Paid, but maybe mark as returned?)
+    // keeping it simple, maybe add a note or just leave as is.
+    // If fully returned, maybe mark as Returned? Let's just create the linked docs for now.
+    
+    setIsReturnModalOpen(false);
+    setSelectedDoc(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -106,11 +168,16 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredDocs.map((doc) => (
                 <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
-                  <td className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400">{doc.number}</td>
+                  <td className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400">
+                    {doc.number}
+                    {doc.type === 'credit' && <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CR</span>}
+                  </td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.dueDate}</td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
+                  <td className={`px-6 py-4 font-bold ${doc.type === 'credit' ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                    {doc.type === 'credit' ? '-' : ''}{formatCurrency(doc.amount)}
+                  </td>
                   <td className="px-6 py-4">
                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
                        {t(doc.status)}
@@ -153,7 +220,9 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('invoice_details')}</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {selectedDoc.type === 'credit' ? 'Credit Note' : t('invoice_details')}
+                </h3>
                 <span className="text-sm text-indigo-600 dark:text-indigo-400 font-mono">{selectedDoc.number}</span>
               </div>
               <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
@@ -196,7 +265,17 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
             </div>
 
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 gap-3">
-              {selectedDoc.status !== 'paid' && (
+              {/* Return Button */}
+              {selectedDoc.type === 'invoice' && selectedDoc.status === 'paid' && (
+                <button 
+                  onClick={openReturnModal}
+                  className="col-span-2 py-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2 font-medium"
+                >
+                  <RotateCcw className="w-4 h-4" /> Create Return & Credit Note
+                </button>
+              )}
+
+              {selectedDoc.status !== 'paid' && selectedDoc.type === 'invoice' && (
                 <button 
                   onClick={handleMarkPaid}
                   className="py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
@@ -206,7 +285,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
               )}
               <button 
                 onClick={handlePrint}
-                className={`py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 font-medium ${selectedDoc.status === 'paid' ? 'col-span-2' : ''}`}
+                className={`py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 font-medium ${selectedDoc.status === 'paid' && selectedDoc.type !== 'invoice' ? 'col-span-2' : ''}`}
               >
                 <Printer className="w-4 h-4" /> {t('print_invoice')}
               </button>
@@ -220,6 +299,83 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                 {t('cancel')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Return Modal */}
+      {isReturnModalOpen && selectedDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Process Return</h3>
+                <p className="text-sm text-gray-500">For Invoice: {selectedDoc.number}</p>
+              </div>
+              <button onClick={() => setIsReturnModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-700 dark:text-blue-300 mb-6 flex gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p>This action will generate a <strong>Return Note</strong> (restocking items) and a <strong>Credit Note</strong> (refunding amount).</p>
+            </div>
+
+            <form onSubmit={handleProcessReturn}>
+              <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+                {selectedDoc.items.map((item, idx) => {
+                  const returnItem = returnItems.find(r => r.id === item.id) || { quantity: 0 };
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{item.description}</p>
+                        <p className="text-xs text-gray-500">Sold: {item.quantity} | Price: {formatCurrency(item.price)}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Return Qty:</span>
+                        <input 
+                          type="number"
+                          min="0"
+                          max={item.quantity}
+                          value={returnItem.quantity}
+                          onChange={(e) => {
+                            const val = Math.min(Math.max(0, parseInt(e.target.value) || 0), item.quantity);
+                            setReturnItems(prev => prev.map(p => p.id === item.id ? { ...p, quantity: val } : p));
+                          }}
+                          className="w-16 px-2 py-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded text-center"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div className="text-sm">
+                  <span className="text-gray-500">Refund Total: </span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    {formatCurrency(returnItems.reduce((sum, r) => {
+                      const item = selectedDoc.items.find(i => i.id === r.id);
+                      return sum + (item ? item.price * r.quantity : 0);
+                    }, 0))}
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsReturnModalOpen(false)}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                  >
+                    Confirm Return
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

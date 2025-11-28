@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Search, Plus, Filter, Mail, Phone, Users, Pencil, X, Save, Trash2, Eye, ArrowUp, ArrowDown, AlertTriangle, RotateCcw } from 'lucide-react';
 import { Client } from '../types';
@@ -5,7 +6,7 @@ import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
 
 const Clients: React.FC = () => {
-  const { clients, addClient, updateClient, deleteClient, formatCurrency, t } = useApp();
+  const { clients, addClient, updateClient, deleteClient, formatCurrency, settings, t } = useApp();
   
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,7 +31,8 @@ const Clients: React.FC = () => {
     email: '',
     phone: '',
     status: 'active',
-    totalSpent: 0
+    totalSpent: 0,
+    customFields: {}
   });
 
   // --- Handlers ---
@@ -63,7 +65,8 @@ const Clients: React.FC = () => {
       email: '',
       phone: '',
       status: 'active',
-      totalSpent: 0
+      totalSpent: 0,
+      customFields: {}
     });
   };
 
@@ -90,6 +93,20 @@ const Clients: React.FC = () => {
       setNewClient(prev => ({ ...prev, [name]: value }));
     } else if (selectedClient) {
       setSelectedClient({ ...selectedClient, [name]: value });
+    }
+  };
+
+  const handleCustomFieldChange = (key: string, value: any, isNew: boolean = false) => {
+    if (isNew) {
+      setNewClient(prev => ({ 
+        ...prev, 
+        customFields: { ...prev.customFields, [key]: value }
+      }));
+    } else if (selectedClient) {
+      setSelectedClient(prev => prev ? ({
+        ...prev,
+        customFields: { ...prev.customFields, [key]: value }
+      }) : null);
     }
   };
 
@@ -143,6 +160,39 @@ const Clients: React.FC = () => {
   const SortIcon = ({ columnKey }: { columnKey: keyof Client }) => {
     if (sortConfig?.key !== columnKey) return <div className="w-4 h-4 inline-block ml-1" />;
     return sortConfig.direction === 'asc' ? <ArrowUp className="w-4 h-4 ml-1 inline text-indigo-500" /> : <ArrowDown className="w-4 h-4 ml-1 inline text-indigo-500" />;
+  };
+
+  const renderCustomFields = (data: Partial<Client>, isNew: boolean) => {
+    if (settings.customFields.clients.length === 0) return null;
+    
+    return (
+      <div className="space-y-4 border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
+        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Additional Details</h4>
+        {settings.customFields.clients.map(field => (
+          <div key={field.id}>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{field.label}</label>
+            {field.type === 'boolean' ? (
+              <select
+                value={data.customFields?.[field.key] === true ? 'true' : 'false'}
+                onChange={(e) => handleCustomFieldChange(field.key, e.target.value === 'true', isNew)}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              >
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            ) : (
+              <input
+                type={field.type}
+                value={data.customFields?.[field.key] || ''}
+                onChange={(e) => handleCustomFieldChange(field.key, e.target.value, isNew)}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                required={field.required}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -376,6 +426,7 @@ const Clients: React.FC = () => {
                     <option value="inactive">{t('inactive')}</option>
                   </select>
                 </div>
+                {renderCustomFields(newClient, true)}
               </div>
               <div className="mt-6 flex justify-end gap-3">
                 <button
@@ -468,6 +519,7 @@ const Clients: React.FC = () => {
                     <option value="inactive">{t('inactive')}</option>
                   </select>
                 </div>
+                {renderCustomFields(selectedClient, false)}
               </div>
               <div className="mt-6 flex justify-end gap-3">
                 <button
@@ -530,6 +582,19 @@ const Clients: React.FC = () => {
                    <span className="text-gray-500 dark:text-gray-400">Phone</span>
                    <span className="font-medium text-gray-900 dark:text-white">{selectedClient.phone}</span>
                  </div>
+                 {/* Render Custom Fields in View */}
+                 {settings.customFields.clients.map(field => {
+                   const val = selectedClient.customFields?.[field.key];
+                   if (val === undefined || val === '') return null;
+                   return (
+                     <div key={field.id} className="flex justify-between border-b border-gray-100 dark:border-gray-700 pb-2">
+                       <span className="text-gray-500 dark:text-gray-400">{field.label}</span>
+                       <span className="font-medium text-gray-900 dark:text-white">
+                         {field.type === 'boolean' ? (val ? 'Yes' : 'No') : val}
+                       </span>
+                     </div>
+                   );
+                 })}
                  <div className="flex justify-between pt-2">
                    <span className="text-gray-500 dark:text-gray-400">{t('total_spent')}</span>
                    <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedClient.totalSpent)}</span>
