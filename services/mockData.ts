@@ -30,11 +30,11 @@ export const mockStockMovements: StockMovement[] = [
 
 // Mock Clients
 export const mockClients: Client[] = [
-  { id: '1', name: 'Acme Corp', email: 'contact@acme.com', phone: '+1 555-0101', company: 'Acme Inc.', status: 'active', totalSpent: 15200 },
-  { id: '2', name: 'Globex', email: 'procurement@globex.com', phone: '+1 555-0102', company: 'Globex Corp', status: 'active', totalSpent: 8500 },
-  { id: '3', name: 'Soylent Corp', email: 'info@soylent.com', phone: '+1 555-0103', company: 'Soylent', status: 'inactive', totalSpent: 2100 },
-  { id: '4', name: 'Umbrella Corp', email: 'secure@umbrella.com', phone: '+1 555-0104', company: 'Umbrella', status: 'active', totalSpent: 45000 },
-  { id: '5', name: 'Stark Ind', email: 'tony@stark.com', phone: '+1 555-0105', company: 'Stark Industries', status: 'active', totalSpent: 125000 },
+  { id: '1', name: 'Acme Corp', email: 'contact@acme.com', phone: '+1 555-0101', company: 'Acme Inc.', status: 'active', category: 'Corporate', region: 'North America', totalSpent: 15200 },
+  { id: '2', name: 'Globex', email: 'procurement@globex.com', phone: '+1 555-0102', company: 'Globex Corp', status: 'active', category: 'Corporate', region: 'Europe', totalSpent: 8500 },
+  { id: '3', name: 'Soylent Corp', email: 'info@soylent.com', phone: '+1 555-0103', company: 'Soylent', status: 'inactive', category: 'Wholesale', region: 'Asia', totalSpent: 2100 },
+  { id: '4', name: 'Umbrella Corp', email: 'secure@umbrella.com', phone: '+1 555-0104', company: 'Umbrella', status: 'active', category: 'Government', region: 'North America', totalSpent: 45000 },
+  { id: '5', name: 'Stark Ind', email: 'tony@stark.com', phone: '+1 555-0105', company: 'Stark Industries', status: 'active', category: 'Corporate', region: 'North America', totalSpent: 125000 },
 ];
 
 // Mock Suppliers
@@ -48,16 +48,16 @@ export const mockSuppliers: Supplier[] = [
 
 // Mock Invoices
 export const mockInvoices: Invoice[] = [
-  { id: '101', number: 'INV-001', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-60), dueDate: getDate(-45), amount: 3500.00, status: 'paid', items: [], warehouseId: 'w1' },
-  { id: '102', number: 'INV-002', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-45), dueDate: getDate(-30), amount: 12500.00, status: 'paid', items: [], warehouseId: 'w1' },
-  { id: '103', number: 'INV-003', type: 'invoice', clientId: '2', clientName: 'Globex', date: getDate(-30), dueDate: getDate(-15), amount: 4200.00, status: 'paid', items: [], warehouseId: 'w2' },
-  { id: '104', number: 'INV-004', type: 'invoice', clientId: '4', clientName: 'Umbrella Corp', date: getDate(-10), dueDate: getDate(5), amount: 8900.00, status: 'pending', items: [], warehouseId: 'w1' },
-  { id: '105', number: 'INV-005', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-2), dueDate: getDate(14), amount: 1200.00, status: 'pending', items: [], warehouseId: 'w1' },
-  { id: '106', number: 'INV-006', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-5), dueDate: getDate(10), amount: 15000.00, status: 'paid', items: [], warehouseId: 'w1' },
-  { id: '201', number: 'ORD-001', type: 'order', clientId: '1', clientName: 'Acme Corp', date: getDate(-1), dueDate: getDate(14), amount: 3200.00, status: 'pending', items: [], warehouseId: 'w1' },
-  { id: '202', number: 'ORD-002', type: 'order', clientId: '3', clientName: 'Soylent Corp', date: getDate(0), dueDate: getDate(15), amount: 1500.00, status: 'draft', items: [], warehouseId: 'w1' },
-  { id: '301', number: 'EST-001', type: 'estimate', clientId: '2', clientName: 'Globex Corp', date: getDate(0), dueDate: getDate(30), amount: 5000.00, status: 'draft', items: [], warehouseId: 'w1' },
-  { id: '401', number: 'DEL-001', type: 'delivery', clientId: '5', clientName: 'Stark Ind', date: getDate(-20), dueDate: getDate(-20), amount: 2200.00, status: 'completed', items: [], warehouseId: 'w1' },
+  { id: '101', number: 'INV-001', type: 'invoice', clientId: '1', clientName: 'Acme Corp', salespersonName: 'Alex Morgan', date: getDate(-60), dueDate: getDate(-45), amount: 3500.00, status: 'paid', items: [{id: 'p1', description: 'Office Chair', quantity: 15, price: 199.99}, {id: 'p4', description: 'Cables', quantity: 50, price: 10}], warehouseId: 'w1' },
+  { id: '102', number: 'INV-002', type: 'invoice', clientId: '5', clientName: 'Stark Ind', salespersonName: 'John Doe', date: getDate(-45), dueDate: getDate(-30), amount: 12500.00, status: 'paid', items: [{id: 'p3', description: 'Monitor', quantity: 20, price: 450}], warehouseId: 'w1' },
+  { id: '103', number: 'INV-003', type: 'invoice', clientId: '2', clientName: 'Globex', salespersonName: 'Alex Morgan', date: getDate(-30), dueDate: getDate(-15), amount: 4200.00, status: 'paid', items: [{id: 'p2', description: 'Keyboard', quantity: 50, price: 59.99}], warehouseId: 'w2' },
+  { id: '104', number: 'INV-004', type: 'invoice', clientId: '4', clientName: 'Umbrella Corp', salespersonName: 'Jane Smith', date: getDate(-10), dueDate: getDate(5), amount: 8900.00, status: 'pending', items: [{id: 'p1', description: 'Office Chair', quantity: 40, price: 199.99}], warehouseId: 'w1' },
+  { id: '105', number: 'INV-005', type: 'invoice', clientId: '1', clientName: 'Acme Corp', salespersonName: 'Alex Morgan', date: getDate(-2), dueDate: getDate(14), amount: 1200.00, status: 'pending', items: [{id: 'p4', description: 'USB Cable', quantity: 60, price: 19.99}], warehouseId: 'w1' },
+  { id: '106', number: 'INV-006', type: 'invoice', clientId: '5', clientName: 'Stark Ind', salespersonName: 'John Doe', date: getDate(-5), dueDate: getDate(10), amount: 15000.00, status: 'paid', items: [{id: 'p3', description: 'Monitor', quantity: 30, price: 450}], warehouseId: 'w1' },
+  { id: '201', number: 'ORD-001', type: 'order', clientId: '1', clientName: 'Acme Corp', salespersonName: 'Alex Morgan', date: getDate(-1), dueDate: getDate(14), amount: 3200.00, status: 'pending', items: [], warehouseId: 'w1' },
+  { id: '202', number: 'ORD-002', type: 'order', clientId: '3', clientName: 'Soylent Corp', salespersonName: 'Jane Smith', date: getDate(0), dueDate: getDate(15), amount: 1500.00, status: 'draft', items: [], warehouseId: 'w1' },
+  { id: '301', number: 'EST-001', type: 'estimate', clientId: '2', clientName: 'Globex Corp', salespersonName: 'Alex Morgan', date: getDate(0), dueDate: getDate(30), amount: 5000.00, status: 'draft', items: [], warehouseId: 'w1' },
+  { id: '401', number: 'DEL-001', type: 'delivery', clientId: '5', clientName: 'Stark Ind', salespersonName: 'John Doe', date: getDate(-20), dueDate: getDate(-20), amount: 2200.00, status: 'completed', items: [], warehouseId: 'w1' },
 ];
 
 // Mock Purchases

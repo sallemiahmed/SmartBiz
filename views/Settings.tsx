@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Save, Globe, User, Shield, Bell, Building, CreditCard, 
-  CheckCircle, Plus, Trash2, Star, List, Type
+  CheckCircle, Plus, Trash2, Star, List, Type, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AppSettings, TaxRate, CustomFieldDefinition } from '../types';
@@ -46,6 +46,25 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        alert("File size too large. Please upload an image under 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, companyLogo: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData(prev => ({ ...prev, companyLogo: undefined }));
   };
 
   const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +205,57 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
           {/* --- GENERAL TAB --- */}
           {activeTab === 'general' && (
             <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Logo Upload */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Logo</label>
+                <div className="flex items-start gap-4">
+                  <div className={`
+                    w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
+                    flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 relative group
+                  `}>
+                    {formData.companyLogo ? (
+                      <>
+                        <img src={formData.companyLogo} alt="Logo" className="w-full h-full object-contain p-2" />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            type="button"
+                            onClick={handleRemoveLogo}
+                            className="p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
+                            title="Remove Logo"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <ImageIcon className="w-10 h-10 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex gap-3 mb-2">
+                      <label className="cursor-pointer px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                        <Upload className="w-4 h-4" />
+                        Upload Logo
+                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                      </label>
+                      {formData.companyLogo && (
+                        <button 
+                          type="button" 
+                          onClick={handleRemoveLogo}
+                          className="px-4 py-2 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Recommended size: 300x150px. Max size: 2MB.<br/>
+                      Supported formats: PNG, JPG.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_name')}</label>

@@ -157,6 +157,15 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
     }));
   };
 
+  const updatePrice = (cartId: string, newPrice: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.cartId === cartId) {
+        return { ...item, price: newPrice };
+      }
+      return item;
+    }));
+  };
+
   const removeFromCart = (cartId: string) => {
     setCart(prev => prev.filter(item => item.cartId !== cartId));
   };
@@ -375,7 +384,18 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{formatCurrency(item.price)} / unit</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">@</span>
+                      <input
+                        type="number"
+                        value={item.price}
+                        onChange={(e) => updatePrice(item.cartId, parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-20 px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white text-right"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
                     
                     <div className="flex items-center bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm">
                       <button 
@@ -461,7 +481,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                     max="100" 
                     value={discount} 
                     onChange={(e) => setDiscount(Number(e.target.value))}
-                    className="w-10 px-1 py-0.5 text-center text-xs bg-transparent outline-none" 
+                    className="w-10 px-1 py-0.5 text-center text-xs bg-transparent outline-none dark:text-white" 
                   />
                   <span className="text-xs px-1 text-gray-400">%</span>
                 </div>
@@ -476,7 +496,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   <select
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-24 px-1 py-0.5 text-xs bg-transparent outline-none cursor-pointer appearance-none"
+                    className="w-24 px-1 py-0.5 text-xs bg-transparent outline-none cursor-pointer appearance-none dark:text-white"
                   >
                     {settings.taxRates.map(rate => (
                       <option key={rate.id} value={rate.rate}>

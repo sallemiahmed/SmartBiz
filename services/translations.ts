@@ -1,3 +1,4 @@
+
 import { Language } from '../types';
 
 const enXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -14,6 +15,7 @@ const enXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="settings">Settings</string>
     <string name="banking">Banking</string>
     <string name="cash_register">Cash Register</string>
+    <string name="cost_analysis">Cost Analysis</string>
 
     <!-- Submenus -->
     <string name="estimate">Estimate</string>
@@ -34,6 +36,23 @@ const enXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="overview">Overview</string>
     <string name="accounts">Accounts</string>
     <string name="transactions">Transactions</string>
+
+    <!-- Cost Analysis -->
+    <string name="cost_analysis_title">Real Cost &amp; Profitability</string>
+    <string name="cost_analysis_desc">Analyze Product Costs, COGS, and Margins based on real stock movements.</string>
+    <string name="avg_cost">Avg. Unit Cost</string>
+    <string name="selling_price">Selling Price</string>
+    <string name="margin_percent">Margin %</string>
+    <string name="cogs">COGS</string>
+    <string name="total_inventory_value">Inventory Value</string>
+    <string name="potential_profit">Potential Profit</string>
+    <string name="cost_simulation">Cost Simulator</string>
+    <string name="sim_purchase_qty">Purchase Qty</string>
+    <string name="sim_unit_price">Unit Price</string>
+    <string name="sim_additional_cost">Extra Costs (Shipping/Tax)</string>
+    <string name="sim_calculate">Calculate New Cost</string>
+    <string name="sim_new_cost">Estimated New Unit Cost</string>
+    <string name="additional_expenses">Additional Expenses (Freight/Tax)</string>
 
     <!-- Dashboard -->
     <string name="dashboard_overview">Dashboard Overview</string>
@@ -205,7 +224,9 @@ const enXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="purchase_report">Purchase Report</string>
     <string name="inventory_stock_report">Inventory &amp; Stock</string>
     <string name="financials_report">Financials</string>
-    <string name="rep_sales_customer">Customers Sales</string>
+    <string name="rep_sales_customer">Sales by Customer (Summary)</string>
+    <string name="rep_sales_customer_detailed">Detailed Customer Analysis</string>
+    <string name="rep_sales_product_detailed">Detailed Product Analysis</string>
     <string name="rep_sales_vat">Sales VAT</string>
     <string name="rep_cust_trans">Customer Transactions</string>
     <string name="rep_supp_purch">Suppliers Purchases</string>
@@ -214,6 +235,13 @@ const enXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="rep_prod_perf">Product Performance</string>
     <string name="rep_monthly_profit">Monthly Profit</string>
     <string name="rep_aging_receivables">Aging Receivables</string>
+    <string name="salesperson">Salesperson</string>
+    <string name="region">Region</string>
+    <string name="margin">Margin</string>
+    <string name="avg_price">Avg. Price</string>
+    <string name="total_sold">Total Sold</string>
+    <string name="invoices_count">Invoices</string>
+    <string name="balance_due">Balance Due</string>
 
     <!-- Settings -->
     <string name="general">General</string>
@@ -401,6 +429,7 @@ const frXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="settings">Paramètres</string>
     <string name="banking">Banque</string>
     <string name="cash_register">Caisse</string>
+    <string name="cost_analysis">Coûts &amp; Marge</string>
 
     <!-- Submenus -->
     <string name="estimate">Devis</string>
@@ -421,6 +450,23 @@ const frXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="overview">Vue d'ensemble</string>
     <string name="accounts">Comptes</string>
     <string name="transactions">Transactions</string>
+
+    <!-- Cost Analysis -->
+    <string name="cost_analysis_title">Analyse des Coûts</string>
+    <string name="cost_analysis_desc">Analysez les coûts produits, le COGS et les marges basés sur les mouvements réels.</string>
+    <string name="avg_cost">Coût Moyen Unitaire</string>
+    <string name="selling_price">Prix de Vente</string>
+    <string name="margin_percent">Marge %</string>
+    <string name="cogs">COGS (Coût des Ventes)</string>
+    <string name="total_inventory_value">Valeur du Stock</string>
+    <string name="potential_profit">Profit Potentiel</string>
+    <string name="cost_simulation">Simulateur de Coût</string>
+    <string name="sim_purchase_qty">Qté Achat</string>
+    <string name="sim_unit_price">Prix Unitaire</string>
+    <string name="sim_additional_cost">Frais (Transport/Taxe)</string>
+    <string name="sim_calculate">Calculer Nouveau Coût</string>
+    <string name="sim_new_cost">Nouveau Coût Estimé</string>
+    <string name="additional_expenses">Frais Supplémentaires</string>
 
     <!-- Dashboard -->
     <string name="dashboard_overview">Vue d'ensemble</string>
@@ -592,7 +638,9 @@ const frXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="purchase_report">Rapport des Achats</string>
     <string name="inventory_stock_report">Inventaire et Stock</string>
     <string name="financials_report">Finances</string>
-    <string name="rep_sales_customer">Ventes par Client</string>
+    <string name="rep_sales_customer">Ventes par Client (Sommaire)</string>
+    <string name="rep_sales_customer_detailed">Analyse Client Détaillée</string>
+    <string name="rep_sales_product_detailed">Analyse Produit Détaillée</string>
     <string name="rep_sales_vat">TVA sur Ventes</string>
     <string name="rep_cust_trans">Transactions Client</string>
     <string name="rep_supp_purch">Achats par Fournisseur</string>
@@ -601,6 +649,13 @@ const frXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="rep_prod_perf">Performance Produits</string>
     <string name="rep_monthly_profit">Profit Mensuel</string>
     <string name="rep_aging_receivables">Créances Clients</string>
+    <string name="salesperson">Vendeur</string>
+    <string name="region">Région</string>
+    <string name="margin">Marge</string>
+    <string name="avg_price">Prix Moyen</string>
+    <string name="total_sold">Total Vendu</string>
+    <string name="invoices_count">Factures</string>
+    <string name="balance_due">Solde Dû</string>
 
     <!-- Settings -->
     <string name="general">Général</string>
@@ -788,6 +843,7 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="settings">الإعدادات</string>
     <string name="banking">البنوك</string>
     <string name="cash_register">الخزينة</string>
+    <string name="cost_analysis">تحليل التكاليف</string>
 
     <!-- Submenus -->
     <string name="estimate">عرض سعر</string>
@@ -808,6 +864,23 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="overview">نظرة عامة</string>
     <string name="accounts">الحسابات</string>
     <string name="transactions">المعاملات</string>
+
+    <!-- Cost Analysis -->
+    <string name="cost_analysis_title">التكلفة الحقيقية والربحية</string>
+    <string name="cost_analysis_desc">تحليل تكاليف المنتجات، تكلفة البضائع المباعة، والهوامش بناءً على حركات المخزون الحقيقية.</string>
+    <string name="avg_cost">متوسط تكلفة الوحدة</string>
+    <string name="selling_price">سعر البيع</string>
+    <string name="margin_percent">نسبة الهامش</string>
+    <string name="cogs">تكلفة البضائع المباعة</string>
+    <string name="total_inventory_value">قيمة المخزون</string>
+    <string name="potential_profit">الربح المحتمل</string>
+    <string name="cost_simulation">محاكي التكلفة</string>
+    <string name="sim_purchase_qty">كمية الشراء</string>
+    <string name="sim_unit_price">سعر الوحدة</string>
+    <string name="sim_additional_cost">تكاليف إضافية (شحن/ضريبة)</string>
+    <string name="sim_calculate">حساب التكلفة الجديدة</string>
+    <string name="sim_new_cost">التكلفة الجديدة المقدرة</string>
+    <string name="additional_expenses">مصاريف إضافية (شحن/ضريبة)</string>
 
     <!-- Dashboard -->
     <string name="dashboard_overview">نظرة عامة</string>
@@ -862,18 +935,6 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="stock_qty">الكمية</string>
     <string name="no_products">لم يتم العثور على منتجات.</string>
     <string name="edit_product">تعديل منتج</string>
-    <string name="product_history">سجل المنتج</string>
-    <string name="movement_type">نوع الحركة</string>
-    <string name="reference">المرجع</string>
-    <string name="reason">السبب</string>
-    <string name="quantity">الكمية</string>
-    <string name="purchase">شراء</string>
-    <string name="sale">بيع</string>
-    <string name="transfer_in">نقل وارد</string>
-    <string name="transfer_out">نقل صادر</string>
-    <string name="adjustment">تعديل</string>
-    <string name="return">إرجاع</string>
-    <string name="initial">المخزون الأولي</string>
 
     <!-- Documents -->
     <string name="documents_history">سجل المستندات</string>
@@ -979,7 +1040,9 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="purchase_report">تقرير المشتريات</string>
     <string name="inventory_stock_report">المخزون والمستودع</string>
     <string name="financials_report">المالية</string>
-    <string name="rep_sales_customer">مبيعات العملاء</string>
+    <string name="rep_sales_customer">مبيعات العملاء (ملخص)</string>
+    <string name="rep_sales_customer_detailed">تحليل العملاء التفصيلي</string>
+    <string name="rep_sales_product_detailed">تحليل المنتجات التفصيلي</string>
     <string name="rep_sales_vat">ضريبة المبيعات</string>
     <string name="rep_cust_trans">معاملات العملاء</string>
     <string name="rep_supp_purch">مشتريات الموردين</string>
@@ -988,6 +1051,13 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="rep_prod_perf">أداء المنتجات</string>
     <string name="rep_monthly_profit">الربح الشهري</string>
     <string name="rep_aging_receivables">الذمم المدينة القديمة</string>
+    <string name="salesperson">البائع</string>
+    <string name="region">المنطقة</string>
+    <string name="margin">الهامش</string>
+    <string name="avg_price">متوسط السعر</string>
+    <string name="total_sold">إجمالي المباع</string>
+    <string name="invoices_count">الفواتير</string>
+    <string name="balance_due">الرصيد المستحق</string>
 
     <!-- Settings -->
     <string name="general">عام</string>

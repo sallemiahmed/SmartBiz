@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { 
   Search, FileInput, FileOutput, Users, Truck, Package, 
-  Banknote, TrendingUp, ArrowLeft, Download, Printer, ArrowRight
+  Banknote, TrendingUp, ArrowLeft, Download, Printer, ArrowRight,
+  Filter, Calendar, ChevronDown, ChevronRight, BarChart2, PieChart
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
-  ResponsiveContainer, LineChart, Line, Legend
+  ResponsiveContainer, LineChart, Line, Legend, AreaChart, Area
 } from 'recharts';
 import { useApp } from '../context/AppContext';
+import { Invoice, Product, Client } from '../types';
 
 // --- Types ---
 
-type ReportType = 'summary' | 'transactions' | 'chart' | 'invoice_list' | 'product_metrics';
+type ReportType = 'summary' | 'transactions' | 'chart' | 'invoice_list' | 'product_metrics' | 'detailed_product' | 'detailed_customer';
 
 interface ReportConfig {
   title: string;
@@ -22,7 +25,7 @@ interface ReportConfig {
 }
 
 const Reports: React.FC = () => {
-  const { invoices, clients, suppliers, products, purchases, formatCurrency, chartData, t } = useApp();
+  const { invoices, clients, suppliers, products, purchases, warehouses, formatCurrency, chartData, t } = useApp();
   const [activeReport, setActiveReport] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -30,7 +33,6 @@ const Reports: React.FC = () => {
 
   // 1. Sales Logic: Aggregate Invoices by Client
   const getSalesByCustomer = () => {
-    // We already update clients totalSpent in context, but for reporting we might want to recalculate from invoices if we added filters
     return clients.sort((a, b) => b.totalSpent - a.totalSpent);
   };
 
@@ -41,21 +43,17 @@ const Reports: React.FC = () => {
       ref: inv.number,
       entity: inv.clientName,
       amount: inv.amount,
-      vat: inv.amount * 0.19, // Assuming 19% VAT for demo calculation, ideally derived from invoice items tax
+      vat: inv.amount * 0.19, 
       total: inv.amount * 1.19
     })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
-  // 3. Product Profit Logic: (Price - Cost) * Estimated Sales
+  // 3. Product Profit Logic
   const getProductPerformance = () => {
-    // In a real app we would query invoice items. 
-    // Here we can assume sales = initial stock (e.g. 100) - current stock? 
-    // Or just use the product properties for demo.
     return products.map(product => {
       const margin = product.price - product.cost;
       const marginPercent = product.price > 0 ? (margin / product.price) * 100 : 0;
-      // Using a heuristic for sold count in this demo context since we don't have a separate SalesItems table readily available
-      // In production, we'd iterate all invoices -> items to count exactly.
+      // Heuristic: assuming some units sold based on stock level changes or mock data logic
       const estimatedUnitsSold = Math.max(0, 100 - product.stock); 
       const totalRevenue = estimatedUnitsSold * product.price;
       const totalProfit = estimatedUnitsSold * margin;
@@ -73,7 +71,6 @@ const Reports: React.FC = () => {
 
   // 4. Inventory Value Logic
   const getStockMovements = () => {
-    // Use invoices and purchases to generate a movement log
     const salesMovements = invoices.flatMap(inv => 
       inv.items.map(item => ({
         date: inv.date,
@@ -81,7 +78,7 @@ const Reports: React.FC = () => {
         entity: item.description,
         type: 'Out',
         qty: item.quantity,
-        balance: 'N/A' // Balance history is hard without a ledger
+        balance: 'N/A' 
       }))
     );
 
@@ -130,6 +127,20 @@ const Reports: React.FC = () => {
             { label: t('total_revenue'), value: formatCurrency(salesData.reduce((acc, c) => acc + c.totalSpent, 0)) },
             { label: t('active_clients'), value: salesData.length.toString() }
           ]
+        };
+
+      case 'rep_sales_customer_detailed':
+        return {
+          title: t('rep_sales_customer_detailed'),
+          type: 'detailed_customer',
+          dataGenerator: () => [] 
+        };
+
+      case 'rep_sales_product_detailed':
+        return {
+          title: t('rep_sales_product_detailed'),
+          type: 'detailed_product',
+          dataGenerator: () => []
         };
 
       case 'rep_sales_vat':
@@ -232,7 +243,6 @@ const Reports: React.FC = () => {
 
       // === FINANCIALS ===
       case 'rep_monthly_profit':
-        // Use real chartData from context instead of mock
         const financialData = chartData.map(d => ({
           ...d,
           profit: d.revenue - d.expenses,
@@ -252,7 +262,6 @@ const Reports: React.FC = () => {
         };
 
       default:
-        // Generic fallback for unmapped reports
         return {
           title: reportKey,
           type: 'summary',
@@ -260,6 +269,383 @@ const Reports: React.FC = () => {
           dataGenerator: () => []
         };
     }
+  };
+
+  // --- DETAILED REPORTS COMPONENTS ---
+
+  const DetailedProductReport: React.FC = () => {
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [selectedWarehouse, setSelectedWarehouse] = useState('All');
+    const [selectedSalesperson, setSelectedSalesperson] = useState('All');
+    const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+
+    const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
+    const salesPersons = ['All', ...Array.from(new Set(invoices.map(i => i.salespersonName).filter(Boolean) as string[]))];
+
+    const processedData = useMemo(() => {
+      return products.map(product => {
+        // Find relevant invoice items
+        const sales = invoices.filter(inv => {
+          const inDate = !dateRange.start || inv.date >= dateRange.start;
+          const inEnd = !dateRange.end || inv.date <= dateRange.end;
+          const inWarehouse = selectedWarehouse === 'All' || inv.warehouseId === selectedWarehouse;
+          const inSalesperson = selectedSalesperson === 'All' || inv.salespersonName === selectedSalesperson;
+          return inDate && inEnd && inWarehouse && inSalesperson && (inv.type === 'invoice' || inv.type === 'order');
+        }).flatMap(inv => {
+          const item = inv.items.find(i => i.id === product.id);
+          return item ? [{ ...item, invoice: inv }] : [];
+        });
+
+        const totalQty = sales.reduce((acc, s) => acc + s.quantity, 0);
+        const totalRev = sales.reduce((acc, s) => acc + (s.price * s.quantity), 0);
+        const avgPrice = totalQty > 0 ? totalRev / totalQty : 0;
+        const totalCost = totalQty * product.cost;
+        const margin = totalRev - totalCost;
+
+        // Generate trend data for this product
+        const trendMap: Record<string, number> = {};
+        sales.forEach(s => {
+          const dateKey = s.invoice.date.substring(0, 7); // YYYY-MM
+          trendMap[dateKey] = (trendMap[dateKey] || 0) + s.quantity;
+        });
+        const trends = Object.entries(trendMap).map(([date, qty]) => ({ date, qty })).sort((a,b) => a.date.localeCompare(b.date));
+
+        return {
+          ...product,
+          totalQty,
+          totalRev,
+          avgPrice,
+          margin,
+          salesList: sales,
+          trends
+        };
+      }).filter(p => {
+        const catMatch = selectedCategory === 'All' || p.category === selectedCategory;
+        return catMatch;
+      }).sort((a, b) => b.totalRev - a.totalRev);
+    }, [products, invoices, dateRange, selectedCategory, selectedWarehouse, selectedSalesperson]);
+
+    const chartData = processedData.slice(0, 10).map(p => ({
+      name: p.name.substring(0, 15) + (p.name.length > 15 ? '...' : ''),
+      revenue: p.totalRev
+    }));
+
+    return (
+      <div className="space-y-6">
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-500" />
+            <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+            <span className="text-gray-400">-</span>
+            <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+          </div>
+          <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+            <option value="All">{t('all_categories')}</option>
+            {categories.map(c => c !== 'All' && <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={selectedWarehouse} onChange={e => setSelectedWarehouse(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+            <option value="All">All Warehouses</option>
+            {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+          <select value={selectedSalesperson} onChange={e => setSelectedSalesperson(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+            <option value="All">All Salespersons</option>
+            {salesPersons.map(s => s !== 'All' && <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm h-80">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Top 10 Products by Revenue</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="#374151" opacity={0.1} />
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" width={100} tick={{fontSize: 12, fill: '#9ca3af'}} />
+                <RechartsTooltip contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', color: '#fff', border: 'none' }} />
+                <Bar dataKey="revenue" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-center gap-4">
+             <div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20">
+               <p className="text-sm text-gray-500 dark:text-gray-400">{t('total_revenue')}</p>
+               <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(processedData.reduce((acc, p) => acc + p.totalRev, 0))}</p>
+             </div>
+             <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+               <p className="text-sm text-gray-500 dark:text-gray-400">Total Profit</p>
+               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(processedData.reduce((acc, p) => acc + p.margin, 0))}</p>
+             </div>
+             <div className="p-4 rounded-lg bg-orange-50 dark:bg-orange-900/20">
+               <p className="text-sm text-gray-500 dark:text-gray-400">{t('total_sold')}</p>
+               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{processedData.reduce((acc, p) => acc + p.totalQty, 0)} units</p>
+             </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
+              <tr>
+                <th className="px-6 py-4">{t('product_name')}</th>
+                <th className="px-6 py-4">{t('category')}</th>
+                <th className="px-6 py-4 text-right">{t('total_sold')}</th>
+                <th className="px-6 py-4 text-right">{t('avg_price')}</th>
+                <th className="px-6 py-4 text-right">{t('total_revenue')}</th>
+                <th className="px-6 py-4 text-right">{t('margin')}</th>
+                <th className="px-6 py-4"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {processedData.map((p) => (
+                <React.Fragment key={p.id}>
+                  <tr 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                    onClick={() => setExpandedProduct(expandedProduct === p.id ? null : p.id)}
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{p.name}</td>
+                    <td className="px-6 py-4 text-gray-500">{p.category}</td>
+                    <td className="px-6 py-4 text-right font-mono">{p.totalQty}</td>
+                    <td className="px-6 py-4 text-right">{formatCurrency(p.avgPrice)}</td>
+                    <td className="px-6 py-4 text-right font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(p.totalRev)}</td>
+                    <td className={`px-6 py-4 text-right font-bold ${p.margin > 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(p.margin)}</td>
+                    <td className="px-6 py-4 text-right">
+                      {expandedProduct === p.id ? <ChevronDown className="w-4 h-4 inline" /> : <ChevronRight className="w-4 h-4 inline" />}
+                    </td>
+                  </tr>
+                  {expandedProduct === p.id && (
+                    <tr className="bg-gray-50 dark:bg-gray-900/50">
+                      <td colSpan={7} className="px-6 py-4">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          <div className="flex-1">
+                            <div className="text-xs font-bold text-gray-500 uppercase mb-2">Sales History</div>
+                            {p.salesList.length === 0 ? <p className="text-sm italic text-gray-400">No sales records.</p> : (
+                              <div className="overflow-auto max-h-60 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="text-gray-500 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                                      <th className="py-2 px-3 text-left">{t('date')}</th>
+                                      <th className="py-2 px-3 text-left">{t('ref_num')}</th>
+                                      <th className="py-2 px-3 text-left">{t('client')}</th>
+                                      <th className="py-2 px-3 text-right">{t('quantity')}</th>
+                                      <th className="py-2 px-3 text-right">{t('price')}</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {p.salesList.map((sale, idx) => (
+                                      <tr key={idx} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                        <td className="py-2 px-3 text-gray-600 dark:text-gray-300">{sale.invoice.date}</td>
+                                        <td className="py-2 px-3 text-indigo-600 dark:text-indigo-400 font-mono">{sale.invoice.number}</td>
+                                        <td className="py-2 px-3 text-gray-900 dark:text-white">{sale.invoice.clientName}</td>
+                                        <td className="py-2 px-3 text-right font-mono">{sale.quantity}</td>
+                                        <td className="py-2 px-3 text-right">{formatCurrency(sale.price)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                          <div className="w-full lg:w-1/3">
+                             <div className="text-xs font-bold text-gray-500 uppercase mb-2">Sales Trend (Qty)</div>
+                             <div className="h-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={p.trends}>
+                                    <defs>
+                                      <linearGradient id="colorQty" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                      </linearGradient>
+                                    </defs>
+                                    <XAxis dataKey="date" hide />
+                                    <YAxis hide />
+                                    <RechartsTooltip contentStyle={{ fontSize: '12px' }} />
+                                    <Area type="monotone" dataKey="qty" stroke="#10b981" fillOpacity={1} fill="url(#colorQty)" />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                             </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const DetailedCustomerReport: React.FC = () => {
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [selectedRegion, setSelectedRegion] = useState('All');
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [selectedStatus, setSelectedStatus] = useState('All');
+    const [expandedClient, setExpandedClient] = useState<string | null>(null);
+
+    const regions = ['All', ...Array.from(new Set(clients.map(c => c.region).filter(Boolean) as string[]))];
+    const customerCategories = ['All', 'Retail', 'Wholesale', 'Corporate', 'Government'];
+
+    const processedData = useMemo(() => {
+      return clients.map(client => {
+        const clientInvoices = invoices.filter(inv => {
+          const inDate = !dateRange.start || inv.date >= dateRange.start;
+          const inEnd = !dateRange.end || inv.date <= dateRange.end;
+          return inDate && inEnd && inv.clientId === client.id;
+        });
+
+        const totalPurchases = clientInvoices.reduce((acc, i) => acc + i.amount, 0);
+        const invoiceCount = clientInvoices.length;
+        const balanceDue = clientInvoices.filter(i => i.status === 'pending' || i.status === 'overdue').reduce((acc, i) => acc + i.amount, 0);
+        
+        // Aggregate purchased products
+        const productsMap = new Map<string, {name: string, qty: number, amount: number}>();
+        clientInvoices.forEach(inv => {
+          inv.items.forEach(item => {
+            const existing = productsMap.get(item.id) || { name: item.description, qty: 0, amount: 0 };
+            productsMap.set(item.id, {
+              name: item.description,
+              qty: existing.qty + item.quantity,
+              amount: existing.amount + (item.price * item.quantity)
+            });
+          });
+        });
+
+        return {
+          ...client,
+          totalPurchases,
+          invoiceCount,
+          balanceDue,
+          productsList: Array.from(productsMap.values()).sort((a,b) => b.amount - a.amount)
+        };
+      }).filter(c => {
+        const regionMatch = selectedRegion === 'All' || c.region === selectedRegion;
+        const statusMatch = selectedStatus === 'All' || c.status === selectedStatus;
+        const categoryMatch = selectedCategory === 'All' || c.category === selectedCategory;
+        return regionMatch && statusMatch && categoryMatch;
+      }).sort((a, b) => b.totalPurchases - a.totalPurchases);
+    }, [clients, invoices, dateRange, selectedRegion, selectedStatus, selectedCategory]);
+
+    const chartData = processedData.slice(0, 10).map(c => ({
+      name: c.company.substring(0, 15),
+      sales: c.totalPurchases
+    }));
+
+    return (
+      <div className="space-y-6">
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-500" />
+            <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+            <span className="text-gray-400">-</span>
+            <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+          </div>
+          <select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+            <option value="All">All Regions</option>
+            {regions.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+            {customerCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+            <option value="All">{t('all_status')}</option>
+            <option value="active">{t('active')}</option>
+            <option value="inactive">{t('inactive')}</option>
+          </select>
+        </div>
+
+        {/* Chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm h-80">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Top 10 Customers</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.1} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
+                <RechartsTooltip contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', color: '#fff', border: 'none' }} />
+                <Bar dataKey="sales" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-center gap-4">
+             <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+               <p className="text-sm text-gray-500 dark:text-gray-400">Avg Sales / Customer</p>
+               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                 {formatCurrency(processedData.length > 0 ? processedData.reduce((acc, c) => acc + c.totalPurchases, 0) / processedData.length : 0)}
+               </p>
+             </div>
+             <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
+               <p className="text-sm text-gray-500 dark:text-gray-400">Total Outstanding</p>
+               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(processedData.reduce((acc, c) => acc + c.balanceDue, 0))}</p>
+             </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
+              <tr>
+                <th className="px-6 py-4">{t('company_name')}</th>
+                <th className="px-6 py-4">{t('region')}</th>
+                <th className="px-6 py-4">Category</th>
+                <th className="px-6 py-4 text-right">{t('invoices_count')}</th>
+                <th className="px-6 py-4 text-right">{t('total_revenue')}</th>
+                <th className="px-6 py-4 text-right">{t('balance_due')}</th>
+                <th className="px-6 py-4"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {processedData.map((c) => (
+                <React.Fragment key={c.id}>
+                  <tr 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                    onClick={() => setExpandedClient(expandedClient === c.id ? null : c.id)}
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{c.company}</td>
+                    <td className="px-6 py-4 text-gray-500">{c.region || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{c.category || '-'}</td>
+                    <td className="px-6 py-4 text-right font-mono">{c.invoiceCount}</td>
+                    <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(c.totalPurchases)}</td>
+                    <td className={`px-6 py-4 text-right font-bold ${c.balanceDue > 0 ? 'text-red-500' : 'text-gray-400'}`}>{formatCurrency(c.balanceDue)}</td>
+                    <td className="px-6 py-4 text-right">
+                      {expandedClient === c.id ? <ChevronDown className="w-4 h-4 inline" /> : <ChevronRight className="w-4 h-4 inline" />}
+                    </td>
+                  </tr>
+                  {expandedClient === c.id && (
+                    <tr className="bg-gray-50 dark:bg-gray-900/50">
+                      <td colSpan={7} className="px-6 py-4">
+                        <div className="text-xs font-bold text-gray-500 uppercase mb-2">Purchased Products</div>
+                        {c.productsList.length === 0 ? <p className="text-sm italic text-gray-400">No purchases yet.</p> : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {c.productsList.map((prod, idx) => (
+                              <div key={idx} className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700 flex justify-between">
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-white text-xs">{prod.name}</div>
+                                  <div className="text-gray-500 text-xs">Qty: {prod.qty}</div>
+                                </div>
+                                <div className="font-bold text-gray-700 dark:text-gray-300 text-xs">{formatCurrency(prod.amount)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   };
 
   // --- RENDERERS ---
@@ -299,7 +685,7 @@ const Reports: React.FC = () => {
                     if (col.isCurrency && typeof val === 'number') {
                       val = formatCurrency(val);
                     } else if (typeof val === 'number' && col.key === 'margin') { 
-                      val = `${val}%`;
+                      val = `${val.toFixed(1)}%`;
                     }
 
                     const textColor = col.color ? col.color(row[col.key]) : 'text-gray-900 dark:text-white';
@@ -406,7 +792,11 @@ const Reports: React.FC = () => {
         
         {config.type === 'chart' 
           ? renderCharts(config) 
-          : renderTable(config)
+          : config.type === 'detailed_product'
+            ? <DetailedProductReport />
+            : config.type === 'detailed_customer'
+              ? <DetailedCustomerReport />
+              : renderTable(config)
         }
       </div>
     );
@@ -420,6 +810,8 @@ const Reports: React.FC = () => {
       icon: FileOutput,
       color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
       links: [
+        { key: 'rep_sales_customer_detailed', label: t('rep_sales_customer_detailed') },
+        { key: 'rep_sales_product_detailed', label: t('rep_sales_product_detailed') },
         { key: 'rep_sales_customer', label: t('rep_sales_customer') },
         { key: 'rep_prod_perf', label: t('rep_prod_perf') },
         { key: 'rep_cust_trans', label: t('rep_cust_trans') },

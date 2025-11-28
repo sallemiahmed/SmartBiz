@@ -30,6 +30,10 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
   const entityName = isPurchase ? (document as Purchase).supplierName : (document as Invoice).clientName;
   const isCredit = document.type === 'credit';
 
+  const logoHtml = settings.companyLogo 
+    ? `<img src="${settings.companyLogo}" style="max-width: 150px; max-height: 80px; margin-bottom: 10px; display: block;" alt="Company Logo" />` 
+    : '';
+
   const html = `
     <!DOCTYPE html>
     <html lang="${settings.language}" dir="${isRTL ? 'rtl' : 'ltr'}">
@@ -79,6 +83,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
     <body>
       <div class="header-container">
         <div class="company-info">
+          ${logoHtml}
           <h1>${settings.companyName}</h1>
           <p>${settings.companyAddress.replace(/\n/g, '<br>')}</p>
           <p>${settings.companyPhone} | ${settings.companyEmail}</p>

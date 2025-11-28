@@ -31,6 +31,7 @@ const Clients: React.FC = () => {
     email: '',
     phone: '',
     status: 'active',
+    category: 'Corporate',
     totalSpent: 0,
     customFields: {}
   });
@@ -65,6 +66,7 @@ const Clients: React.FC = () => {
       email: '',
       phone: '',
       status: 'active',
+      category: 'Corporate',
       totalSpent: 0,
       customFields: {}
     });
@@ -260,6 +262,7 @@ const Clients: React.FC = () => {
                   {t('company_contact')} <SortIcon columnKey="company" />
                 </th>
                 <th className="px-6 py-4">{t('contact_details')}</th>
+                <th className="px-6 py-4">Category</th>
                 <th 
                   className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => handleSort('totalSpent')}
@@ -293,6 +296,11 @@ const Clients: React.FC = () => {
                         <Phone className="w-3 h-3" /> {client.phone}
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
+                      {client.category}
+                    </span>
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
                     {formatCurrency(client.totalSpent)}
@@ -335,7 +343,7 @@ const Clients: React.FC = () => {
               ))}
               {paginatedClients.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={6} className="p-12 text-center text-gray-500 dark:text-gray-400">
                     <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     <p>{t('no_clients')}</p>
                   </td>
@@ -414,17 +422,33 @@ const Clients: React.FC = () => {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('status')}</label>
-                  <select
-                    name="status"
-                    value={newClient.status}
-                    onChange={(e) => handleInputChange(e, true)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                  >
-                    <option value="active">{t('active')}</option>
-                    <option value="inactive">{t('inactive')}</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('status')}</label>
+                    <select
+                      name="status"
+                      value={newClient.status}
+                      onChange={(e) => handleInputChange(e, true)}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    >
+                      <option value="active">{t('active')}</option>
+                      <option value="inactive">{t('inactive')}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <select
+                      name="category"
+                      value={newClient.category}
+                      onChange={(e) => handleInputChange(e, true)}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    >
+                      <option value="Retail">Retail</option>
+                      <option value="Wholesale">Wholesale</option>
+                      <option value="Corporate">Corporate</option>
+                      <option value="Government">Government</option>
+                    </select>
+                  </div>
                 </div>
                 {renderCustomFields(newClient, true)}
               </div>
@@ -507,17 +531,33 @@ const Clients: React.FC = () => {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('status')}</label>
-                  <select
-                    name="status"
-                    value={selectedClient.status}
-                    onChange={(e) => handleInputChange(e)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                  >
-                    <option value="active">{t('active')}</option>
-                    <option value="inactive">{t('inactive')}</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('status')}</label>
+                    <select
+                      name="status"
+                      value={selectedClient.status}
+                      onChange={(e) => handleInputChange(e)}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    >
+                      <option value="active">{t('active')}</option>
+                      <option value="inactive">{t('inactive')}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <select
+                      name="category"
+                      value={selectedClient.category}
+                      onChange={(e) => handleInputChange(e)}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    >
+                      <option value="Retail">Retail</option>
+                      <option value="Wholesale">Wholesale</option>
+                      <option value="Corporate">Corporate</option>
+                      <option value="Government">Government</option>
+                    </select>
+                  </div>
                 </div>
                 {renderCustomFields(selectedClient, false)}
               </div>
@@ -559,13 +599,18 @@ const Clients: React.FC = () => {
                  </div>
                  <div>
                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedClient.company}</h3>
-                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      selectedClient.status === 'active' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
-                    }`}>
-                      {t(selectedClient.status)}
-                    </span>
+                   <div className="flex gap-2 mt-1">
+                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedClient.status === 'active' 
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                      }`}>
+                        {t(selectedClient.status)}
+                      </span>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                        {selectedClient.category}
+                      </span>
+                   </div>
                  </div>
               </div>
 

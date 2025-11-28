@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Plus,
   Landmark,
-  Wallet
+  Wallet,
+  Calculator
 } from 'lucide-react';
 import { AppView } from '../types';
 import { useApp } from '../context/AppContext';
@@ -138,6 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       ]
     },
     { id: 'cash_register', labelKey: 'cash_register', icon: Wallet, emoji: '💵' },
+    { id: 'cost_analysis', labelKey: 'cost_analysis', icon: Calculator, emoji: '🧮' },
     { id: 'reports', labelKey: 'reports', icon: LineChart, emoji: '📈' },
     { 
       id: 'settings', 

@@ -385,12 +385,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const newNumber = `${prefix}-${new Date().getFullYear()}-${String(invoices.length + 1001).padStart(4, '0')}`;
     
+    // SNAPSHOT HISTORICAL COST for COGS analysis
+    const itemsWithCostSnapshot = items.map(item => {
+      const product = products.find(p => p.id === item.id);
+      return {
+        ...item,
+        historicalCost: product ? product.cost : 0
+      };
+    });
+
     const newDoc: Invoice = {
       ...docData,
       id: newId,
       number: newNumber,
       type,
-      items
+      items: itemsWithCostSnapshot
     };
 
     // 1. Add Document Record
@@ -518,13 +527,55 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     }
 
-    // IMPACT: Supplier Total Purchased
-    if (type === 'invoice') {
-      setSuppliers(prevSuppliers => prevSuppliers.map(s => {
-        if (s.id === docData.supplierId) {
-          return { ...s, totalPurchased: s.totalPurchased + docData.amount };
+    // IMPACT: Supplier Total Purchased & COST CALCULATION (Weighted Average Cost)
+    if (type === 'invoice' || type === 'delivery') { // Assuming cost updates on invoice or GRN
+      
+      // Update Supplier
+      if (type === 'invoice') {
+        setSuppliers(prevSuppliers => prevSuppliers.map(s => {
+          if (s.id === docData.supplierId) {
+            return { ...s, totalPurchased: s.totalPurchased + docData.amount };
+          }
+          return s;
+        }));
+      }
+
+      // Calculate Weighted Average Cost
+      // Formula: ((CurrentStock * CurrentCost) + (IncomingQty * (PurchasePrice + AllocatedAdditionalCost))) / (CurrentStock + IncomingQty)
+      const additionalCosts = docData.additionalCosts || 0;
+      const docSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      setProducts(prevProducts => prevProducts.map(prod => {
+        const purchasedItem = items.find(item => item.id === prod.id);
+        
+        if (purchasedItem) {
+          // Calculate Allocated Cost for this item (Weighted by value)
+          const itemTotalValue = purchasedItem.price * purchasedItem.quantity;
+          const costAllocationRatio = docSubtotal > 0 ? (itemTotalValue / docSubtotal) : 0;
+          const allocatedAdditionalCost = additionalCosts * costAllocationRatio;
+          
+          // Total cost of the incoming batch
+          const totalIncomingCost = itemTotalValue + allocatedAdditionalCost;
+
+          // Current Value of stock
+          const currentTotalValue = prod.stock * prod.cost;
+
+          // New Weighted Average Cost
+          const newTotalStock = prod.stock + purchasedItem.quantity; // Note: 'stock' here might already be updated if GRN ran first? 
+          // Actually, in the GRN block above, we updated stock. React state updates are batched/async. 
+          // If we run this in the same cycle, 'prod' here refers to the OLD state before GRN update.
+          // Which is correct for the WAC formula denominator (OldStock + NewQty).
+          
+          const newWAC = newTotalStock > 0 
+            ? (currentTotalValue + totalIncomingCost) / newTotalStock 
+            : prod.cost;
+
+          return {
+            ...prod,
+            cost: newWAC
+          };
         }
-        return s;
+        return prod;
       }));
     }
 

@@ -9,6 +9,7 @@ export type AppView =
   | 'invoices' 
   | 'banking' | 'banking-accounts' | 'banking-transactions'
   | 'cash_register'
+  | 'cost_analysis'
   | 'reports' 
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications' | 'settings-custom-fields';
 
@@ -31,6 +32,7 @@ export interface CustomFieldDefinition {
 
 export interface AppSettings {
   companyName: string;
+  companyLogo?: string;
   companyEmail: string;
   companyPhone: string;
   companyAddress: string;
@@ -62,6 +64,8 @@ export interface Client {
   phone: string;
   company: string;
   status: 'active' | 'inactive';
+  category: 'Retail' | 'Wholesale' | 'Corporate' | 'Government';
+  region?: string;
   totalSpent: number;
   customFields?: Record<string, any>;
 }
@@ -86,6 +90,7 @@ export interface Invoice {
   type: SalesDocumentType; 
   clientId: string;
   clientName: string;
+  salespersonName?: string;
   date: string;
   dueDate: string;
   amount: number;
@@ -108,6 +113,7 @@ export interface Purchase {
   supplierName: string;
   date: string;
   amount: number;
+  additionalCosts?: number; // Shipping, customs, etc.
   status: 'completed' | 'pending' | 'received';
   items: InvoiceItem[];
   warehouseId?: string; // The warehouse items were added to
@@ -121,6 +127,7 @@ export interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+  historicalCost?: number; // Cost of the item at the moment of transaction (for COGS)
 }
 
 export interface Product {

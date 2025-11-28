@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign
 } from 'lucide-react';
 import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
@@ -39,6 +39,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const [paymentTerms, setPaymentTerms] = useState('Due on Receipt');
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
   const [notes, setNotes] = useState('');
+  const [additionalCosts, setAdditionalCosts] = useState<number>(0);
 
   // Initialize tax rate
   const defaultRate = settings.taxRates.find(r => r.isDefault)?.rate || 0;
@@ -51,6 +52,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setPaymentTerms('Due on Receipt');
     setPaymentMethod('Bank Transfer');
     setNotes('');
+    setAdditionalCosts(0);
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
   }, [mode, defaultRate]);
@@ -98,7 +100,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   // Calculations
   const subtotal = cart.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0);
   const taxAmount = subtotal * (taxRate / 100);
-  const total = subtotal + taxAmount;
+  const total = subtotal + taxAmount + additionalCosts;
 
   // Handlers
   const addToCart = (product: Product) => {
@@ -156,6 +158,15 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     }));
   };
 
+  const updateCost = (cartId: string, newCost: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.cartId === cartId) {
+        return { ...item, unitCost: newCost };
+      }
+      return item;
+    }));
+  };
+
   const removeFromCart = (cartId: string) => {
     setCart(prev => prev.filter(item => item.cartId !== cartId));
   };
@@ -185,6 +196,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       supplierName: supplierName,
       date: new Date().toISOString().split('T')[0],
       amount: total,
+      additionalCosts: additionalCosts,
       status: mode === 'order' ? 'pending' : 'completed',
       warehouseId: selectedWarehouse,
       paymentTerms,
@@ -207,6 +219,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setCart([]);
     setSelectedSupplier('');
     setNotes('');
+    setAdditionalCosts(0);
     setLastCreatedDoc(null);
     setShowSuccessModal(false);
   };
@@ -369,9 +382,18 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Cost: {formatCurrency(item.unitCost)}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Cost:</span>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        step="0.01"
+                        value={item.unitCost}
+                        onChange={(e) => updateCost(item.cartId, parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-20 px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-right"
+                      />
+                    </div>
                     
                     <div className="flex items-center bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm">
                       <button 
@@ -447,6 +469,21 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
               <span>{formatCurrency(subtotal)}</span>
             </div>
             
+            <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+              <span className="flex items-center gap-1">
+                {t('additional_expenses')}
+                <input 
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={additionalCosts}
+                  onChange={(e) => setAdditionalCosts(parseFloat(e.target.value) || 0)}
+                  className="w-20 px-1 py-0.5 ml-2 text-right text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white"
+                />
+              </span>
+              <span>{formatCurrency(additionalCosts)}</span>
+            </div>
+
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 Tax (VAT)
@@ -563,6 +600,12 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                  <span className="text-gray-500">Items:</span>
                  <span className="font-medium text-gray-900 dark:text-white">{cart.length}</span>
                </div>
+               {additionalCosts > 0 && (
+                 <div className="flex justify-between text-sm text-gray-500">
+                   <span>Extra Costs:</span>
+                   <span>{formatCurrency(additionalCosts)}</span>
+                 </div>
+               )}
                <div className="flex justify-between text-sm font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
                  <span className="text-gray-900 dark:text-white">Total Amount:</span>
                  <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(total)}</span>
