@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer } from '../types';
-import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions, mockWarehouses, mockStockTransfers } from '../services/mockData';
+import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
+import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions, mockWarehouses, mockStockTransfers, mockStockMovements } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
 interface ChartDataPoint {
@@ -23,6 +23,7 @@ interface AppContextType {
   cashTransactions: CashTransaction[];
   warehouses: Warehouse[];
   stockTransfers: StockTransfer[];
+  stockMovements: StockMovement[];
   stats: DashboardStats;
   chartData: ChartDataPoint[];
   settings: AppSettings;
@@ -71,6 +72,7 @@ interface AppContextType {
   updateWarehouse: (warehouse: Warehouse) => void;
   deleteWarehouse: (id: string) => void;
   transferStock: (transfer: Omit<StockTransfer, 'id' | 'date' | 'productName'>) => void;
+  addStockMovement: (movement: Omit<StockMovement, 'id'>) => void;
 
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   
@@ -103,6 +105,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>(mockCashTransactions);
   const [warehouses, setWarehouses] = useState<Warehouse[]>(mockWarehouses);
   const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>(mockStockMovements);
   
   const [isLoading, setIsLoading] = useState(false);
 
@@ -338,9 +341,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateWarehouse = (warehouse: Warehouse) => setWarehouses(prev => prev.map(w => w.id === warehouse.id ? warehouse : w));
   const deleteWarehouse = (id: string) => setWarehouses(prev => prev.filter(w => w.id !== id));
 
+  // Traceability
+  const addStockMovement = (movement: Omit<StockMovement, 'id'>) => {
+    const newMovement: StockMovement = {
+      ...movement,
+      id: `sm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    };
+    setStockMovements(prev => [newMovement, ...prev]);
+  };
+
   const transferStock = (transferData: Omit<StockTransfer, 'id' | 'date' | 'productName'>) => {
     const product = products.find(p => p.id === transferData.productId);
     if (!product) return;
+
+    const sourceWarehouseName = warehouses.find(w => w.id === transferData.fromWarehouseId)?.name || 'Unknown';
+    const destWarehouseName = warehouses.find(w => w.id === transferData.toWarehouseId)?.name || 'Unknown';
 
     // Check availability
     const currentSourceStock = product.warehouseStock[transferData.fromWarehouseId] || 0;
@@ -358,7 +373,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
     setStockTransfers(prev => [newTransfer, ...prev]);
 
-    // 2. Update Product Stock
+    // 2. Log Movements
+    const ref = `TR-${newTransfer.id.substr(-4)}`;
+    // Out from source
+    addStockMovement({
+      productId: product.id,
+      productName: product.name,
+      warehouseId: transferData.fromWarehouseId,
+      warehouseName: sourceWarehouseName,
+      date: new Date().toISOString(),
+      quantity: -transferData.quantity,
+      type: 'transfer_out',
+      reference: ref,
+      notes: transferData.notes || `Transfer to ${destWarehouseName}`
+    });
+    // In to dest
+    addStockMovement({
+      productId: product.id,
+      productName: product.name,
+      warehouseId: transferData.toWarehouseId,
+      warehouseName: destWarehouseName,
+      date: new Date().toISOString(),
+      quantity: transferData.quantity,
+      type: 'transfer_in',
+      reference: ref,
+      notes: transferData.notes || `Transfer from ${sourceWarehouseName}`
+    });
+
+    // 3. Update Product Stock
     const updatedWarehouseStock = { ...product.warehouseStock };
     updatedWarehouseStock[transferData.fromWarehouseId] = (updatedWarehouseStock[transferData.fromWarehouseId] || 0) - transferData.quantity;
     updatedWarehouseStock[transferData.toWarehouseId] = (updatedWarehouseStock[transferData.toWarehouseId] || 0) + transferData.quantity;
@@ -415,6 +457,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // IMPACT: Stock Deduction (Sales) - Updated for Warehouse Logic
     if (type === 'invoice' || type === 'delivery' || type === 'issue') {
       const warehouseId = docData.warehouseId;
+      const warehouseName = warehouses.find(w => w.id === warehouseId)?.name || 'Unknown';
+
       if (!warehouseId && type !== 'invoice') { // Invoice might not always deduct stock immediately if it's service-based, but here we assume product sales need warehouse
          console.warn("No warehouse selected for stock deduction!");
       }
@@ -423,6 +467,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setProducts(prevProducts => prevProducts.map(prod => {
           const soldItem = items.find(item => item.id === prod.id);
           if (soldItem) {
+            // Log Movement
+            addStockMovement({
+              productId: prod.id,
+              productName: prod.name,
+              warehouseId: warehouseId,
+              warehouseName: warehouseName,
+              date: new Date().toISOString(),
+              quantity: -soldItem.quantity,
+              type: 'sale',
+              reference: newNumber,
+              notes: `${type === 'issue' ? 'Manual Issue' : 'Sale'} to ${docData.clientName}`
+            });
+
             const currentWhStock = prod.warehouseStock[warehouseId] || 0;
             const newWhStock = currentWhStock - soldItem.quantity;
             
@@ -443,11 +500,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // IMPACT: Stock Increase (Returns)
     if (type === 'return') {
-      const warehouseId = docData.warehouseId; // Where are returns going?
+      const warehouseId = docData.warehouseId || warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id; // Default to main warehouse for returns if not specified
+      const warehouseName = warehouses.find(w => w.id === warehouseId)?.name || 'Unknown';
+
       if (warehouseId) {
         setProducts(prevProducts => prevProducts.map(prod => {
           const returnedItem = items.find(item => item.id === prod.id);
           if (returnedItem) {
+            // Log Movement
+            addStockMovement({
+              productId: prod.id,
+              productName: prod.name,
+              warehouseId: warehouseId,
+              warehouseName: warehouseName,
+              date: new Date().toISOString(),
+              quantity: returnedItem.quantity,
+              type: 'return',
+              reference: newNumber,
+              notes: `Return from ${docData.clientName}`
+            });
+
             const currentWhStock = prod.warehouseStock[warehouseId] || 0;
             const newWhStock = currentWhStock + returnedItem.quantity;
             
@@ -510,10 +582,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // IMPACT: Stock Increase (Purchases / GRN)
     if (type === 'delivery') {
       const warehouseId = docData.warehouseId;
+      const warehouseName = warehouses.find(w => w.id === warehouseId)?.name || 'Unknown';
+
       if (warehouseId) {
         setProducts(prevProducts => prevProducts.map(prod => {
           const purchasedItem = items.find(item => item.id === prod.id);
           if (purchasedItem) {
+            // Log Movement
+            addStockMovement({
+              productId: prod.id,
+              productName: prod.name,
+              warehouseId: warehouseId,
+              warehouseName: warehouseName,
+              date: new Date().toISOString(),
+              quantity: purchasedItem.quantity,
+              type: 'purchase',
+              reference: newNumber,
+              notes: `Received from ${docData.supplierName}`
+            });
+
             const currentWhStock = prod.warehouseStock[warehouseId] || 0;
             const newWhStock = currentWhStock + purchasedItem.quantity;
             
@@ -591,7 +678,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       clients, suppliers, products, invoices, purchases, 
       bankAccounts, bankTransactions, cashSessions, cashTransactions,
-      warehouses, stockTransfers,
+      warehouses, stockTransfers, stockMovements,
       stats, chartData, settings,
       isLoading, setIsLoading,
       t,
@@ -604,7 +691,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addBankAccount, updateBankAccount, deleteBankAccount,
       addBankTransaction, deleteBankTransaction,
       openCashSession, closeCashSession, addCashTransaction,
-      addWarehouse, updateWarehouse, deleteWarehouse, transferStock,
+      addWarehouse, updateWarehouse, deleteWarehouse, transferStock, addStockMovement,
       updateSettings,
       createSalesDocument, createPurchaseDocument
     }}>

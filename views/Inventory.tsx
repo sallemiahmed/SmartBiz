@@ -3,14 +3,14 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Plus, AlertCircle, Filter, 
   Pencil, Trash2, X, Save, Package, ArrowUp, ArrowDown,
-  LayoutGrid, RotateCcw, ArrowRightLeft
+  LayoutGrid, RotateCcw, ArrowRightLeft, History
 } from 'lucide-react';
-import { Product, Warehouse } from '../types';
+import { Product, Warehouse, StockMovement } from '../types';
 import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
 
 const Inventory: React.FC = () => {
-  const { products, warehouses, addProduct, updateProduct, deleteProduct, formatCurrency, t } = useApp();
+  const { products, warehouses, addProduct, updateProduct, deleteProduct, addStockMovement, stockMovements, formatCurrency, t } = useApp();
 
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +24,7 @@ const Inventory: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // Selection
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -132,6 +133,24 @@ const Inventory: React.FC = () => {
     } as Product;
     
     addProduct(newProduct);
+    
+    // Log Initial Stock for each warehouse if > 0
+    Object.entries(currentWhStock).forEach(([whId, qty]) => {
+      if (qty > 0) {
+        addStockMovement({
+          productId: newProduct.id,
+          productName: newProduct.name,
+          warehouseId: whId,
+          warehouseName: warehouses.find(w => w.id === whId)?.name || 'Unknown',
+          date: new Date().toISOString(),
+          quantity: qty,
+          type: 'initial',
+          reference: 'INIT',
+          notes: 'Initial Stock'
+        });
+      }
+    });
+
     setIsAddModalOpen(false);
     setFormData(initialFormState);
   };
@@ -142,6 +161,26 @@ const Inventory: React.FC = () => {
     
     const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
     const totalStock = Object.values(currentWhStock).reduce((a, b) => a + (Number(b) || 0), 0);
+
+    // Calculate Deltas for Stock Movements
+    Object.entries(currentWhStock).forEach(([whId, newQty]) => {
+      const oldQty = selectedProduct.warehouseStock[whId] || 0;
+      const diff = newQty - oldQty;
+      
+      if (diff !== 0) {
+        addStockMovement({
+          productId: selectedProduct.id,
+          productName: formData.name || selectedProduct.name,
+          warehouseId: whId,
+          warehouseName: warehouses.find(w => w.id === whId)?.name || 'Unknown',
+          date: new Date().toISOString(),
+          quantity: diff,
+          type: 'adjustment',
+          reference: 'MANUAL-ADJ',
+          notes: 'Manual Inventory Adjustment'
+        });
+      }
+    });
 
     const updatedProduct = { 
       ...selectedProduct, 
@@ -174,6 +213,11 @@ const Inventory: React.FC = () => {
   const openDeleteModal = (product: Product) => {
     setSelectedProduct(product);
     setIsDeleteModalOpen(true);
+  };
+
+  const openHistoryModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsHistoryModalOpen(true);
   };
 
   // --- Component Parts ---
@@ -420,6 +464,13 @@ const Inventory: React.FC = () => {
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
+                        onClick={() => openHistoryModal(item)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                        title={t('product_history')}
+                      >
+                        <History className="w-4 h-4" />
+                      </button>
+                      <button 
                         onClick={() => openEditModal(item)}
                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
                         title={t('edit')}
@@ -657,6 +708,77 @@ const Inventory: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {isHistoryModalOpen && selectedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh]">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('product_history')}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{selectedProduct.name} ({selectedProduct.sku})</p>
+              </div>
+              <button onClick={() => setIsHistoryModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-0">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0">
+                  <tr>
+                    <th className="px-6 py-4">{t('date')}</th>
+                    <th className="px-6 py-4">{t('movement_type')}</th>
+                    <th className="px-6 py-4">{t('reference')}</th>
+                    <th className="px-6 py-4">{t('warehouse')}</th>
+                    <th className="px-6 py-4 text-right">{t('quantity')}</th>
+                    <th className="px-6 py-4">{t('notes')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {stockMovements
+                    .filter(m => m.productId === selectedProduct.id)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map(movement => (
+                      <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4 text-gray-500">{new Date(movement.date).toLocaleString()}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase
+                            ${movement.type === 'purchase' || movement.type === 'return' || movement.type === 'initial' || movement.type === 'transfer_in' 
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
+                          `}>
+                            {t(movement.type)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-mono text-gray-900 dark:text-white">{movement.reference}</td>
+                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{movement.warehouseName}</td>
+                        <td className={`px-6 py-4 text-right font-mono font-bold ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                        </td>
+                        <td className="px-6 py-4 text-gray-500 italic truncate max-w-xs" title={movement.notes}>{movement.notes}</td>
+                      </tr>
+                    ))}
+                  {stockMovements.filter(m => m.productId === selectedProduct.id).length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        No movement history found for this product.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end bg-gray-50 dark:bg-gray-800">
+              <button 
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
+              >
+                {t('close')}
+              </button>
+            </div>
           </div>
         </div>
       )}
