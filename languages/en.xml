@@ -228,6 +228,8 @@
     <string name="full_name">Full Name</string>
     <string name="email_address">Email Address</string>
     <string name="role">Role</string>
+    <string name="ai_integration">AI Integration</string>
+    <string name="gemini_api_key">Google Gemini API Key</string>
 
     <!-- Banking -->
     <string name="bank_management">Bank Management</string>
@@ -284,7 +286,7 @@
     <string name="ai_greeting">Hello! I'm your SmartBiz AI assistant. I have access to your current dashboard data. How can I help you today?</string>
     <string name="ai_placeholder">Ask complex business questions...</string>
     <string name="ai_error_generic">I'm having trouble connecting to the AI service right now.</string>
-    <string name="ai_error_config">Please configure your Google Gemini API key in the 'apikeys/gemini.json' file.</string>
+    <string name="ai_error_config">Please configure your Google Gemini API key in Settings > General.</string>
     
     <string name="all_status">All Status</string>
     <string name="all_categories">All Categories</string>

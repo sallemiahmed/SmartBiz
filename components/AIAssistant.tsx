@@ -31,7 +31,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
         text: t('ai_greeting') 
       }]);
     }
-  }, [t]);
+  }, [t, messages.length]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -91,35 +91,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      // Fetch API Key from the root 'gemini.json' file (assuming it's served statically or flattened)
-      let apiKey = '';
-      try {
-        // Try fetching from root first
-        let response = await fetch('gemini.json');
-        
-        // If failed, try with slash prefix
-        if (!response.ok) {
-             response = await fetch('/gemini.json');
-        }
+      const apiKey = settings.geminiApiKey;
 
-        if (response.ok) {
-            const data = await response.json();
-            apiKey = data.key;
-        } else {
-            console.warn("gemini.json not found at root, trying alternate path...");
-            // Fallback: try fetching from apikeys/gemini.json just in case structure is preserved
-            const altResponse = await fetch('/apikeys/gemini.json');
-            if (altResponse.ok) {
-                const altData = await altResponse.json();
-                apiKey = altData.key;
-            }
-        }
-      } catch (err) {
-        console.error("Failed to fetch gemini.json", err);
-      }
-
-      if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-        throw new Error("API Key not found or invalid in gemini.json");
+      if (!apiKey) {
+        throw new Error("API Key not found. Please configure it in Settings > General.");
       }
 
       const ai = new GoogleGenAI({ apiKey });
@@ -132,7 +107,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
         model: 'gemini-3-pro-preview',
         contents: prompt,
         config: {
-          thinkingConfig: { thinkingBudget: 32768 }
+          thinkingConfig: { thinkingBudget: 2048 }
         }
       });
 
@@ -142,7 +117,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     } catch (error: any) {
       console.error("AI Error:", error);
       let errorMessage = t('ai_error_generic');
-      if (error.message && error.message.includes("API Key")) {
+      if (error.message && (error.message.includes("API Key") || error.message.includes("403"))) {
         errorMessage = t('ai_error_config');
       }
       setMessages(prev => [...prev, { 
@@ -169,32 +144,36 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900/50">
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`flex max-w-[80%] gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-gray-200 dark:bg-gray-700' : 'bg-indigo-100 text-indigo-600'}`}>
-                {msg.role === 'user' ? <UserIcon className="w-5 h-5 text-gray-500" /> : <Bot className="w-5 h-5" />}
-              </div>
-              <div className={`p-3 rounded-2xl text-sm ${
-                msg.role === 'user' 
-                  ? 'bg-indigo-600 text-white rounded-tr-none' 
-                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none'
-              }`}>
-                {msg.text}
-              </div>
+          <div 
+            key={msg.id} 
+            className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+          >
+            <div className={`
+              w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+              ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white'}
+            `}>
+              {msg.role === 'user' ? <UserIcon className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+            </div>
+            <div className={`
+              max-w-[75%] p-3 rounded-2xl text-sm
+              ${msg.role === 'user' 
+                ? 'bg-indigo-600 text-white rounded-tr-none' 
+                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none shadow-sm'}
+            `}>
+              {msg.text}
             </div>
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="flex max-w-[80%] gap-2">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div className="p-3 rounded-2xl rounded-tl-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
-              </div>
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+              <Bot className="w-5 h-5" />
+            </div>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+              <span className="text-xs text-gray-500">Thinking...</span>
             </div>
           </div>
         )}
@@ -202,20 +181,20 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Input Area */}
-      <form onSubmit={handleSend} className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex gap-2">
-        <input
-          type="text"
+      <form onSubmit={handleSend} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+        <input 
+          type="text" 
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder={t('ai_placeholder')}
-          className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white text-sm"
+          className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 border-0 rounded-full focus:ring-2 focus:ring-indigo-500 outline-none text-sm dark:text-white"
         />
         <button 
-          type="submit"
-          disabled={isLoading || !inputValue.trim()}
-          className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          type="submit" 
+          disabled={!inputValue.trim() || isLoading}
+          className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          <Send className="w-5 h-5" />
+          <Send className="w-4 h-4" />
         </button>
       </form>
     </div>

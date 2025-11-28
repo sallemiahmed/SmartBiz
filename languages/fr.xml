@@ -228,6 +228,8 @@
     <string name="full_name">Nom Complet</string>
     <string name="email_address">Adresse Email</string>
     <string name="role">Rôle</string>
+    <string name="ai_integration">Intégration IA</string>
+    <string name="gemini_api_key">Clé API Google Gemini</string>
 
     <!-- Banking -->
     <string name="bank_management">Gestion Bancaire</string>
@@ -284,7 +286,7 @@
     <string name="ai_greeting">Bonjour ! Je suis votre assistant IA SmartBiz. J'ai accès aux données de votre tableau de bord. Comment puis-je vous aider ?</string>
     <string name="ai_placeholder">Posez des questions d'affaires complexes...</string>
     <string name="ai_error_generic">Je rencontre des problèmes de connexion au service d'IA pour le moment.</string>
-    <string name="ai_error_config">Veuillez configurer votre clé API Google Gemini dans le fichier 'apikeys/gemini.json'.</string>
+    <string name="ai_error_config">Veuillez configurer votre clé API Google Gemini dans Paramètres > Général.</string>
 
     <string name="all_status">Tous les statuts</string>
     <string name="all_categories">Toutes catégories</string>

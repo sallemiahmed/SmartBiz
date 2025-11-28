@@ -228,6 +228,8 @@
     <string name="full_name">الاسم الكامل</string>
     <string name="email_address">عنوان البريد الإلكتروني</string>
     <string name="role">الدور</string>
+    <string name="ai_integration">تكامل الذكاء الاصطناعي</string>
+    <string name="gemini_api_key">مفتاح Google Gemini API</string>
 
     <!-- Banking -->
     <string name="bank_management">البنوك</string>
@@ -284,7 +286,7 @@
     <string name="ai_greeting">مرحباً! أنا مساعد SmartBiz الذكي. لدي إمكانية الوصول إلى بيانات لوحة القيادة الحالية. كيف يمكنني مساعدتك اليوم؟</string>
     <string name="ai_placeholder">اطرح أسئلة تجارية معقدة...</string>
     <string name="ai_error_generic">أواجه مشكلة في الاتصال بخدمة الذكاء الاصطناعي حالياً.</string>
-    <string name="ai_error_config">يرجى تكوين مفتاح Google Gemini API في ملف 'apikeys/gemini.json'.</string>
+    <string name="ai_error_config">يرجى تكوين مفتاح Google Gemini API في الإعدادات > عام.</string>
 
     <string name="all_status">كل الحالات</string>
     <string name="all_categories">كل الفئات</string>

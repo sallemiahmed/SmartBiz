@@ -38,6 +38,7 @@ export interface AppSettings {
   currency: string;
   language: Language;
   timezone: string;
+  geminiApiKey: string;
   taxRates: TaxRate[];
   customFields: {
     clients: CustomFieldDefinition[];

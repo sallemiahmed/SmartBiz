@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Save, Globe, User, Shield, Bell, Building, CreditCard, 
@@ -284,6 +285,22 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       <option value="UTC+4">Dubai</option>
                     </select>
                   </div>
+                </div>
+              </div>
+
+              {/* AI Integration */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('ai_integration')}</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('gemini_api_key')}</label>
+                  <input
+                    type="text"
+                    name="geminiApiKey"
+                    value={formData.geminiApiKey || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white font-mono"
+                    placeholder="AIza..."
+                  />
                 </div>
               </div>
 

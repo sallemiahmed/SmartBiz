@@ -106,6 +106,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     currency: 'EUR', // Default to Euro
     language: 'fr',  // Default to French
     timezone: 'UTC+1', // Default to Paris Time
+    geminiApiKey: "AIzaSyAzHVNUeZ4V1ykeomWvnYsFBGn4k2ZLtoE",
     taxRates: [
       { id: '1', name: 'TVA Standard', rate: 20, isDefault: true },
       { id: '2', name: 'Taux Réduit', rate: 5.5 },
