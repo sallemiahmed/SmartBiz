@@ -1,12 +1,12 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { Search, Plus, FileDown, Send, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar } from 'lucide-react';
+import { Search, Plus, FileDown, Send, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar, X, CheckCircle, Mail, Paperclip, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Invoice } from '../types';
 import Pagination from '../components/Pagination';
 
 const Invoices: React.FC = () => {
-  const { invoices, formatCurrency, t } = useApp();
+  const { invoices, clients, formatCurrency, settings, t } = useApp();
   const startDateRef = useRef<HTMLInputElement>(null);
 
   // --- State ---
@@ -17,6 +17,12 @@ const Invoices: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<{ key: keyof Invoice | 'amount'; direction: 'asc' | 'desc' } | null>({ key: 'date', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // --- Email State ---
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailData, setEmailData] = useState({ to: '', subject: '', message: '' });
+  const [isSending, setIsSending] = useState(false);
+  const [selectedInvoiceForEmail, setSelectedInvoiceForEmail] = useState<Invoice | null>(null);
 
   // --- Helpers ---
   const getTypeLabel = (type: string) => {
@@ -49,6 +55,31 @@ const Invoices: React.FC = () => {
     setDateRange({ start: '', end: '' });
     setCurrentPage(1);
     setSortConfig({ key: 'date', direction: 'desc' });
+  };
+
+  const handleEmailClick = (invoice: Invoice) => {
+    const client = clients.find(c => c.id === invoice.clientId);
+    const clientEmail = client ? client.email : '';
+    
+    setSelectedInvoiceForEmail(invoice);
+    setEmailData({
+      to: clientEmail,
+      subject: `Invoice ${invoice.number} from ${settings.companyName}`,
+      message: `Dear ${invoice.clientName},\n\nPlease find attached invoice ${invoice.number} for ${formatCurrency(invoice.amount)}.\n\nThank you for your business.\n\nRegards,\n${settings.companyName}`
+    });
+    setIsEmailModalOpen(true);
+  };
+
+  const handleSendEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+    
+    // Simulate Backend API call
+    setTimeout(() => {
+      setIsSending(false);
+      setIsEmailModalOpen(false);
+      alert(t('email_sent_success'));
+    }, 1500);
   };
 
   // --- Process Data ---
@@ -261,7 +292,11 @@ const Invoices: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                       <button className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Send Email">
+                       <button 
+                         onClick={() => handleEmailClick(inv)}
+                         className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" 
+                         title={t('email_invoice')}
+                       >
                          <Send className="w-4 h-4" />
                        </button>
                        <button className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Download PDF">
@@ -290,6 +325,89 @@ const Invoices: React.FC = () => {
           itemsPerPage={itemsPerPage}
         />
       </div>
+
+      {/* Email Modal */}
+      {isEmailModalOpen && selectedInvoiceForEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Mail className="w-5 h-5 text-indigo-600" />
+                {t('email_invoice')}
+              </h3>
+              <button onClick={() => setIsEmailModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSendEmail} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('recipient_email')}</label>
+                <input 
+                  type="email" 
+                  required
+                  value={emailData.to}
+                  onChange={(e) => setEmailData({...emailData, to: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('subject')}</label>
+                <input 
+                  type="text" 
+                  required
+                  value={emailData.subject}
+                  onChange={(e) => setEmailData({...emailData, subject: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('message')}</label>
+                <textarea 
+                  rows={5}
+                  value={emailData.message}
+                  onChange={(e) => setEmailData({...emailData, message: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                />
+              </div>
+
+              {/* Attachment Visual */}
+              <div className="flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg">
+                <div className="p-2 bg-white dark:bg-gray-800 rounded shadow-sm text-red-500">
+                  <FileDown className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('attach_pdf')}</p>
+                  <p className="text-xs text-gray-500">{selectedInvoiceForEmail.number}.pdf</p>
+                </div>
+                <div className="ml-auto text-indigo-600 dark:text-indigo-400">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-2">
+                <button 
+                  type="button"
+                  onClick={() => setIsEmailModalOpen(false)}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {t('cancel')}
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSending}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {isSending ? t('sending') : t('send_email')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -361,5 +361,13 @@
     "no_custom_fields": "No custom fields defined.",
     "unit_cost": "Unit Cost",
     "min": "Min",
-    "max": "Max"
+    "max": "Max",
+    "email_invoice": "Email Invoice",
+    "recipient_email": "Recipient Email",
+    "subject": "Subject",
+    "message": "Message",
+    "send_email": "Send Email",
+    "sending": "Sending...",
+    "email_sent_success": "Email sent successfully!",
+    "attach_pdf": "Invoice PDF attached"
 }

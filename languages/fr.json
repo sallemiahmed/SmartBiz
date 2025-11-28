@@ -189,7 +189,7 @@
     "purchase_report": "Rapport des Achats",
     "inventory_stock_report": "Inventaire et Stock",
     "financials_report": "Finances",
-    "rep_sales_customer": "Ventes par Client (Sommaire)",
+    "rep_sales_customer": "Ventes par Client",
     "rep_sales_customer_detailed": "Analyse Client Détaillée",
     "rep_sales_product_detailed": "Analyse Produit Détaillée",
     "rep_sales_vat": "TVA sur Ventes",
@@ -343,6 +343,7 @@
     "to": "À",
     "products_list": "Liste Produits",
     "product": "Produit",
+    "quantity": "Quantité",
     "notes": "Notes",
     "transfer_reason": "Motif du transfert",
     "confirm_transfer": "Confirmer Transfert",
@@ -363,5 +364,13 @@
     "no_custom_fields": "Aucun champ personnalisé défini.",
     "unit_cost": "Coût Unitaire",
     "min": "Min",
-    "max": "Max"
+    "max": "Max",
+    "email_invoice": "Envoyer par Email",
+    "recipient_email": "Email du destinataire",
+    "subject": "Sujet",
+    "message": "Message",
+    "send_email": "Envoyer",
+    "sending": "Envoi en cours...",
+    "email_sent_success": "Email envoyé avec succès !",
+    "attach_pdf": "Facture PDF jointe"
 }

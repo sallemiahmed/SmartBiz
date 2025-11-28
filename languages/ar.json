@@ -189,7 +189,7 @@
     "purchase_report": "تقرير المشتريات",
     "inventory_stock_report": "المخزون والمستودع",
     "financials_report": "المالية",
-    "rep_sales_customer": "مبيعات العملاء (ملخص)",
+    "rep_sales_customer": "مبيعات العملاء",
     "rep_sales_customer_detailed": "تحليل العملاء التفصيلي",
     "rep_sales_product_detailed": "تحليل المنتجات التفصيلي",
     "rep_sales_vat": "ضريبة المبيعات",
@@ -365,5 +365,13 @@
     "no_custom_fields": "لم يتم تعريف حقول مخصصة.",
     "unit_cost": "تكلفة الوحدة",
     "min": "الحد الأدنى",
-    "max": "الحد الأقصى"
+    "max": "الحد الأقصى",
+    "email_invoice": "إرسال عبر البريد",
+    "recipient_email": "بريد المستلم",
+    "subject": "الموضوع",
+    "message": "الرسالة",
+    "send_email": "إرسال البريد",
+    "sending": "جاري الإرسال...",
+    "email_sent_success": "تم إرسال البريد بنجاح!",
+    "attach_pdf": "تم إرفاق ملف PDF"
 }
