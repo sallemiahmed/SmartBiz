@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Save, Globe, User, Shield, Bell, Building, CreditCard, 
-  CheckCircle, Plus, Trash2, Star, List, Type, Upload, Image as ImageIcon
+  CheckCircle, Plus, Trash2, Star, List, Type, Upload, Image as ImageIcon, Stamp
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AppSettings, TaxRate, CustomFieldDefinition } from '../types';
@@ -44,8 +44,13 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+        const checked = (e.target as HTMLInputElement).checked;
+        setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -377,84 +382,123 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
               {/* Tax Configuration */}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{t('tax_configuration')}</h3>
-                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                  <div className="space-y-4">
-                    {/* Add New Rate */}
-                    <div className="flex flex-col sm:flex-row gap-3 items-end">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('rate_name')}</label>
-                        <input 
-                          type="text" 
-                          value={newTaxRate.name}
-                          onChange={(e) => setNewTaxRate(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                          placeholder="e.g. VAT Standard"
-                        />
+                <div className="space-y-6">
+                  {/* Fiscal Stamp Settings */}
+                  <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800">
+                    <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-3 flex items-center gap-2">
+                      <Stamp className="w-4 h-4" /> Fiscal Stamp (Timbre Fiscal)
+                    </h4>
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                      <div className="flex items-center gap-3">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            name="enableFiscalStamp"
+                            checked={formData.enableFiscalStamp || false} 
+                            onChange={handleChange}
+                            className="sr-only peer" 
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                          <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Enable Fiscal Stamp</span>
+                        </label>
                       </div>
-                      <div className="w-full sm:w-32">
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('rate_value')}</label>
-                        <input 
-                          type="number" 
-                          step="0.01"
-                          value={newTaxRate.rate}
-                          onChange={(e) => setNewTaxRate(prev => ({ ...prev, rate: e.target.value }))}
-                          className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                          placeholder="0"
-                        />
-                      </div>
-                      <button 
-                        type="button"
-                        onClick={handleAddTaxRate}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 text-sm font-medium"
-                      >
-                        <Plus className="w-4 h-4" /> {t('add_rate')}
-                      </button>
-                    </div>
-
-                    {/* Rate List */}
-                    <div className="mt-4 space-y-2">
-                      {formData.taxRates.length === 0 ? (
-                        <p className="text-sm text-gray-400 italic">No tax rates configured.</p>
-                      ) : (
-                        <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                          <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium">
-                              <tr>
-                                <th className="px-4 py-2">{t('rate_name')}</th>
-                                <th className="px-4 py-2">{t('rate_value')}</th>
-                                <th className="px-4 py-2 text-center">Default</th>
-                                <th className="px-4 py-2 text-right">{t('actions')}</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                              {formData.taxRates.map(rate => (
-                                <tr key={rate.id}>
-                                  <td className="px-4 py-2 text-gray-900 dark:text-white">{rate.name}</td>
-                                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300 font-mono">{rate.rate}%</td>
-                                  <td className="px-4 py-2 text-center">
-                                    <button 
-                                      type="button"
-                                      onClick={() => handleSetDefaultTaxRate(rate.id)}
-                                      className={`p-1 rounded-full transition-colors ${rate.isDefault ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-400'}`}
-                                    >
-                                      <Star className={`w-4 h-4 ${rate.isDefault ? 'fill-yellow-500' : ''}`} />
-                                    </button>
-                                  </td>
-                                  <td className="px-4 py-2 text-right">
-                                    <button 
-                                      type="button"
-                                      onClick={() => handleDeleteTaxRate(rate.id)}
-                                      className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                      
+                      {formData.enableFiscalStamp && (
+                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-300">
+                          <label className="text-sm text-gray-600 dark:text-gray-400">Value:</label>
+                          <input 
+                            type="number" 
+                            name="fiscalStampValue"
+                            step="0.001"
+                            value={formData.fiscalStampValue || 0}
+                            onChange={handleChange}
+                            className="w-24 px-3 py-1 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                          />
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{formData.currency}</span>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="space-y-4">
+                      {/* Add New Rate */}
+                      <div className="flex flex-col sm:flex-row gap-3 items-end">
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('rate_name')}</label>
+                          <input 
+                            type="text" 
+                            value={newTaxRate.name}
+                            onChange={(e) => setNewTaxRate(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                            placeholder="e.g. VAT Standard"
+                          />
+                        </div>
+                        <div className="w-full sm:w-32">
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('rate_value')}</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={newTaxRate.rate}
+                            onChange={(e) => setNewTaxRate(prev => ({ ...prev, rate: e.target.value }))}
+                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                            placeholder="0"
+                          />
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={handleAddTaxRate}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                        >
+                          <Plus className="w-4 h-4" /> {t('add_rate')}
+                        </button>
+                      </div>
+
+                      {/* Rate List */}
+                      <div className="mt-4 space-y-2">
+                        {formData.taxRates.length === 0 ? (
+                          <p className="text-sm text-gray-400 italic">No tax rates configured.</p>
+                        ) : (
+                          <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                            <table className="w-full text-sm text-left">
+                              <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium">
+                                <tr>
+                                  <th className="px-4 py-2">{t('rate_name')}</th>
+                                  <th className="px-4 py-2">{t('rate_value')}</th>
+                                  <th className="px-4 py-2 text-center">Default</th>
+                                  <th className="px-4 py-2 text-right">{t('actions')}</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                                {formData.taxRates.map(rate => (
+                                  <tr key={rate.id}>
+                                    <td className="px-4 py-2 text-gray-900 dark:text-white">{rate.name}</td>
+                                    <td className="px-4 py-2 text-gray-700 dark:text-gray-300 font-mono">{rate.rate}%</td>
+                                    <td className="px-4 py-2 text-center">
+                                      <button 
+                                        type="button"
+                                        onClick={() => handleSetDefaultTaxRate(rate.id)}
+                                        className={`p-1 rounded-full transition-colors ${rate.isDefault ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-400'}`}
+                                      >
+                                        <Star className={`w-4 h-4 ${rate.isDefault ? 'fill-yellow-500' : ''}`} />
+                                      </button>
+                                    </td>
+                                    <td className="px-4 py-2 text-right">
+                                      <button 
+                                        type="button"
+                                        onClick={() => handleDeleteTaxRate(rate.id)}
+                                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -462,6 +506,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
             </div>
           )}
 
+          {/* ... (rest of the file remains unchanged: CUSTOM FIELDS, PROFILE, SECURITY, NOTIFICATIONS, BILLING) ... */}
           {/* --- CUSTOM FIELDS TAB --- */}
           {activeTab === 'custom_fields' && (
             <div className="space-y-8 animate-in fade-in duration-300">

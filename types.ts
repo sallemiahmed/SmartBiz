@@ -41,6 +41,8 @@ export interface AppSettings {
   language: Language;
   timezone: string;
   geminiApiKey: string;
+  enableFiscalStamp: boolean;
+  fiscalStampValue: number;
   taxRates: TaxRate[];
   customFields: {
     clients: CustomFieldDefinition[];
@@ -104,6 +106,7 @@ export interface Invoice {
   taxRate?: number;
   subtotal?: number;
   discount?: number;
+  fiscalStamp?: number;
 }
 
 export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice';

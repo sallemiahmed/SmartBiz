@@ -3,10 +3,10 @@ import { Invoice, AppSettings, Purchase } from '../types';
 
 export const printInvoice = (document: Invoice | Purchase, settings: AppSettings) => {
   const isRTL = settings.language === 'ar';
-  const currencyFormatter = new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : 'en-US', {
+  const currencyFormatter = new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-TN' : 'en-US'), {
     style: 'currency',
     currency: settings.currency,
-    minimumFractionDigits: 2
+    minimumFractionDigits: settings.currency === 'TND' ? 3 : 2
   });
 
   const getTypeLabel = (type: string) => {
@@ -43,13 +43,12 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
   
   // Sales specific fields
   const discountAmount = (document as Invoice).discount || 0;
+  const fiscalStamp = (document as Invoice).fiscalStamp || 0;
   
   // Purchase specific fields
   const additionalCosts = (document as Purchase).additionalCosts || 0;
 
-  // Calculate Tax Amount based on Subtotal (Standard logic: Tax is on Gross Subtotal usually, but let's follow app logic)
-  // App Logic for Sales: Total = Subtotal + Tax - Discount. Tax was calculated on Subtotal.
-  // App Logic for Purchase: Total = Subtotal + Tax + Additional. Tax was calculated on Subtotal.
+  // Calculate Tax Amount based on Subtotal
   const taxAmount = subtotal * (taxRate / 100);
 
   const html = `
@@ -172,6 +171,11 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
             <td class="label">VAT (${taxRate}%)</td>
             <td class="value">${currencyFormatter.format(taxAmount)}</td>
           </tr>
+          ${fiscalStamp > 0 ? `
+          <tr>
+            <td class="label">Fiscal Stamp</td>
+            <td class="value">${currencyFormatter.format(fiscalStamp)}</td>
+          </tr>` : ''}
           <tr class="grand-total">
             <td class="label">Total ${isCredit ? '(Credit)' : ''}</td>
             <td class="value">${currencyFormatter.format(document.amount)}</td>

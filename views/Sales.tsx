@@ -105,7 +105,11 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const taxAmount = subtotal * (taxRate / 100);
   const discountAmount = subtotal * (discount / 100);
-  const total = subtotal + taxAmount - discountAmount;
+  
+  // Fiscal Stamp Logic
+  const fiscalStampAmount = (mode === 'invoice' && settings.enableFiscalStamp) ? settings.fiscalStampValue : 0;
+
+  const total = subtotal + taxAmount - discountAmount + fiscalStampAmount;
 
   // Handlers
   const addToCart = (product: Product) => {
@@ -212,7 +216,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       notes,
       taxRate: taxRate,
       subtotal: subtotal,
-      discount: discountAmount
+      discount: discountAmount,
+      fiscalStamp: fiscalStampAmount
     }, invoiceItems);
 
     setLastCreatedDoc(createdDoc);
@@ -514,6 +519,14 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               </span>
               <span>{formatCurrency(taxAmount)}</span>
             </div>
+
+            {/* Fiscal Stamp Display */}
+            {mode === 'invoice' && settings.enableFiscalStamp && (
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Fiscal Stamp</span>
+                <span>{formatCurrency(fiscalStampAmount)}</span>
+              </div>
+            )}
             
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
               <span className="font-bold text-gray-900 dark:text-white">{t('total')}</span>

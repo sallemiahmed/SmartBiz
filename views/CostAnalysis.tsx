@@ -87,7 +87,7 @@ const CostAnalysis: React.FC = () => {
   const { metrics, trendData } = useMemo(() => {
     const filteredInvoices = invoices.filter(inv => {
       if (inv.type !== 'invoice' && inv.type !== 'order') return false; // Focus on sales
-      if (inv.status === 'draft' || inv.status === 'cancelled') return false;
+      if (inv.status === 'draft') return false;
       
       const invDate = inv.date;
       const start = dateRange.start;

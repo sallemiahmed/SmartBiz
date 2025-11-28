@@ -107,22 +107,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState(false);
 
   const [settings, setSettings] = useState<AppSettings>({
-    companyName: 'My Smart Business',
-    companyEmail: 'admin@smartbiz.com',
-    companyPhone: '+1 (555) 123-4567',
-    companyAddress: '123 Tech Blvd, Silicon Valley, CA',
-    companyVatId: 'TAX-12345678',
-    currency: 'EUR', // Default to Euro
-    language: 'fr',  // Default to French
-    timezone: 'UTC+1', // Default to Paris Time
-    geminiApiKey: process.env.API_KEY || "", // Use env var or empty string
+    companyName: 'Tunisie Tech Solutions',
+    companyEmail: 'contact@tuntech.tn',
+    companyPhone: '+216 71 123 456',
+    companyAddress: 'Immeuble Jasmine, Les Berges du Lac 2, Tunis, 1053',
+    companyVatId: '1234567/A/M/000',
+    currency: 'TND',
+    language: 'fr', 
+    timezone: 'UTC+1',
+    geminiApiKey: process.env.API_KEY || "", 
+    enableFiscalStamp: true,
+    fiscalStampValue: 1.000,
     taxRates: [
-      { id: '1', name: 'TVA Standard', rate: 20, isDefault: true },
-      { id: '2', name: 'Taux Réduit', rate: 5.5 },
-      { id: '3', name: 'Zéro', rate: 0 }
+      { id: '1', name: 'TVA Standard', rate: 19, isDefault: true },
+      { id: '2', name: 'TVA Réduit', rate: 7 },
+      { id: '3', name: 'TVA Interm.', rate: 13 },
+      { id: '4', name: 'Exonéré', rate: 0 }
     ],
     customFields: {
-      clients: [],
+      clients: [
+        { id: 'cf1', key: 'matricule_fiscale', label: 'Matricule Fiscale', type: 'text', required: false }
+      ],
       suppliers: []
     }
   });
@@ -214,10 +219,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-FR' : 'en-US'), {
+    return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-TN' : 'en-TN'), {
       style: 'currency',
       currency: settings.currency,
-      minimumFractionDigits: 2
+      minimumFractionDigits: 3 // TND uses 3 decimals
     }).format(amount);
   };
 
@@ -375,13 +380,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const createSalesDocument = (type: SalesDocumentType, docData: Omit<Invoice, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Invoice => {
     const newId = `${Date.now()}`;
-    let prefix = 'INV';
-    if (type === 'estimate') prefix = 'EST';
-    if (type === 'order') prefix = 'ORD';
-    if (type === 'delivery') prefix = 'DEL';
-    if (type === 'issue') prefix = 'ISS';
-    if (type === 'return') prefix = 'RET';
-    if (type === 'credit') prefix = 'CR';
+    let prefix = 'F'; // Facture
+    if (type === 'estimate') prefix = 'D'; // Devis
+    if (type === 'order') prefix = 'BC'; // Bon Commande
+    if (type === 'delivery') prefix = 'BL'; // Bon Livraison
+    if (type === 'issue') prefix = 'BS'; // Bon Sortie
+    if (type === 'return') prefix = 'BR'; // Bon Retour
+    if (type === 'credit') prefix = 'AV'; // Avoir
 
     const newNumber = `${prefix}-${new Date().getFullYear()}-${String(invoices.length + 1001).padStart(4, '0')}`;
     
@@ -486,7 +491,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const createPurchaseDocument = (type: PurchaseDocumentType, docData: Omit<Purchase, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Purchase => {
     const newId = `PO-${Date.now()}`;
-    const prefix = type === 'order' ? 'PO' : type === 'delivery' ? 'GRN' : 'PINV';
+    const prefix = type === 'order' ? 'BCF' : type === 'delivery' ? 'BR' : 'FF'; // Bon Commande Fourn, Bon Reception, Facture Fourn
     const newNumber = `${prefix}-${new Date().getFullYear()}-${String(purchases.length + 5001).padStart(4, '0')}`;
     
     const newDoc: Purchase = {
