@@ -16,6 +16,7 @@ const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState<{ min: string, max: string }>({ min: '', max: '' });
   const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>({ key: 'name', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -79,6 +80,7 @@ const Inventory: React.FC = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setCategoryFilter('all');
+    setPriceRange({ min: '', max: '' });
     setCurrentPage(1);
     setSortConfig({ key: 'name', direction: 'asc' });
   };
@@ -264,13 +266,24 @@ const Inventory: React.FC = () => {
   const processedProducts = useMemo(() => {
     return products
       .filter(p => {
-        const matchesSearch = 
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-          p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.category.toLowerCase().includes(searchTerm.toLowerCase());
+        // Robust Search: Split by space and ensure all terms are found in name, sku, or category
+        const searchTerms = searchTerm.toLowerCase().split(' ').filter(t => t.trim() !== '');
+        const matchesSearch = searchTerms.every(term => 
+          p.name.toLowerCase().includes(term) || 
+          p.sku.toLowerCase().includes(term) ||
+          p.category.toLowerCase().includes(term)
+        );
+
         const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
         const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
-        return matchesSearch && matchesStatus && matchesCategory;
+        
+        // Price Range Filter
+        const minP = parseFloat(priceRange.min);
+        const maxP = parseFloat(priceRange.max);
+        const matchesMinPrice = isNaN(minP) || p.price >= minP;
+        const matchesMaxPrice = isNaN(maxP) || p.price <= maxP;
+
+        return matchesSearch && matchesStatus && matchesCategory && matchesMinPrice && matchesMaxPrice;
       })
       .sort((a, b) => {
         if (!sortConfig) return 0;
@@ -285,7 +298,7 @@ const Inventory: React.FC = () => {
         if (aValue > bValue) return direction === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [products, searchTerm, statusFilter, categoryFilter, sortConfig]);
+  }, [products, searchTerm, statusFilter, categoryFilter, priceRange, sortConfig]);
 
   // Pagination Logic
   const totalPages = Math.ceil(processedProducts.length / itemsPerPage);
@@ -296,7 +309,7 @@ const Inventory: React.FC = () => {
 
   useMemo(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, categoryFilter]);
+  }, [searchTerm, statusFilter, categoryFilter, priceRange]);
 
   const lowStockCount = products.filter(p => p.status === 'low_stock').length;
   const outOfStockCount = products.filter(p => p.status === 'out_of_stock').length;
@@ -363,7 +376,7 @@ const Inventory: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col flex-1">
         
         {/* Filters */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 bg-gray-50 dark:bg-gray-800">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col lg:flex-row gap-4 bg-gray-50 dark:bg-gray-800">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
@@ -397,7 +410,29 @@ const Inventory: React.FC = () => {
               <option value="out_of_stock">{t('out_of_stock')}</option>
             </select>
 
-            {(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
+            {/* Price Range Filter */}
+            <div className="flex items-center gap-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
+              <span className="text-xs text-gray-500 dark:text-gray-400">{t('price')}:</span>
+              <input 
+                type="number" 
+                placeholder={t('min')} 
+                value={priceRange.min}
+                onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                className="w-16 bg-transparent text-sm outline-none dark:text-white"
+                min="0"
+              />
+              <span className="text-gray-400">-</span>
+              <input 
+                type="number" 
+                placeholder={t('max')} 
+                value={priceRange.max}
+                onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                className="w-16 bg-transparent text-sm outline-none dark:text-white"
+                min="0"
+              />
+            </div>
+
+            {(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' || priceRange.min || priceRange.max) && (
               <button 
                 onClick={handleResetFilters}
                 className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"

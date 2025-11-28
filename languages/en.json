@@ -200,6 +200,9 @@
     "rep_prod_perf": "Product Performance",
     "rep_monthly_profit": "Monthly Profit",
     "rep_aging_receivables": "Aging Receivables",
+    "rep_pl": "Profit & Loss",
+    "rep_cash_flow": "Cash Flow Statement",
+    "rep_trial_balance": "Trial Balance",
     "salesperson": "Salesperson",
     "region": "Region",
     "margin": "Margin",
@@ -361,5 +364,7 @@
     "client_fields": "Client Fields",
     "supplier_fields": "Supplier Fields",
     "no_custom_fields": "No custom fields defined.",
-    "unit_cost": "Unit Cost"
+    "unit_cost": "Unit Cost",
+    "min": "Min",
+    "max": "Max"
 }

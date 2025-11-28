@@ -200,6 +200,9 @@
     "rep_prod_perf": "Performance Produits",
     "rep_monthly_profit": "Profit Mensuel",
     "rep_aging_receivables": "Créances Clients",
+    "rep_pl": "Compte de Résultat",
+    "rep_cash_flow": "Flux de Trésorerie",
+    "rep_trial_balance": "Balance Générale",
     "salesperson": "Vendeur",
     "region": "Région",
     "margin": "Marge",
@@ -361,5 +364,7 @@
     "client_fields": "Champs Clients",
     "supplier_fields": "Champs Fournisseurs",
     "no_custom_fields": "Aucun champ personnalisé défini.",
-    "unit_cost": "Coût Unitaire"
+    "unit_cost": "Coût Unitaire",
+    "min": "Min",
+    "max": "Max"
 }

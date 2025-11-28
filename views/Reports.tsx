@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, FileInput, FileOutput, Users, Truck, Package, 
   Banknote, TrendingUp, ArrowLeft, Download, Printer, ArrowRight,
-  Filter, Calendar, ChevronDown, ChevronRight, BarChart2, PieChart
+  Filter, Calendar, ChevronDown, ChevronRight, BarChart2, PieChart,
+  DollarSign, FileText
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -14,7 +15,7 @@ import { Invoice, Product, Client } from '../types';
 
 // --- Types ---
 
-type ReportType = 'summary' | 'transactions' | 'chart' | 'invoice_list' | 'product_metrics' | 'detailed_product' | 'detailed_customer';
+type ReportType = 'summary' | 'transactions' | 'chart' | 'invoice_list' | 'product_metrics' | 'detailed_product' | 'detailed_customer' | 'financial_statement';
 
 interface ReportConfig {
   title: string;
@@ -25,7 +26,7 @@ interface ReportConfig {
 }
 
 const Reports: React.FC = () => {
-  const { invoices, clients, suppliers, products, purchases, warehouses, formatCurrency, chartData, t } = useApp();
+  const { invoices, clients, suppliers, products, purchases, warehouses, bankTransactions, cashTransactions, formatCurrency, chartData, t, settings } = useApp();
   const [activeReport, setActiveReport] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -105,6 +106,111 @@ const Reports: React.FC = () => {
       tax: s.totalPurchased - (s.totalPurchased / 1.19),
       total: s.totalPurchased
     }));
+  };
+
+  // 6. Financial Logic (P&L, Cash Flow, Trial Balance)
+  const getProfitAndLoss = () => {
+    // REVENUE
+    const totalSales = invoices.filter(i => i.type === 'invoice' && i.status !== 'draft').reduce((acc, i) => acc + i.amount, 0);
+    const returns = invoices.filter(i => i.type === 'credit').reduce((acc, i) => acc + i.amount, 0);
+    const netSales = totalSales - returns;
+
+    // COGS (Approximate based on products sold)
+    let cogs = 0;
+    invoices.filter(i => i.type === 'invoice' && i.status !== 'draft').forEach(inv => {
+      inv.items.forEach(item => {
+        const prod = products.find(p => p.id === item.id);
+        if (prod) cogs += (prod.cost * item.quantity);
+      });
+    });
+
+    const grossProfit = netSales - cogs;
+
+    // EXPENSES (From Purchases marked as invoices & Cash Expenses)
+    const purchaseExpenses = purchases.filter(p => p.type === 'invoice').reduce((acc, p) => acc + p.amount, 0);
+    const cashExpenses = cashTransactions.filter(t => t.type === 'expense').reduce((acc, t) => Math.abs(t.amount), 0);
+    const bankFees = bankTransactions.filter(t => t.type === 'fee' || t.type === 'payment').reduce((acc, t) => Math.abs(t.amount), 0);
+    
+    const totalExpenses = purchaseExpenses + cashExpenses + bankFees;
+    const netProfit = grossProfit - totalExpenses;
+
+    return [
+      { category: 'Income', items: [
+        { name: 'Sales Revenue', value: totalSales },
+        { name: 'Returns & Allowances', value: -returns },
+        { name: 'Net Sales', value: netSales, isTotal: true }
+      ]},
+      { category: 'Cost of Goods Sold', items: [
+        { name: 'Cost of Goods Sold', value: -cogs },
+        { name: 'Gross Profit', value: grossProfit, isTotal: true }
+      ]},
+      { category: 'Operating Expenses', items: [
+        { name: 'Purchases / Suppliers', value: -purchaseExpenses },
+        { name: 'Cash Expenses', value: -cashExpenses },
+        { name: 'Bank Fees & Payments', value: -bankFees },
+        { name: 'Total Expenses', value: -totalExpenses, isTotal: true }
+      ]},
+      { category: 'Net Income', items: [
+        { name: 'Net Profit / (Loss)', value: netProfit, isTotal: true, isHighlight: true }
+      ]}
+    ];
+  };
+
+  const getCashFlow = () => {
+    // OPERATING ACTIVITIES
+    const collections = bankTransactions.filter(t => t.type === 'deposit').reduce((acc, t) => acc + t.amount, 0) 
+                      + cashTransactions.filter(t => t.type === 'sale').reduce((acc, t) => t.amount, 0);
+    
+    const payments = bankTransactions.filter(t => t.type === 'payment' || t.type === 'withdrawal' || t.type === 'fee').reduce((acc, t) => Math.abs(t.amount), 0)
+                   + cashTransactions.filter(t => t.type === 'expense' || t.type === 'withdrawal').reduce((acc, t) => Math.abs(t.amount), 0);
+
+    const netCash = collections - payments;
+
+    return [
+      { category: 'Cash Inflow', items: [
+        { name: 'Customer Collections', value: collections },
+        { name: 'Total Inflow', value: collections, isTotal: true }
+      ]},
+      { category: 'Cash Outflow', items: [
+        { name: 'Supplier Payments & Expenses', value: -payments },
+        { name: 'Total Outflow', value: -payments, isTotal: true }
+      ]},
+      { category: 'Net Cash Flow', items: [
+        { name: 'Net Increase / (Decrease) in Cash', value: netCash, isTotal: true, isHighlight: true }
+      ]}
+    ];
+  };
+
+  const getTrialBalance = () => {
+    // Assets
+    const bankBalance = bankTransactions.reduce((acc, t) => acc + t.amount, 0); // Simplified
+    const cashBalance = cashTransactions.reduce((acc, t) => acc + t.amount, 0); // Simplified
+    const inventoryValue = products.reduce((acc, p) => acc + (p.stock * p.cost), 0);
+    const receivables = invoices.filter(i => i.status === 'pending' || i.status === 'overdue').reduce((acc, i) => acc + i.amount, 0);
+
+    // Liabilities
+    const payables = purchases.filter(p => p.status === 'pending').reduce((acc, p) => acc + p.amount, 0);
+
+    // Equity (Simplified: Assets - Liabilities)
+    const equity = (bankBalance + cashBalance + inventoryValue + receivables) - payables;
+
+    return [
+      { category: 'Assets', items: [
+        { name: 'Cash on Hand', value: cashBalance },
+        { name: 'Bank Accounts', value: bankBalance },
+        { name: 'Accounts Receivable', value: receivables },
+        { name: 'Inventory Asset', value: inventoryValue },
+        { name: 'Total Assets', value: cashBalance + bankBalance + receivables + inventoryValue, isTotal: true }
+      ]},
+      { category: 'Liabilities', items: [
+        { name: 'Accounts Payable', value: payables },
+        { name: 'Total Liabilities', value: payables, isTotal: true }
+      ]},
+      { category: 'Equity', items: [
+        { name: 'Owner\'s Equity', value: equity },
+        { name: 'Total Equity', value: equity, isTotal: true }
+      ]}
+    ];
   };
 
   // --- REPORT CONFIGURATION ---
@@ -261,6 +367,27 @@ const Reports: React.FC = () => {
           dataGenerator: () => invoices.filter(i => i.status === 'overdue' || i.status === 'pending')
         };
 
+      case 'rep_pl':
+        return {
+          title: t('rep_pl'),
+          type: 'financial_statement',
+          dataGenerator: () => getProfitAndLoss()
+        };
+
+      case 'rep_cash_flow':
+        return {
+          title: t('rep_cash_flow'),
+          type: 'financial_statement',
+          dataGenerator: () => getCashFlow()
+        };
+
+      case 'rep_trial_balance':
+        return {
+          title: t('rep_trial_balance'),
+          type: 'financial_statement',
+          dataGenerator: () => getTrialBalance()
+        };
+
       default:
         return {
           title: reportKey,
@@ -271,8 +398,130 @@ const Reports: React.FC = () => {
     }
   };
 
-  // --- DETAILED REPORTS COMPONENTS ---
+  // --- RENDERERS ---
 
+  const handlePrintFinancialReport = (config: ReportConfig) => {
+    const data = config.dataGenerator();
+    const isRTL = settings.language === 'ar';
+    
+    let htmlContent = `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="margin: 0; font-size: 24px;">${settings.companyName}</h1>
+          <h2 style="margin: 5px 0; font-size: 18px; color: #555;">${config.title}</h2>
+          <p style="margin: 0; color: #777;">Generated on: ${new Date().toLocaleDateString()}</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; direction: ${isRTL ? 'rtl' : 'ltr'};">
+          <thead>
+            <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+              <th style="padding: 12px; text-align: ${isRTL ? 'right' : 'left'};">Category / Item</th>
+              <th style="padding: 12px; text-align: right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    data.forEach((group: any) => {
+      htmlContent += `
+        <tr style="background-color: #f9fafb;">
+          <td colspan="2" style="padding: 10px; font-weight: bold; border-bottom: 1px solid #e5e7eb; color: #374151;">${group.category}</td>
+        </tr>
+      `;
+      group.items.forEach((item: any) => {
+        const isTotal = item.isTotal;
+        const isHighlight = item.isHighlight;
+        const style = isTotal 
+          ? `font-weight: bold; border-top: 1px solid #d1d5db; ${isHighlight ? 'background-color: #e0e7ff; color: #3730a3;' : ''}` 
+          : 'border-bottom: 1px solid #f3f4f6;';
+        
+        htmlContent += `
+          <tr style="${style}">
+            <td style="padding: 8px 24px;">${item.name}</td>
+            <td style="padding: 8px 12px; text-align: right;">${formatCurrency(item.value)}</td>
+          </tr>
+        `;
+      });
+    });
+
+    htmlContent += `
+          </tbody>
+        </table>
+        <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #9ca3af;">
+          ${settings.companyName} - Confidential Financial Report
+        </div>
+      </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head><title>${config.title}</title></head>
+          <body>${htmlContent}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  };
+
+  const renderFinancialStatement = (config: ReportConfig) => {
+    const data = config.dataGenerator();
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden max-w-4xl mx-auto">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{config.title}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">As of {new Date().toLocaleDateString()}</p>
+          </div>
+          <button 
+            onClick={() => handlePrintFinancialReport(config)}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+          >
+            <Printer className="w-4 h-4" /> Print PDF
+          </button>
+        </div>
+        <div className="p-6">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 border-gray-200 dark:border-gray-700">
+                <th className="text-left py-3 font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                <th className="text-right py-3 font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((group: any, idx: number) => (
+                <React.Fragment key={idx}>
+                  <tr className="bg-gray-50 dark:bg-gray-900/30">
+                    <td colSpan={2} className="py-3 px-2 font-bold text-gray-800 dark:text-gray-200">{group.category}</td>
+                  </tr>
+                  {group.items.map((item: any, i: number) => (
+                    <tr 
+                      key={i} 
+                      className={`
+                        ${item.isTotal ? 'font-bold border-t border-gray-300 dark:border-gray-600' : 'border-b border-gray-100 dark:border-gray-800'}
+                        ${item.isHighlight ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' : ''}
+                      `}
+                    >
+                      <td className={`py-2 px-2 ${item.isTotal ? '' : 'pl-8'}`}>{item.name}</td>
+                      <td className={`py-2 px-2 text-right ${item.value < 0 ? 'text-red-500' : ''}`}>
+                        {formatCurrency(item.value)}
+                      </td>
+                    </tr>
+                  ))}
+                  {/* Spacer Row */}
+                  <tr><td colSpan={2} className="py-2"></td></tr>
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  // ... (DetailedProductReport, DetailedCustomerReport renderers remain unchanged)
   const DetailedProductReport: React.FC = () => {
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -791,12 +1040,14 @@ const Reports: React.FC = () => {
         {renderSummaryCards(config.summary)}
         
         {config.type === 'chart' 
-          ? renderCharts(config) 
-          : config.type === 'detailed_product'
-            ? <DetailedProductReport />
-            : config.type === 'detailed_customer'
-              ? <DetailedCustomerReport />
-              : renderTable(config)
+          ? renderCharts(config)
+          : config.type === 'financial_statement'
+            ? renderFinancialStatement(config)
+            : config.type === 'detailed_product'
+              ? <DetailedProductReport />
+              : config.type === 'detailed_customer'
+                ? <DetailedCustomerReport />
+                : renderTable(config)
         }
       </div>
     );
@@ -841,6 +1092,9 @@ const Reports: React.FC = () => {
       icon: Banknote,
       color: 'text-purple-500 bg-purple-50 dark:bg-purple-900/20',
       links: [
+        { key: 'rep_pl', label: t('rep_pl') },
+        { key: 'rep_cash_flow', label: t('rep_cash_flow') },
+        { key: 'rep_trial_balance', label: t('rep_trial_balance') },
         { key: 'rep_monthly_profit', label: t('rep_monthly_profit') },
         { key: 'rep_aging_receivables', label: t('rep_aging_receivables') }
       ]
