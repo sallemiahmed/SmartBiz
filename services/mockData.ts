@@ -1,4 +1,5 @@
-import { Client, DashboardStats, Invoice, Product, Supplier, Purchase } from '../types';
+
+import { Client, DashboardStats, Invoice, Product, Supplier, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction } from '../types';
 
 // Helper to get a date string relative to today
 const getDate = (daysOffset: number) => {
@@ -25,34 +26,25 @@ export const mockSuppliers: Supplier[] = [
   { id: 's5', company: 'Green Energy Solutions', contactName: 'Pamela Isley', email: 'pam@greenenergy.com', phone: '+1 555-7788', category: 'Utilities', status: 'active', totalPurchased: 7600 },
 ];
 
-// Mock Invoices - Dynamic Dates
+// Mock Invoices
 export const mockInvoices: Invoice[] = [
-  // Past Invoices (Revenue)
   { id: '101', number: 'INV-001', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-60), dueDate: getDate(-45), amount: 3500.00, status: 'paid', items: [] },
   { id: '102', number: 'INV-002', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-45), dueDate: getDate(-30), amount: 12500.00, status: 'paid', items: [] },
   { id: '103', number: 'INV-003', type: 'invoice', clientId: '2', clientName: 'Globex', date: getDate(-30), dueDate: getDate(-15), amount: 4200.00, status: 'paid', items: [] },
   { id: '104', number: 'INV-004', type: 'invoice', clientId: '4', clientName: 'Umbrella Corp', date: getDate(-10), dueDate: getDate(5), amount: 8900.00, status: 'pending', items: [] },
   { id: '105', number: 'INV-005', type: 'invoice', clientId: '1', clientName: 'Acme Corp', date: getDate(-2), dueDate: getDate(14), amount: 1200.00, status: 'pending', items: [] },
   { id: '106', number: 'INV-006', type: 'invoice', clientId: '5', clientName: 'Stark Ind', date: getDate(-5), dueDate: getDate(10), amount: 15000.00, status: 'paid', items: [] },
-  
-  // Sales Orders
   { id: '201', number: 'ORD-001', type: 'order', clientId: '1', clientName: 'Acme Corp', date: getDate(-1), dueDate: getDate(14), amount: 3200.00, status: 'pending', items: [] },
   { id: '202', number: 'ORD-002', type: 'order', clientId: '3', clientName: 'Soylent Corp', date: getDate(0), dueDate: getDate(15), amount: 1500.00, status: 'draft', items: [] },
-
-  // Estimates
   { id: '301', number: 'EST-001', type: 'estimate', clientId: '2', clientName: 'Globex Corp', date: getDate(0), dueDate: getDate(30), amount: 5000.00, status: 'draft', items: [] },
-  
-  // Delivery Notes
   { id: '401', number: 'DEL-001', type: 'delivery', clientId: '5', clientName: 'Stark Ind', date: getDate(-20), dueDate: getDate(-20), amount: 2200.00, status: 'completed', items: [] },
 ];
 
-// Mock Purchases - Dynamic Dates
+// Mock Purchases
 export const mockPurchases: Purchase[] = [
   { id: 'p101', number: 'PO-001', type: 'order', supplierId: 's1', supplierName: 'Global Electronics Ltd', date: getDate(-10), amount: 4500.00, status: 'completed', items: [] },
   { id: 'p102', number: 'PO-002', type: 'order', supplierId: 's3', supplierName: 'Heavy Metal Industries', date: getDate(-5), amount: 12000.00, status: 'pending', items: [] },
   { id: 'p201', number: 'GRN-001', type: 'delivery', supplierId: 's1', supplierName: 'Global Electronics Ltd', date: getDate(-15), amount: 4500.00, status: 'received', items: [] },
-  
-  // Invoices (Expenses)
   { id: 'p301', number: 'PINV-001', type: 'invoice', supplierId: 's2', supplierName: 'Office Depot Wholesale', date: getDate(-40), amount: 1500.00, status: 'completed', items: [] },
   { id: 'p302', number: 'PINV-002', type: 'invoice', supplierId: 's5', supplierName: 'Green Energy Solutions', date: getDate(-25), amount: 850.00, status: 'completed', items: [] },
   { id: 'p303', number: 'PINV-003', type: 'invoice', supplierId: 's3', supplierName: 'Heavy Metal Industries', date: getDate(-5), amount: 6500.00, status: 'pending', items: [] }
@@ -66,7 +58,31 @@ export const mockInventory: Product[] = [
   { id: 'p5', sku: 'SKU-005', name: 'Laptop Stand', category: 'Accessories', stock: 0, price: 35.00, cost: 12.00, status: 'out_of_stock' },
 ];
 
-// Placeholder for compatibility, though logic will now derive from arrays above
+// --- Banking Mock Data ---
+export const mockBankAccounts: BankAccount[] = [
+  { id: 'b1', name: 'Main Business Checking', bankName: 'Chase', accountNumber: '**** 4589', balance: 24500.00, currency: 'USD', type: 'checking' },
+  { id: 'b2', name: 'Tax Savings', bankName: 'Wells Fargo', accountNumber: '**** 1234', balance: 8000.00, currency: 'USD', type: 'savings' },
+  { id: 'b3', name: 'Corporate Card', bankName: 'Amex', accountNumber: '**** 9000', balance: -1250.00, currency: 'USD', type: 'credit' }
+];
+
+export const mockBankTransactions: BankTransaction[] = [
+  { id: 't1', accountId: 'b1', date: getDate(0), description: 'Client Payment - Acme Corp', amount: 3500.00, type: 'deposit', status: 'cleared', reference: 'INV-001' },
+  { id: 't2', accountId: 'b1', date: getDate(-1), description: 'Software Subscription', amount: -49.99, type: 'payment', status: 'cleared' },
+  { id: 't3', accountId: 'b1', date: getDate(-2), description: 'Transfer to Savings', amount: -2000.00, type: 'transfer', status: 'cleared' },
+  { id: 't4', accountId: 'b2', date: getDate(-2), description: 'Transfer from Checking', amount: 2000.00, type: 'transfer', status: 'cleared' },
+  { id: 't5', accountId: 'b3', date: getDate(-5), description: 'Client Lunch', amount: -125.50, type: 'payment', status: 'pending' },
+];
+
+// --- Cash Register Mock Data ---
+export const mockCashSessions: CashSession[] = [
+  { id: 'cs1', openedBy: 'Alex Morgan', startTime: getDate(-1) + 'T08:00:00', endTime: getDate(-1) + 'T17:00:00', openingBalance: 200.00, closingBalance: 1250.00, expectedBalance: 1255.00, status: 'closed', notes: 'Short by $5' }
+];
+
+export const mockCashTransactions: CashTransaction[] = [
+  { id: 'ct1', sessionId: 'cs1', date: getDate(-1) + 'T09:30:00', type: 'sale', amount: 45.00, description: 'Walk-in Sale' },
+  { id: 'ct2', sessionId: 'cs1', date: getDate(-1) + 'T11:00:00', type: 'expense', amount: -15.00, description: 'Office Coffee' },
+];
+
 export const mockStats: DashboardStats = {
   revenue: 0,
   expenses: 0,

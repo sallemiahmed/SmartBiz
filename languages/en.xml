@@ -10,6 +10,8 @@
     <string name="documents">Documents</string>
     <string name="reports">Reports</string>
     <string name="settings">Settings</string>
+    <string name="banking">Banking</string>
+    <string name="cash_register">Cash Register</string>
 
     <!-- Submenus -->
     <string name="estimate">Estimate</string>
@@ -221,6 +223,46 @@
     <string name="full_name">Full Name</string>
     <string name="email_address">Email Address</string>
     <string name="role">Role</string>
+
+    <!-- Banking -->
+    <string name="bank_management">Bank Management</string>
+    <string name="bank_desc">Track bank accounts, transactions, and perform reconciliations.</string>
+    <string name="add_account">Add Account</string>
+    <string name="total_liquidity">Total Liquidity</string>
+    <string name="account_name">Account Name</string>
+    <string name="bank_name">Bank Name</string>
+    <string name="account_number">Account Number</string>
+    <string name="balance">Balance</string>
+    <string name="add_transaction">Add Transaction</string>
+    <string name="transaction_history">Transaction History</string>
+    <string name="reconcile">Reconcile</string>
+    <string name="description">Description</string>
+    <string name="deposit">Deposit</string>
+    <string name="withdrawal">Withdrawal</string>
+    <string name="transfer">Transfer</string>
+    <string name="fee">Fee</string>
+    <string name="payment">Payment</string>
+    <string name="cleared">Cleared</string>
+    <string name="reconciled">Reconciled</string>
+
+    <!-- Cash Register -->
+    <string name="cash_register_management">Cash Register</string>
+    <string name="cash_desc">Manage daily cash shifts, sales, and petty cash expenses.</string>
+    <string name="open_register">Open Register</string>
+    <string name="close_register">Close Register</string>
+    <string name="current_session">Current Session</string>
+    <string name="register_closed">Register Closed</string>
+    <string name="opening_amount">Opening Amount</string>
+    <string name="expected_cash">Expected Cash</string>
+    <string name="closing_amount">Closing Amount</string>
+    <string name="difference">Difference</string>
+    <string name="add_cash">Add Cash</string>
+    <string name="remove_cash">Remove Cash</string>
+    <string name="session_history">Session History</string>
+    <string name="opened_at">Opened At</string>
+    <string name="closed_at">Closed At</string>
+    <string name="movement_log">Movement Log</string>
+    <string name="reason">Reason</string>
 
     <!-- Common / Status -->
     <string name="search">Search...</string>

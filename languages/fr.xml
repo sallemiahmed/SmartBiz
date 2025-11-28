@@ -10,6 +10,8 @@
     <string name="documents">Documents</string>
     <string name="reports">Rapports</string>
     <string name="settings">Paramètres</string>
+    <string name="banking">Banque</string>
+    <string name="cash_register">Caisse</string>
 
     <!-- Submenus -->
     <string name="estimate">Devis</string>
@@ -221,6 +223,46 @@
     <string name="full_name">Nom Complet</string>
     <string name="email_address">Adresse Email</string>
     <string name="role">Rôle</string>
+
+    <!-- Banking -->
+    <string name="bank_management">Gestion Bancaire</string>
+    <string name="bank_desc">Suivi des comptes, transactions et rapprochements bancaires.</string>
+    <string name="add_account">Ajouter Compte</string>
+    <string name="total_liquidity">Liquidité Totale</string>
+    <string name="account_name">Nom du Compte</string>
+    <string name="bank_name">Banque</string>
+    <string name="account_number">Numéro de Compte</string>
+    <string name="balance">Solde</string>
+    <string name="add_transaction">Ajouter Transaction</string>
+    <string name="transaction_history">Historique</string>
+    <string name="reconcile">Rapprocher</string>
+    <string name="description">Description</string>
+    <string name="deposit">Dépôt</string>
+    <string name="withdrawal">Retrait</string>
+    <string name="transfer">Virement</string>
+    <string name="fee">Frais</string>
+    <string name="payment">Paiement</string>
+    <string name="cleared">Effectué</string>
+    <string name="reconciled">Lettré</string>
+
+    <!-- Cash Register -->
+    <string name="cash_register_management">Caisse</string>
+    <string name="cash_desc">Gérez les sessions de caisse, ventes et dépenses.</string>
+    <string name="open_register">Ouvrir la Caisse</string>
+    <string name="close_register">Fermer la Caisse</string>
+    <string name="current_session">Session Actuelle</string>
+    <string name="register_closed">Caisse Fermée</string>
+    <string name="opening_amount">Fond de Caisse</string>
+    <string name="expected_cash">Montant Attendu</string>
+    <string name="closing_amount">Montant Compté</string>
+    <string name="difference">Écart</string>
+    <string name="add_cash">Entrée Espèces</string>
+    <string name="remove_cash">Sortie Espèces</string>
+    <string name="session_history">Historique Sessions</string>
+    <string name="opened_at">Ouvert le</string>
+    <string name="closed_at">Fermé le</string>
+    <string name="movement_log">Mouvements</string>
+    <string name="reason">Motif</string>
 
     <!-- Common / Status -->
     <string name="search">Rechercher...</string>

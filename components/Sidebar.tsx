@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
@@ -11,7 +12,9 @@ import {
   Receipt,
   ChevronDown,
   ChevronRight,
-  Plus
+  Plus,
+  Landmark,
+  Wallet
 } from 'lucide-react';
 import { AppView } from '../types';
 import { useApp } from '../context/AppContext';
@@ -77,6 +80,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
     },
     { id: 'inventory', labelKey: 'inventory', icon: Package, emoji: '📦' },
     { id: 'invoices', labelKey: 'documents', icon: FileStack, emoji: '🧮' },
+    { id: 'banking', labelKey: 'banking', icon: Landmark, emoji: '🏦' },
+    { id: 'cash_register', labelKey: 'cash_register', icon: Wallet, emoji: '💵' },
     { id: 'reports', labelKey: 'reports', icon: LineChart, emoji: '📈' },
     { 
       id: 'settings', 

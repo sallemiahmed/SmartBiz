@@ -10,6 +10,8 @@
     <string name="documents">المستندات</string>
     <string name="reports">التقارير</string>
     <string name="settings">الإعدادات</string>
+    <string name="banking">البنوك</string>
+    <string name="cash_register">الخزينة</string>
 
     <!-- Submenus -->
     <string name="estimate">عرض سعر</string>
@@ -221,6 +223,46 @@
     <string name="full_name">الاسم الكامل</string>
     <string name="email_address">عنوان البريد الإلكتروني</string>
     <string name="role">الدور</string>
+
+    <!-- Banking -->
+    <string name="bank_management">البنوك</string>
+    <string name="bank_desc">تتبع الحسابات البنكية، المعاملات، وإجراء التسويات.</string>
+    <string name="add_account">إضافة حساب</string>
+    <string name="total_liquidity">إجمالي السيولة</string>
+    <string name="account_name">اسم الحساب</string>
+    <string name="bank_name">اسم البنك</string>
+    <string name="account_number">رقم الحساب</string>
+    <string name="balance">الرصيد</string>
+    <string name="add_transaction">إضافة معاملة</string>
+    <string name="transaction_history">سجل المعاملات</string>
+    <string name="reconcile">تسوية</string>
+    <string name="description">الوصف</string>
+    <string name="deposit">إيداع</string>
+    <string name="withdrawal">سحب</string>
+    <string name="transfer">تحويل</string>
+    <string name="fee">رسوم</string>
+    <string name="payment">دفع</string>
+    <string name="cleared">تمت</string>
+    <string name="reconciled">تمت التسوية</string>
+
+    <!-- Cash Register -->
+    <string name="cash_register_management">الخزينة</string>
+    <string name="cash_desc">إدارة جلسات الكاشير، المبيعات والمصاريف النثرية.</string>
+    <string name="open_register">فتح الخزينة</string>
+    <string name="close_register">إغلاق الخزينة</string>
+    <string name="current_session">الجلسة الحالية</string>
+    <string name="register_closed">الخزينة مغلقة</string>
+    <string name="opening_amount">رصيد الافتتاح</string>
+    <string name="expected_cash">النقد المتوقع</string>
+    <string name="closing_amount">المبلغ الفعلي</string>
+    <string name="difference">الفرق</string>
+    <string name="add_cash">إضافة نقد</string>
+    <string name="remove_cash">سحب نقد</string>
+    <string name="session_history">سجل الجلسات</string>
+    <string name="opened_at">فُتحت في</string>
+    <string name="closed_at">أُغلقت في</string>
+    <string name="movement_log">سجل الحركات</string>
+    <string name="reason">السبب</string>
 
     <!-- Common / Status -->
     <string name="search">بحث...</string>

@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language } from '../types';
-import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases } from '../services/mockData';
+import { Client, Supplier, Product, Invoice, DashboardStats, Purchase, InvoiceItem, SalesDocumentType, PurchaseDocumentType, AppSettings, Language, BankAccount, BankTransaction, CashSession, CashTransaction } from '../types';
+import { mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
 interface ChartDataPoint {
@@ -16,6 +17,10 @@ interface AppContextType {
   products: Product[];
   invoices: Invoice[];
   purchases: Purchase[];
+  bankAccounts: BankAccount[];
+  bankTransactions: BankTransaction[];
+  cashSessions: CashSession[];
+  cashTransactions: CashTransaction[];
   stats: DashboardStats;
   chartData: ChartDataPoint[];
   settings: AppSettings;
@@ -43,6 +48,15 @@ interface AppContextType {
   deletePurchase: (id: string) => void;
   updatePurchase: (purchase: Purchase) => void;
 
+  // Banking Actions
+  addBankTransaction: (transaction: BankTransaction) => void;
+  updateBankAccount: (account: BankAccount) => void;
+
+  // Cash Actions
+  openCashSession: (amount: number) => void;
+  closeCashSession: (amount: number, notes?: string) => void;
+  addCashTransaction: (transaction: CashTransaction) => void;
+
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   
   // Complex Logic
@@ -68,6 +82,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [products, setProducts] = useState<Product[]>(mockInventory);
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [purchases, setPurchases] = useState<Purchase[]>(mockPurchases); 
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(mockBankAccounts);
+  const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>(mockBankTransactions);
+  const [cashSessions, setCashSessions] = useState<CashSession[]>(mockCashSessions);
+  const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>(mockCashTransactions);
   
   const [settings, setSettings] = useState<AppSettings>({
     companyName: 'My Smart Business',
@@ -196,6 +214,62 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
+  // Banking
+  const addBankTransaction = (transaction: BankTransaction) => {
+    setBankTransactions(prev => [transaction, ...prev]);
+    // Update account balance
+    setBankAccounts(prev => prev.map(acc => {
+      if (acc.id === transaction.accountId) {
+        return { ...acc, balance: acc.balance + transaction.amount };
+      }
+      return acc;
+    }));
+  };
+
+  const updateBankAccount = (account: BankAccount) => {
+    setBankAccounts(prev => prev.map(a => a.id === account.id ? account : a));
+  };
+
+  // Cash Register
+  const openCashSession = (amount: number) => {
+    const newSession: CashSession = {
+      id: `cs-${Date.now()}`,
+      openedBy: 'Current User', // In real app, from auth context
+      startTime: new Date().toISOString(),
+      openingBalance: amount,
+      expectedBalance: amount,
+      status: 'open'
+    };
+    setCashSessions(prev => [newSession, ...prev]);
+  };
+
+  const closeCashSession = (closingAmount: number, notes?: string) => {
+    setCashSessions(prev => {
+      const active = prev.find(s => s.status === 'open');
+      if (!active) return prev;
+      
+      const closedSession: CashSession = {
+        ...active,
+        endTime: new Date().toISOString(),
+        closingBalance: closingAmount,
+        status: 'closed',
+        notes
+      };
+      return [closedSession, ...prev.filter(s => s.id !== active.id)];
+    });
+  };
+
+  const addCashTransaction = (transaction: CashTransaction) => {
+    setCashTransactions(prev => [transaction, ...prev]);
+    // Update expected balance of open session
+    setCashSessions(prev => prev.map(s => {
+      if (s.status === 'open' && s.id === transaction.sessionId) {
+        return { ...s, expectedBalance: s.expectedBalance + transaction.amount };
+      }
+      return s;
+    }));
+  };
+
   // --- BUSINESS LOGIC ---
 
   const createSalesDocument = (type: SalesDocumentType, docData: Omit<Invoice, 'id' | 'number' | 'type' | 'items'>, items: InvoiceItem[]): Invoice => {
@@ -294,7 +368,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      clients, suppliers, products, invoices, purchases, stats, chartData, settings,
+      clients, suppliers, products, invoices, purchases, 
+      bankAccounts, bankTransactions, cashSessions, cashTransactions,
+      stats, chartData, settings,
       t,
       formatCurrency,
       addClient, updateClient, deleteClient,
@@ -302,6 +378,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addProduct, updateProduct, deleteProduct,
       deleteInvoice, updateInvoice,
       deletePurchase, updatePurchase,
+      addBankTransaction, updateBankAccount,
+      openCashSession, closeCashSession, addCashTransaction,
       updateSettings,
       createSalesDocument, createPurchaseDocument
     }}>

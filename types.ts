@@ -1,3 +1,4 @@
+
 export type AppView = 
   | 'dashboard' 
   | 'clients' 
@@ -6,6 +7,8 @@ export type AppView =
   | 'purchases' | 'purchases-order' | 'purchases-order-create' | 'purchases-delivery' | 'purchases-delivery-create' | 'purchases-invoice' | 'purchases-invoice-create'
   | 'inventory' 
   | 'invoices' 
+  | 'banking'
+  | 'cash_register'
   | 'reports' 
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
 
@@ -23,7 +26,7 @@ export interface AppSettings {
   companyEmail: string;
   companyPhone: string;
   companyAddress: string;
-  companyVatId: string; // Added VAT/ID field
+  companyVatId: string;
   currency: string;
   language: Language;
   timezone: string;
@@ -112,4 +115,51 @@ export interface DashboardStats {
   expenses: number;
   profit: number;
   pendingInvoices: number;
+}
+
+// --- BANKING MODULE TYPES ---
+
+export interface BankAccount {
+  id: string;
+  name: string; // e.g. Main Checking
+  bankName: string; // e.g. Chase, BNP
+  accountNumber: string;
+  balance: number;
+  currency: string;
+  type: 'checking' | 'savings' | 'credit';
+}
+
+export interface BankTransaction {
+  id: string;
+  accountId: string;
+  date: string;
+  description: string;
+  amount: number; // Positive for deposit, negative for withdrawal
+  type: 'deposit' | 'withdrawal' | 'transfer' | 'fee' | 'payment';
+  status: 'cleared' | 'pending' | 'reconciled';
+  reference?: string; // Link to invoice ID or check number
+}
+
+// --- CASH REGISTER MODULE TYPES ---
+
+export interface CashSession {
+  id: string;
+  openedBy: string;
+  startTime: string;
+  endTime?: string;
+  openingBalance: number;
+  closingBalance?: number;
+  expectedBalance: number; // Calculated system balance
+  status: 'open' | 'closed';
+  notes?: string;
+}
+
+export interface CashTransaction {
+  id: string;
+  sessionId: string;
+  date: string;
+  type: 'sale' | 'expense' | 'deposit' | 'withdrawal';
+  amount: number; // Positive for In, Negative for Out
+  description: string;
+  reference?: string;
 }

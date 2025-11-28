@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
@@ -18,7 +19,9 @@ import SalesDeliveries from './views/SalesDeliveries';
 import SalesInvoices from './views/SalesInvoices';
 import SalesIssues from './views/SalesIssues';
 import Reports from './views/Reports';
-import Settings from './views/Settings'; // Import Settings
+import Settings from './views/Settings';
+import BankManagement from './views/BankManagement'; // New Import
+import CashRegister from './views/CashRegister'; // New Import
 import { AppView } from './types';
 import { AppProvider, useApp } from './context/AppContext';
 
@@ -152,7 +155,11 @@ function AppContent() {
       case 'inventory':
         return <Inventory />;
       case 'invoices':
-        return <Invoices />; // Generic All-Docs List
+        return <Invoices />; 
+      case 'banking':
+        return <BankManagement />; // New View
+      case 'cash_register':
+        return <CashRegister />; // New View
       case 'reports':
         return <Reports />;
       default:
