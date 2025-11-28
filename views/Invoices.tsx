@@ -1,0 +1,294 @@
+import React, { useState, useMemo } from 'react';
+import { Search, Plus, FileDown, Send, Filter, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { Invoice } from '../types';
+import Pagination from '../components/Pagination';
+
+const Invoices: React.FC = () => {
+  const { invoices, formatCurrency } = useApp();
+
+  // --- State ---
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<{start: string, end: string}>({ start: '', end: '' });
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Invoice | 'amount'; direction: 'asc' | 'desc' } | null>({ key: 'date', direction: 'desc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // --- Helpers ---
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'estimate': return 'ESTIMATE';
+      case 'order': return 'ORDER';
+      case 'delivery': return 'DELIVERY';
+      case 'issue': return 'ISSUE';
+      case 'invoice': return 'INVOICE';
+      default: return type.toUpperCase();
+    }
+  };
+
+  const getTypeStyle = (type: string) => {
+    switch (type) {
+      case 'estimate': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'order': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'delivery': return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+      case 'invoice': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  // --- Handlers ---
+  const handleSort = (key: keyof Invoice | 'amount') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setTypeFilter('all');
+    setStatusFilter('all');
+    setDateRange({ start: '', end: '' });
+    setCurrentPage(1);
+    setSortConfig({ key: 'date', direction: 'desc' });
+  };
+
+  // --- Process Data ---
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter(inv => {
+      const matchesSearch = 
+        inv.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        inv.clientName.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = typeFilter === 'all' || inv.type === typeFilter;
+      const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
+      
+      const invDate = new Date(inv.date);
+      const matchesStart = !dateRange.start || invDate >= new Date(dateRange.start);
+      const matchesEnd = !dateRange.end || invDate <= new Date(dateRange.end);
+
+      return matchesSearch && matchesType && matchesStatus && matchesStart && matchesEnd;
+    });
+  }, [invoices, searchTerm, typeFilter, statusFilter, dateRange]);
+
+  const sortedInvoices = useMemo(() => {
+    const sortable = [...filteredInvoices];
+    if (sortConfig) {
+      sortable.sort((a, b) => {
+        const { key, direction } = sortConfig;
+        
+        let aValue: any = a[key as keyof Invoice];
+        let bValue: any = b[key as keyof Invoice];
+
+        // Handle specific types
+        if (key === 'amount') {
+          // already number
+        } else if (key === 'date' || key === 'dueDate') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortable;
+  }, [filteredInvoices, sortConfig]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(sortedInvoices.length / itemsPerPage);
+  const paginatedInvoices = sortedInvoices.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, statusFilter, dateRange]);
+
+  const SortIcon = ({ columnKey }: { columnKey: keyof Invoice | 'amount' }) => {
+    if (sortConfig?.key !== columnKey) return <div className="w-4 h-4 inline-block ml-1" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="w-4 h-4 ml-1 inline text-indigo-500" /> : <ArrowDown className="w-4 h-4 ml-1 inline text-indigo-500" />;
+  };
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documents History 🧮</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">View and manage all sales documents.</p>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col flex-1">
+        {/* Filter Bar */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col lg:flex-row gap-4 bg-gray-50 dark:bg-gray-800">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search documents by # or client..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+            />
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
+              <span className="text-xs text-gray-500">Date:</span>
+              <input 
+                type="date" 
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white w-28"
+              />
+              <span className="text-gray-400">-</span>
+              <input 
+                type="date" 
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white w-28"
+              />
+            </div>
+
+            <select 
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+            >
+              <option value="all">All Types</option>
+              <option value="estimate">Estimates</option>
+              <option value="order">Orders</option>
+              <option value="delivery">Deliveries</option>
+              <option value="invoice">Invoices</option>
+              <option value="issue">Issues</option>
+            </select>
+
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+            >
+              <option value="all">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+              <option value="draft">Draft</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all' || dateRange.start || dateRange.end) && (
+               <button 
+                onClick={handleResetFilters}
+                className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Reset Filters"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0">
+              <tr>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => handleSort('number')}
+                >
+                  Ref # <SortIcon columnKey="number" />
+                </th>
+                <th className="px-6 py-4">Type</th>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => handleSort('clientName')}
+                >
+                  Client <SortIcon columnKey="clientName" />
+                </th>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => handleSort('date')}
+                >
+                  Date <SortIcon columnKey="date" />
+                </th>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => handleSort('amount')}
+                >
+                  Amount <SortIcon columnKey="amount" />
+                </th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {paginatedInvoices.map((inv) => (
+                <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <td className="px-6 py-4 font-mono font-medium text-gray-900 dark:text-white">
+                    {inv.number}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${getTypeStyle(inv.type)}`}>
+                      {getTypeLabel(inv.type)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-white">{inv.clientName}</td>
+                  <td className="px-6 py-4 text-gray-500">{inv.date}</td>
+                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                    {formatCurrency(inv.amount)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      inv.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      inv.status === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                      inv.status === 'completed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                      'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                    }`}>
+                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                       <button className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Send Email">
+                         <Send className="w-4 h-4" />
+                       </button>
+                       <button className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Download PDF">
+                         <FileDown className="w-4 h-4" />
+                       </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {paginatedInvoices.length === 0 && (
+                <tr>
+                   <td colSpan={7} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                     No documents found matching criteria.
+                   </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredInvoices.length}
+          itemsPerPage={itemsPerPage}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Invoices;

@@ -1,0 +1,211 @@
+import React, { useState } from 'react';
+import { Search, Plus, Eye, Trash2, X, ClipboardCheck, ArrowRightCircle, ShoppingCart, FileText } from 'lucide-react';
+import { Invoice, SalesDocumentType } from '../types';
+import { useApp } from '../context/AppContext';
+
+interface SalesEstimatesProps {
+  onAddNew: () => void;
+}
+
+const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
+  const { invoices, deleteInvoice, createSalesDocument, updateInvoice } = useApp();
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  const estimates = invoices.filter(inv => inv.type === 'estimate');
+
+  const filteredDocs = estimates.filter(doc => {
+    const matchesSearch = 
+      doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const handleConvert = (targetType: SalesDocumentType) => {
+    if (!selectedDoc) return;
+
+    // Create the new document based on the estimate
+    createSalesDocument(targetType, {
+      clientId: selectedDoc.clientId,
+      clientName: selectedDoc.clientName,
+      date: new Date().toISOString().split('T')[0],
+      dueDate: selectedDoc.dueDate,
+      amount: selectedDoc.amount,
+      status: targetType === 'order' ? 'pending' : 'pending', // Default status for new doc
+    }, selectedDoc.items);
+
+    // Mark the estimate as completed/converted
+    updateInvoice({ ...selectedDoc, status: 'completed' });
+    
+    setIsViewModalOpen(false);
+  };
+
+  return (
+    <div className="p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Estimates / Quotes 📋</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage client quotations and proposals.</p>
+        </div>
+        <button 
+          onClick={onAddNew}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          New Estimate
+        </button>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search estimates..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
+              <tr>
+                <th className="px-6 py-4">Ref #</th>
+                <th className="px-6 py-4">Client</th>
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Valid Until</th>
+                <th className="px-6 py-4">Total Value</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredDocs.map((doc) => (
+                <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
+                  <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400">{doc.number}</td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
+                  <td className="px-6 py-4 text-gray-500">{doc.date}</td>
+                  <td className="px-6 py-4 text-gray-500">{doc.dueDate}</td>
+                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">${doc.amount.toLocaleString()}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      doc.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                    }`}>
+                      {doc.status === 'completed' ? 'Converted' : 'Draft'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
+                        title="View & Convert"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => deleteInvoice(doc.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filteredDocs.length === 0 && (
+            <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+              <ClipboardCheck className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p>No estimates found.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* View Modal */}
+      {isViewModalOpen && selectedDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Estimate Details</h3>
+                <span className="text-sm text-blue-600 dark:text-blue-400 font-mono">{selectedDoc.number}</span>
+              </div>
+              <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Client</span>
+                <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.clientName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Issued Date</span>
+                <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
+              </div>
+              
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {selectedDoc.items.length > 0 ? (
+                    selectedDoc.items.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
+                        <span className="text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">No items recorded</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
+                <span className="text-gray-900 dark:text-white">Total</span>
+                <span className="text-blue-600 dark:text-blue-400">${selectedDoc.amount.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Conversion Actions */}
+            {selectedDoc.status !== 'completed' && (
+              <div className="mt-6 grid grid-cols-2 gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button 
+                  onClick={() => handleConvert('order')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
+                >
+                  <ShoppingCart className="w-4 h-4" /> Convert to Order
+                </button>
+                <button 
+                  onClick={() => handleConvert('invoice')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                >
+                  <FileText className="w-4 h-4" /> Convert to Invoice
+                </button>
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <button 
+                onClick={() => setIsViewModalOpen(false)}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SalesEstimates;

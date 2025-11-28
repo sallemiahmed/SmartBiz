@@ -1,0 +1,5 @@
+{
+  "name": "SmartBiz Manager",
+  "description": "A modern, multi-tenant SaaS business management platform featuring CRM, Inventory, Invoicing, and comprehensive analytics.",
+  "requestFramePermissions": []
+}
