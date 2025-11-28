@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Plus, FileDown, Send, Filter, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+
+import React, { useState, useMemo, useRef } from 'react';
+import { Search, Plus, FileDown, Send, Filter, ArrowUp, ArrowDown, RotateCcw, Calendar } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Invoice } from '../types';
 import Pagination from '../components/Pagination';
 
 const Invoices: React.FC = () => {
   const { invoices, formatCurrency, t } = useApp();
+  const startDateRef = useRef<HTMLInputElement>(null);
 
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,19 +138,27 @@ const Invoices: React.FC = () => {
           
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
+              <button 
+                onClick={() => startDateRef.current?.showPicker()}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-500 hover:text-indigo-600 transition-colors"
+                title="Open Calendar"
+              >
+                <Calendar className="w-4 h-4" />
+              </button>
               <span className="text-xs text-gray-500">{t('date')}:</span>
               <input 
+                ref={startDateRef}
                 type="date" 
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                className="bg-transparent text-sm outline-none dark:text-white w-28"
+                className="bg-transparent text-sm outline-none dark:text-white w-28 cursor-pointer"
               />
               <span className="text-gray-400">-</span>
               <input 
                 type="date" 
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                className="bg-transparent text-sm outline-none dark:text-white w-28"
+                className="bg-transparent text-sm outline-none dark:text-white w-28 cursor-pointer"
               />
             </div>
 

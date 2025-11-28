@@ -22,6 +22,11 @@
     <string name="supplier_order">Supplier Order</string>
     <string name="supplier_delivery">Supplier Delivery</string>
     <string name="supplier_invoice">Supplier Invoice</string>
+    
+    <!-- Inventory Submenus -->
+    <string name="products">Products</string>
+    <string name="warehouses">Warehouses</string>
+    <string name="stock_transfers">Stock Transfers</string>
 
     <!-- Dashboard -->
     <string name="dashboard_overview">Dashboard Overview</string>
@@ -276,6 +281,10 @@
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
     <string name="ask_ai">Ask AI</string>
+    <string name="ai_greeting">Hello! I'm your SmartBiz AI assistant. I have access to your current dashboard data. How can I help you today?</string>
+    <string name="ai_placeholder">Ask complex business questions...</string>
+    <string name="ai_error_generic">I'm having trouble connecting to the AI service right now.</string>
+    <string name="ai_error_config">Please configure your Google Gemini API key in the 'apikeys/gemini.json' file.</string>
     
     <string name="all_status">All Status</string>
     <string name="all_categories">All Categories</string>
@@ -309,6 +318,7 @@
     <string name="default_warehouse">Default</string>
     <string name="transfer_stock">Transfer Stock</string>
     <string name="stock_transfer">Stock Transfer</string>
+    <string name="stock_transfers">Stock Transfers</string>
     <string name="source_warehouse">Source Warehouse</string>
     <string name="destination_warehouse">Destination Warehouse</string>
     <string name="from">From</string>

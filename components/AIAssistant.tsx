@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, Bot, User as UserIcon, Loader2 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
@@ -15,13 +16,22 @@ interface Message {
 }
 
 const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
-  const { stats, clients, products, invoices, settings, formatCurrency } = useApp();
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'model', text: `Hello! I'm your SmartBiz AI assistant. I have access to your current dashboard data. How can I help you today?` }
-  ]);
+  const { stats, clients, products, invoices, settings, formatCurrency, t } = useApp();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize greeting with translation
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{ 
+        id: '1', 
+        role: 'model', 
+        text: t('ai_greeting') 
+      }]);
+    }
+  }, [t]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,6 +53,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
 
     const recentInvoices = invoices.slice(0, 5).map(i => `${i.number} for ${i.clientName}: ${formatCurrency(i.amount)} (${i.status})`).join(', ');
 
+    // Determine target language name
+    const languageMap: Record<string, string> = {
+      en: 'English',
+      fr: 'French',
+      ar: 'Arabic'
+    };
+    const targetLanguage = languageMap[settings.language] || 'English';
+
     return `
       Current Business Context:
       - Company Name: ${settings.companyName}
@@ -58,6 +76,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
       Answer questions based on the context provided above. 
       Keep answers concise, professional, and helpful.
       If asked to perform actions (like creating invoices), explain that you can't execute actions yet but can guide them.
+
+      IMPORTANT: You must answer in ${targetLanguage}.
     `;
   };
 
@@ -71,10 +91,38 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      // Initialize Gemini Client
-      // NOTE: In a real app, ensure process.env.API_KEY is set. 
-      // For this demo environment, we assume the environment is configured correctly.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Fetch API Key from the root 'gemini.json' file (assuming it's served statically or flattened)
+      let apiKey = '';
+      try {
+        // Try fetching from root first
+        let response = await fetch('gemini.json');
+        
+        // If failed, try with slash prefix
+        if (!response.ok) {
+             response = await fetch('/gemini.json');
+        }
+
+        if (response.ok) {
+            const data = await response.json();
+            apiKey = data.key;
+        } else {
+            console.warn("gemini.json not found at root, trying alternate path...");
+            // Fallback: try fetching from apikeys/gemini.json just in case structure is preserved
+            const altResponse = await fetch('/apikeys/gemini.json');
+            if (altResponse.ok) {
+                const altData = await altResponse.json();
+                apiKey = altData.key;
+            }
+        }
+      } catch (err) {
+        console.error("Failed to fetch gemini.json", err);
+      }
+
+      if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
+        throw new Error("API Key not found or invalid in gemini.json");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       
       const context = generateContextPrompt();
       const prompt = `${context}\n\nUser Query: ${userMessage.text}`;
@@ -91,12 +139,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
       const responseText = response.text || "I'm sorry, I couldn't generate a response at this time.";
 
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'model', text: responseText }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI Error:", error);
+      let errorMessage = t('ai_error_generic');
+      if (error.message && error.message.includes("API Key")) {
+        errorMessage = t('ai_error_config');
+      }
       setMessages(prev => [...prev, { 
         id: (Date.now() + 1).toString(), 
         role: 'model', 
-        text: "I'm having trouble connecting to the AI service right now. Please check your API key configuration." 
+        text: errorMessage
       }]);
     } finally {
       setIsLoading(false);
@@ -109,7 +161,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
       <div className="p-4 bg-indigo-600 flex justify-between items-center text-white">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5" />
-          <span className="font-bold">SmartBiz Assistant</span>
+          <span className="font-bold">{t('ask_ai')}</span>
         </div>
         <button onClick={onClose} className="p-1 hover:bg-indigo-700 rounded-lg transition-colors">
           <X className="w-5 h-5" />
@@ -155,7 +207,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Ask complex business questions..."
+          placeholder={t('ai_placeholder')}
           className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white text-sm"
         />
         <button 

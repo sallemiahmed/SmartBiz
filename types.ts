@@ -5,7 +5,7 @@ export type AppView =
   | 'suppliers' 
   | 'sales' | 'sales-estimate' | 'sales-estimate-create' | 'sales-order' | 'sales-order-create' | 'sales-delivery' | 'sales-delivery-create' | 'sales-invoice' | 'sales-invoice-create' | 'sales-issue' | 'sales-issue-create' | 'sales-return' | 'sales-credit'
   | 'purchases' | 'purchases-order' | 'purchases-order-create' | 'purchases-delivery' | 'purchases-delivery-create' | 'purchases-invoice' | 'purchases-invoice-create'
-  | 'inventory' 
+  | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
   | 'invoices' 
   | 'banking'
   | 'cash_register'

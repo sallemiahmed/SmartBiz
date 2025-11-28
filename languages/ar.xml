@@ -23,6 +23,11 @@
     <string name="supplier_delivery">استلام بضاعة</string>
     <string name="supplier_invoice">فاتورة مورد</string>
 
+    <!-- Inventory Submenus -->
+    <string name="products">المنتجات</string>
+    <string name="warehouses">المستودعات</string>
+    <string name="stock_transfers">نقل المخزون</string>
+
     <!-- Dashboard -->
     <string name="dashboard_overview">نظرة عامة</string>
     <string name="welcome_message">مرحباً بعودتك! إليك ما يحدث اليوم.</string>
@@ -276,6 +281,10 @@
     <string name="cancel">إلغاء</string>
     <string name="save">حفظ</string>
     <string name="ask_ai">مساعد ذكي</string>
+    <string name="ai_greeting">مرحباً! أنا مساعد SmartBiz الذكي. لدي إمكانية الوصول إلى بيانات لوحة القيادة الحالية. كيف يمكنني مساعدتك اليوم؟</string>
+    <string name="ai_placeholder">اطرح أسئلة تجارية معقدة...</string>
+    <string name="ai_error_generic">أواجه مشكلة في الاتصال بخدمة الذكاء الاصطناعي حالياً.</string>
+    <string name="ai_error_config">يرجى تكوين مفتاح Google Gemini API في ملف 'apikeys/gemini.json'.</string>
 
     <string name="all_status">كل الحالات</string>
     <string name="all_categories">كل الفئات</string>
@@ -309,6 +318,7 @@
     <string name="default_warehouse">افتراضي</string>
     <string name="transfer_stock">نقل مخزون</string>
     <string name="stock_transfer">تحويل مخزون</string>
+    <string name="stock_transfers">نقل المخزون</string>
     <string name="source_warehouse">المستودع المصدر</string>
     <string name="destination_warehouse">المستودع الوجهة</string>
     <string name="from">من</string>

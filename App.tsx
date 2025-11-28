@@ -6,6 +6,8 @@ import AIAssistant from './components/AIAssistant';
 import Dashboard from './views/Dashboard';
 import Clients from './views/Clients';
 import Inventory from './views/Inventory';
+import InventoryWarehouses from './views/InventoryWarehouses';
+import InventoryTransfers from './views/InventoryTransfers';
 import Invoices from './views/Invoices';
 import Suppliers from './views/Suppliers';
 import Sales from './views/Sales';
@@ -143,6 +145,15 @@ function AppContent() {
       return <Settings view={currentView} />;
     }
 
+    // --- Inventory Routing ---
+    if (currentView.startsWith('inventory')) {
+        if (currentView === 'inventory') return <Inventory />; // Default
+        const mode = currentView.replace('inventory-', '');
+        if (mode === 'products') return <Inventory />;
+        if (mode === 'warehouses') return <InventoryWarehouses />;
+        if (mode === 'transfers') return <InventoryTransfers />;
+    }
+
     // --- Main Modules ---
 
     switch (currentView) {
@@ -152,8 +163,6 @@ function AppContent() {
         return <Clients />;
       case 'suppliers':
         return <Suppliers />;
-      case 'inventory':
-        return <Inventory />;
       case 'invoices':
         return <Invoices />; 
       case 'banking':

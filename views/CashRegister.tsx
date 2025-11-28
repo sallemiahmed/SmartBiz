@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Wallet, Lock, Unlock, ArrowUpCircle, ArrowDownCircle, History, 
-  AlertTriangle, DollarSign, Calculator, Clock
+  AlertTriangle, DollarSign, Calculator, Clock, Calendar
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { CashTransaction } from '../types';
@@ -14,6 +14,7 @@ const CashRegister: React.FC = () => {
   const [amountInput, setAmountInput] = useState('');
   const [noteInput, setNoteInput] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
+  const [dateRange, setDateRange] = useState<{start: string, end: string}>({ start: '', end: '' });
   
   // Modal State
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
@@ -24,6 +25,22 @@ const CashRegister: React.FC = () => {
   const sessionTransactions = activeSession 
     ? cashTransactions.filter(tx => tx.sessionId === activeSession.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     : [];
+
+  const filteredHistory = useMemo(() => {
+    return cashSessions.filter(s => s.status === 'closed').filter(s => {
+      const sDate = new Date(s.startTime);
+      const start = dateRange.start ? new Date(dateRange.start) : null;
+      const end = dateRange.end ? new Date(dateRange.end) : null;
+      
+      if (start && sDate < start) return false;
+      if (end) {
+          const endDate = new Date(end);
+          endDate.setHours(23, 59, 59, 999);
+          if (sDate > endDate) return false;
+      }
+      return true;
+    });
+  }, [cashSessions, dateRange]);
 
   const handleSessionAction = (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,39 +191,68 @@ const CashRegister: React.FC = () => {
         </div>
       ) : (
         // History Tab
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
-                <tr>
-                  <th className="px-6 py-4">{t('status')}</th>
-                  <th className="px-6 py-4">{t('opened_at')}</th>
-                  <th className="px-6 py-4">{t('closed_at')}</th>
-                  <th className="px-6 py-4 text-right">{t('opening_amount')}</th>
-                  <th className="px-6 py-4 text-right">{t('closing_amount')}</th>
-                  <th className="px-6 py-4 text-right">{t('difference')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {cashSessions.filter(s => s.status === 'closed').map(session => {
-                  const diff = (session.closingBalance || 0) - session.expectedBalance;
-                  return (
-                    <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs font-medium uppercase">Closed</span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{new Date(session.startTime).toLocaleString()}</td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{session.endTime ? new Date(session.endTime).toLocaleString() : '-'}</td>
-                      <td className="px-6 py-4 text-right font-mono text-gray-900 dark:text-white">{formatCurrency(session.openingBalance)}</td>
-                      <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-white">{formatCurrency(session.closingBalance || 0)}</td>
-                      <td className={`px-6 py-4 text-right font-mono font-medium ${diff === 0 ? 'text-gray-400' : diff > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {diff > 0 ? '+' : ''}{formatCurrency(diff)}
+        <div className="h-full flex flex-col gap-4">
+          <div className="flex justify-end">
+             <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 shadow-sm">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-gray-500">{t('date')}:</span>
+              <input 
+                type="date" 
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white dark:color-scheme-dark"
+              />
+              <span className="text-gray-400">-</span>
+              <input 
+                type="date" 
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white dark:color-scheme-dark"
+              />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex-1">
+            <div className="overflow-x-auto h-full">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0">
+                  <tr>
+                    <th className="px-6 py-4">{t('status')}</th>
+                    <th className="px-6 py-4">{t('opened_at')}</th>
+                    <th className="px-6 py-4">{t('closed_at')}</th>
+                    <th className="px-6 py-4 text-right">{t('opening_amount')}</th>
+                    <th className="px-6 py-4 text-right">{t('closing_amount')}</th>
+                    <th className="px-6 py-4 text-right">{t('difference')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredHistory.map(session => {
+                    const diff = (session.closingBalance || 0) - session.expectedBalance;
+                    return (
+                      <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs font-medium uppercase">Closed</span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{new Date(session.startTime).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{session.endTime ? new Date(session.endTime).toLocaleString() : '-'}</td>
+                        <td className="px-6 py-4 text-right font-mono text-gray-900 dark:text-white">{formatCurrency(session.openingBalance)}</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-gray-900 dark:text-white">{formatCurrency(session.closingBalance || 0)}</td>
+                        <td className={`px-6 py-4 text-right font-mono font-medium ${diff === 0 ? 'text-gray-400' : diff > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {diff > 0 ? '+' : ''}{formatCurrency(diff)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredHistory.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        No closed sessions found for this period.
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
