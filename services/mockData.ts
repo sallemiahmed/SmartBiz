@@ -1,5 +1,5 @@
 
-import { Client, DashboardStats, Invoice, Product, Supplier, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer } from '../types';
+import { Client, DashboardStats, Invoice, Product, Supplier, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
 
 // Helper to get a date string relative to today
 const getDate = (daysOffset: number) => {
@@ -18,6 +18,14 @@ export const mockWarehouses: Warehouse[] = [
 // Mock Stock Transfers
 export const mockStockTransfers: StockTransfer[] = [
   { id: 'tr1', date: getDate(-5), productId: 'p1', productName: 'Office Chair Ergonomic', fromWarehouseId: 'w1', toWarehouseId: 'w3', quantity: 5, notes: 'Restock retail' }
+];
+
+// Mock Stock Movements (Traceability)
+export const mockStockMovements: StockMovement[] = [
+  { id: 'sm1', productId: 'p1', productName: 'Office Chair Ergonomic', warehouseId: 'w1', warehouseName: 'Main Warehouse', date: getDate(-30), quantity: 50, type: 'initial', reference: 'INIT', notes: 'Initial Stock' },
+  { id: 'sm2', productId: 'p1', productName: 'Office Chair Ergonomic', warehouseId: 'w1', warehouseName: 'Main Warehouse', date: getDate(-20), quantity: -2, type: 'sale', reference: 'INV-001', notes: 'Sales Invoice' },
+  { id: 'sm3', productId: 'p1', productName: 'Office Chair Ergonomic', warehouseId: 'w1', warehouseName: 'Main Warehouse', date: getDate(-5), quantity: -5, type: 'transfer_out', reference: 'TR-001', notes: 'Transfer to Retail' },
+  { id: 'sm4', productId: 'p1', productName: 'Office Chair Ergonomic', warehouseId: 'w3', warehouseName: 'Retail Store Backroom', date: getDate(-5), quantity: 5, type: 'transfer_in', reference: 'TR-001', notes: 'Transfer from Main' },
 ];
 
 // Mock Clients

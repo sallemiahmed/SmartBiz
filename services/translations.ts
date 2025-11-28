@@ -1,4 +1,3 @@
-
 import { Language } from '../types';
 
 const enXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -89,6 +88,18 @@ const enXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="stock_qty">Stock Qty</string>
     <string name="no_products">No products found matching your search.</string>
     <string name="edit_product">Edit Product</string>
+    <string name="product_history">Product History</string>
+    <string name="movement_type">Movement Type</string>
+    <string name="reference">Reference</string>
+    <string name="reason">Reason</string>
+    <string name="quantity">Quantity</string>
+    <string name="purchase">Purchase</string>
+    <string name="sale">Sale</string>
+    <string name="transfer_in">Transfer In</string>
+    <string name="transfer_out">Transfer Out</string>
+    <string name="adjustment">Adjustment</string>
+    <string name="return">Return</string>
+    <string name="initial">Initial Stock</string>
 
     <!-- Documents -->
     <string name="documents_history">Documents History</string>
@@ -464,6 +475,18 @@ const frXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="stock_qty">Qté Stock</string>
     <string name="no_products">Aucun produit trouvé.</string>
     <string name="edit_product">Modifier Produit</string>
+    <string name="product_history">Historique Produit</string>
+    <string name="movement_type">Type Mouvement</string>
+    <string name="reference">Référence</string>
+    <string name="reason">Motif</string>
+    <string name="quantity">Quantité</string>
+    <string name="purchase">Achat</string>
+    <string name="sale">Vente</string>
+    <string name="transfer_in">Transfert Entrant</string>
+    <string name="transfer_out">Transfert Sortant</string>
+    <string name="adjustment">Ajustement</string>
+    <string name="return">Retour</string>
+    <string name="initial">Stock Initial</string>
 
     <!-- Documents -->
     <string name="documents_history">Historique Documents</string>
@@ -839,6 +862,18 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="stock_qty">الكمية</string>
     <string name="no_products">لم يتم العثور على منتجات.</string>
     <string name="edit_product">تعديل منتج</string>
+    <string name="product_history">سجل المنتج</string>
+    <string name="movement_type">نوع الحركة</string>
+    <string name="reference">المرجع</string>
+    <string name="reason">السبب</string>
+    <string name="quantity">الكمية</string>
+    <string name="purchase">شراء</string>
+    <string name="sale">بيع</string>
+    <string name="transfer_in">نقل وارد</string>
+    <string name="transfer_out">نقل صادر</string>
+    <string name="adjustment">تعديل</string>
+    <string name="return">إرجاع</string>
+    <string name="initial">المخزون الأولي</string>
 
     <!-- Documents -->
     <string name="documents_history">سجل المستندات</string>
@@ -1058,11 +1093,11 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="total">المجموع</string>
     <string name="cancel">إلغاء</string>
     <string name="save">حفظ</string>
-    <string name="ask_ai">مساعد ذكي</string>
-    <string name="ai_greeting">مرحباً! أنا مساعد SmartBiz الذكي. لدي إمكانية الوصول إلى بيانات لوحة القيادة الحالية. كيف يمكنني مساعدتك اليوم؟</string>
-    <string name="ai_placeholder">اطرح أسئلة تجارية معقدة...</string>
-    <string name="ai_error_generic">أواجه مشكلة في الاتصال بخدمة الذكاء الاصطناعي حالياً.</string>
-    <string name="ai_error_config">يرجى تكوين مفتاح Google Gemini API في الإعدادات > عام.</string>
+    <string name="ask_ai">مساعد AI</string>
+    <string name="ai_greeting">مرحبًا! أنا مساعد SmartBiz الذكي. لدي إمكانية الوصول إلى بيانات لوحة القيادة الخاصة بك. كيف يمكنني مساعدتك اليوم؟</string>
+    <string name="ai_placeholder">اطرح أسئلة عمل معقدة...</string>
+    <string name="ai_error_generic">أواجه مشكلة في الاتصال بخدمة الذكاء الاصطناعي الآن.</string>
+    <string name="ai_error_config">يرجى تكوين مفتاح Google Gemini API الخاص بك في الإعدادات > عام.</string>
 
     <string name="all_status">كل الحالات</string>
     <string name="all_categories">كل الفئات</string>
@@ -1071,23 +1106,23 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="active">نشط</string>
     <string name="inactive">غير نشط</string>
     <string name="paid">مدفوع</string>
-    <string name="pending">معلق</string>
+    <string name="pending">قيد الانتظار</string>
     <string name="overdue">متأخر</string>
     <string name="draft">مسودة</string>
     <string name="completed">مكتمل</string>
     <string name="received">مستلم</string>
-    <string name="in_stock">متوفر</string>
-    <string name="low_stock">منخفض</string>
-    <string name="out_of_stock">نفذ</string>
+    <string name="in_stock">في المخزون</string>
+    <string name="low_stock">مخزون منخفض</string>
+    <string name="out_of_stock">نفذ المخزون</string>
     
     <string name="delete_confirm_title">حذف العنصر؟</string>
-    <string name="delete_confirm_msg">هل أنت متأكد من أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="delete_confirm_msg">هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.</string>
     <string name="yes_delete">نعم، حذف</string>
 
     <!-- Warehouses -->
     <string name="warehouse_management">إدارة المستودعات</string>
     <string name="warehouses">المستودعات</string>
-    <string name="warehouse">المستودع</string>
+    <string name="warehouse">مستودع</string>
     <string name="warehouse_name">اسم المستودع</string>
     <string name="add_warehouse">إضافة مستودع</string>
     <string name="edit_warehouse">تعديل مستودع</string>
@@ -1095,24 +1130,24 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="location">الموقع</string>
     <string name="default_warehouse">افتراضي</string>
     <string name="transfer_stock">نقل مخزون</string>
-    <string name="stock_transfer">تحويل مخزون</string>
-    <string name="stock_transfers">نقل المخزون</string>
-    <string name="source_warehouse">المستودع المصدر</string>
-    <string name="destination_warehouse">المستودع الوجهة</string>
+    <string name="stock_transfer">نقل مخزون</string>
+    <string name="stock_transfers">تحويلات المخزون</string>
+    <string name="source_warehouse">مستودع المصدر</string>
+    <string name="destination_warehouse">مستودع الوجهة</string>
     <string name="from">من</string>
     <string name="to">إلى</string>
     <string name="products_list">قائمة المنتجات</string>
     <string name="product">المنتج</string>
     <string name="quantity">الكمية</string>
     <string name="notes">ملاحظات</string>
-    <string name="transfer_reason">سبب التحويل</string>
-    <string name="confirm_transfer">تأكيد التحويل</string>
+    <string name="transfer_reason">سبب النقل</string>
+    <string name="confirm_transfer">تأكيد النقل</string>
     <string name="added_to_default_warehouse">تمت الإضافة إلى المستودع الافتراضي</string>
-    <string name="stock_edit_warning">لا يمكن تعديل كمية المخزون هنا مباشرة للحفاظ على الدقة. استخدم "نقل المخزون" أو أنشئ طلبات شراء لتعديل المستويات.</string>
+    <string name="stock_edit_warning">لا يمكن تعديل كمية المخزون مباشرة هنا للحفاظ على السلامة. استخدم "نقل مخزون" أو أنشئ أوامر شراء لضبط المستويات.</string>
 
     <!-- Custom Fields -->
     <string name="custom_fields">حقول مخصصة</string>
-    <string name="field_label">اسم الحقل</string>
+    <string name="field_label">تسمية الحقل</string>
     <string name="field_type">نوع الحقل</string>
     <string name="text">نص</string>
     <string name="number">رقم</string>
@@ -1123,53 +1158,26 @@ const arXml = `<?xml version="1.0" encoding="UTF-8"?>
     <string name="add">إضافة</string>
     <string name="client_fields">حقول العملاء</string>
     <string name="supplier_fields">حقول الموردين</string>
-    <string name="no_custom_fields">لا توجد حقول مخصصة.</string>
+    <string name="no_custom_fields">لم يتم تعريف حقول مخصصة.</string>
 </resources>`;
 
-const translations: Record<Language, string> = {
-  en: enXml,
-  fr: frXml,
-  ar: arXml
-};
+export const loadTranslations = async (lang: string): Promise<Record<string, string>> => {
+  let xmlContent = enXml;
+  if (lang === 'fr') xmlContent = frXml;
+  if (lang === 'ar') xmlContent = arXml;
 
-/**
- * Loads an XML content from constant string.
- */
-const loadXMLFile = async (lang: Language): Promise<string> => {
-  return translations[lang] || "";
-};
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+  const resources = xmlDoc.getElementsByTagName("string");
+  const translations: Record<string, string> = {};
 
-/**
- * Parses XML content into a key/value translation object.
- */
-export const loadTranslations = async (
-  lang: Language
-): Promise<Record<string, string>> => {
-  try {
-    const text = await loadXMLFile(lang);
-    if (!text) {
-      console.warn(`XML content for language "${lang}" is empty or missing.`);
-      return {};
+  for (let i = 0; i < resources.length; i++) {
+    const key = resources[i].getAttribute("name");
+    const value = resources[i].textContent;
+    if (key && value) {
+      translations[key] = value;
     }
-
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(text, "text/xml");
-
-    const resources: Record<string, string> = {};
-    const strings = xmlDoc.getElementsByTagName("string");
-
-    for (let i = 0; i < strings.length; i++) {
-      const key = strings[i].getAttribute("name");
-      const value = strings[i].textContent;
-
-      if (key && value) {
-        resources[key] = value;
-      }
-    }
-
-    return resources;
-  } catch (error) {
-    console.error("Error loading translations:", error);
-    return {};
   }
+
+  return translations;
 };

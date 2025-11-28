@@ -163,6 +163,19 @@ export interface StockTransfer {
   notes?: string;
 }
 
+export interface StockMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  warehouseName: string;
+  date: string;
+  quantity: number; // positive = in, negative = out
+  type: 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return' | 'initial';
+  reference: string;
+  notes?: string;
+}
+
 // --- BANKING MODULE TYPES ---
 
 export interface BankAccount {
