@@ -265,7 +265,7 @@ const Inventory: React.FC = () => {
              onClick={() => openTransferModal()}
              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
            >
-             <ArrowRightLeft className="w-4 h-4" /> Transfer Stock
+             <ArrowRightLeft className="w-4 h-4" /> {t('transfer_stock')}
            </button>
            <button 
              onClick={() => setIsAddModalOpen(true)}
@@ -320,7 +320,7 @@ const Inventory: React.FC = () => {
               : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
           }`}
         >
-          Products List
+          {t('products_list')}
         </button>
         <button
           onClick={() => setActiveTab('warehouses')}
@@ -330,7 +330,7 @@ const Inventory: React.FC = () => {
               : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
           }`}
         >
-          Warehouses
+          {t('warehouses')}
         </button>
       </div>
 
@@ -403,7 +403,7 @@ const Inventory: React.FC = () => {
                     <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('stock')}>
                       {t('stock_level')} <SortIcon columnKey="stock" />
                     </th>
-                    <th className="px-6 py-4">Warehouses</th>
+                    <th className="px-6 py-4">{t('warehouses')}</th>
                     <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort('price')}>
                       {t('price')} <SortIcon columnKey="price" />
                     </th>
@@ -498,12 +498,12 @@ const Inventory: React.FC = () => {
         {activeTab === 'warehouses' && (
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Warehouse Locations</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('warehouse_locations')}</h3>
               <button 
                 onClick={() => setIsWhModalOpen(true)}
                 className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
               >
-                Add Warehouse
+                {t('add_warehouse')}
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -521,7 +521,7 @@ const Inventory: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    {wh.isDefault && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">DEFAULT</span>}
+                    {wh.isDefault && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">{t('default_warehouse')}</span>}
                   </div>
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                     <button 
@@ -554,13 +554,13 @@ const Inventory: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <ArrowRightLeft className="w-5 h-5" /> Transfer Stock
+                <ArrowRightLeft className="w-5 h-5" /> {t('stock_transfer')}
               </h3>
               <button onClick={() => setIsTransferModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <form onSubmit={handleTransferSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product')}</label>
                 <select 
                   value={transferData.productId}
                   onChange={(e) => setTransferData({...transferData, productId: e.target.value})}
@@ -574,7 +574,7 @@ const Inventory: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('from')}</label>
                   <select 
                     value={transferData.fromWarehouseId}
                     onChange={(e) => setTransferData({...transferData, fromWarehouseId: e.target.value})}
@@ -587,7 +587,7 @@ const Inventory: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('to')}</label>
                   <select 
                     value={transferData.toWarehouseId}
                     onChange={(e) => setTransferData({...transferData, toWarehouseId: e.target.value})}
@@ -601,7 +601,7 @@ const Inventory: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('quantity')}</label>
                 <input 
                   type="number" 
                   min="1"
@@ -612,18 +612,18 @@ const Inventory: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('notes')}</label>
                 <input 
                   type="text" 
                   value={transferData.notes}
                   onChange={(e) => setTransferData({...transferData, notes: e.target.value})}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg"
-                  placeholder="Reason for transfer"
+                  placeholder={t('transfer_reason')}
                 />
               </div>
               <div className="flex justify-end gap-2 mt-4 pt-2">
-                <button type="button" onClick={() => setIsTransferModalOpen(false)} className="px-4 py-2 bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Confirm Transfer</button>
+                <button type="button" onClick={() => setIsTransferModalOpen(false)} className="px-4 py-2 bg-gray-100 rounded-lg">{t('cancel')}</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{t('confirm_transfer')}</button>
               </div>
             </form>
           </div>
@@ -635,20 +635,20 @@ const Inventory: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              {selectedWarehouse ? 'Edit Warehouse' : 'Add Warehouse'}
+              {selectedWarehouse ? t('edit_warehouse') : t('add_warehouse')}
             </h3>
             <form onSubmit={handleWarehouseSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('warehouse_name')}</label>
                 <input name="name" defaultValue={selectedWarehouse?.name} required className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('location')}</label>
                 <input name="location" defaultValue={selectedWarehouse?.location} required className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg" />
               </div>
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => { setIsWhModalOpen(false); setSelectedWarehouse(null); }} className="px-4 py-2 bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+                <button type="button" onClick={() => { setIsWhModalOpen(false); setSelectedWarehouse(null); }} className="px-4 py-2 bg-gray-100 rounded-lg">{t('cancel')}</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{t('save')}</button>
               </div>
             </form>
           </div>
@@ -744,7 +744,7 @@ const Inventory: React.FC = () => {
                       className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
                       required
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Added to Default Warehouse</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{t('added_to_default_warehouse')}</p>
                   </div>
                 </div>
               </div>
@@ -843,7 +843,7 @@ const Inventory: React.FC = () => {
                   </div>
                 </div>
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300">
-                  <p>Stock quantity cannot be edited directly here to maintain integrity. Use "Transfer Stock" or create Purchase Orders to adjust stock levels.</p>
+                  <p>{t('stock_edit_warning')}</p>
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3">

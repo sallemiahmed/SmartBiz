@@ -296,4 +296,44 @@
     <string name="delete_confirm_title">حذف العنصر؟</string>
     <string name="delete_confirm_msg">هل أنت متأكد من أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.</string>
     <string name="yes_delete">نعم، حذف</string>
+
+    <!-- Warehouses -->
+    <string name="warehouse_management">إدارة المستودعات</string>
+    <string name="warehouses">المستودعات</string>
+    <string name="warehouse">المستودع</string>
+    <string name="warehouse_name">اسم المستودع</string>
+    <string name="add_warehouse">إضافة مستودع</string>
+    <string name="edit_warehouse">تعديل مستودع</string>
+    <string name="warehouse_locations">مواقع المستودعات</string>
+    <string name="location">الموقع</string>
+    <string name="default_warehouse">افتراضي</string>
+    <string name="transfer_stock">نقل مخزون</string>
+    <string name="stock_transfer">تحويل مخزون</string>
+    <string name="source_warehouse">المستودع المصدر</string>
+    <string name="destination_warehouse">المستودع الوجهة</string>
+    <string name="from">من</string>
+    <string name="to">إلى</string>
+    <string name="products_list">قائمة المنتجات</string>
+    <string name="product">المنتج</string>
+    <string name="quantity">الكمية</string>
+    <string name="notes">ملاحظات</string>
+    <string name="transfer_reason">سبب التحويل</string>
+    <string name="confirm_transfer">تأكيد التحويل</string>
+    <string name="added_to_default_warehouse">تمت الإضافة إلى المستودع الافتراضي</string>
+    <string name="stock_edit_warning">لا يمكن تعديل كمية المخزون هنا مباشرة للحفاظ على الدقة. استخدم "نقل المخزون" أو أنشئ طلبات شراء لتعديل المستويات.</string>
+
+    <!-- Custom Fields -->
+    <string name="custom_fields">حقول مخصصة</string>
+    <string name="field_label">اسم الحقل</string>
+    <string name="field_type">نوع الحقل</string>
+    <string name="text">نص</string>
+    <string name="number">رقم</string>
+    <string name="date_type">تاريخ</string>
+    <string name="boolean">نعم/لا</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="add">إضافة</string>
+    <string name="client_fields">حقول العملاء</string>
+    <string name="supplier_fields">حقول الموردين</string>
+    <string name="no_custom_fields">لا توجد حقول مخصصة.</string>
 </resources>

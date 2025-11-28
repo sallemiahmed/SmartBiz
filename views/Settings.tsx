@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Save, Globe, User, Shield, Bell, Building, CreditCard, 
@@ -16,7 +15,6 @@ interface SettingsProps {
 const Settings: React.FC<SettingsProps> = ({ view }) => {
   const { settings, updateSettings, t } = useApp();
   
-  // Initialize active tab based on the view prop if present
   const getTabFromView = (v?: string): SettingsTab => {
     if (!v || v === 'settings') return 'general';
     return v.replace('settings-', '') as SettingsTab;
@@ -25,15 +23,12 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(getTabFromView(view));
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Update active tab when view prop changes
   useEffect(() => {
     setActiveTab(getTabFromView(view));
   }, [view]);
 
-  // Local state for General/Profile form handling
   const [formData, setFormData] = useState<AppSettings>(settings);
 
-  // Local state for Security form handling
   const [securityData, setSecurityData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -41,10 +36,8 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
     is2FAEnabled: false
   });
 
-  // Local state for new tax rate input
   const [newTaxRate, setNewTaxRate] = useState<{name: string, rate: string}>({ name: '', rate: '' });
 
-  // Local state for custom fields
   const [newField, setNewField] = useState<{label: string, type: 'text'|'number'|'date'|'boolean', entity: 'clients'|'suppliers'}>({ 
     label: '', type: 'text', entity: 'clients' 
   });
@@ -63,7 +56,6 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
     setSecurityData(prev => ({ ...prev, is2FAEnabled: !prev.is2FAEnabled }));
   };
 
-  // Tax Rate Handlers
   const handleAddTaxRate = () => {
     if (newTaxRate.name && newTaxRate.rate) {
       const rateNum = parseFloat(newTaxRate.rate);
@@ -72,7 +64,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
           id: Date.now().toString(),
           name: newTaxRate.name,
           rate: rateNum,
-          isDefault: formData.taxRates.length === 0 // First one is default
+          isDefault: formData.taxRates.length === 0
         };
         setFormData(prev => ({
           ...prev,
@@ -97,7 +89,6 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
     }));
   };
 
-  // Custom Field Handlers
   const handleAddCustomField = () => {
     if (newField.label) {
       const fieldDef: CustomFieldDefinition = {
@@ -146,7 +137,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
   const tabs = [
     { id: 'general', label: t('general'), icon: Building },
     { id: 'profile', label: t('profile'), icon: User },
-    { id: 'custom_fields', label: 'Custom Fields', icon: List },
+    { id: 'custom_fields', label: t('custom_fields'), icon: List },
     { id: 'security', label: t('security'), icon: Shield },
     { id: 'notifications', label: t('notifications'), icon: Bell },
     { id: 'billing', label: t('billing'), icon: CreditCard },
@@ -394,14 +385,14 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
               {/* Clients Fields */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-indigo-600" /> Client Fields
+                  <User className="w-5 h-5 text-indigo-600" /> {t('client_fields')}
                 </h3>
                 
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700 mb-6">
                   {/* Add Field */}
                   <div className="flex gap-3 items-end mb-4">
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Field Label</label>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('field_label')}</label>
                       <input 
                         type="text" 
                         value={newField.entity === 'clients' ? newField.label : ''}
@@ -412,16 +403,16 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       />
                     </div>
                     <div className="w-32">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Type</label>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('field_type')}</label>
                       <select 
                         value={newField.entity === 'clients' ? newField.type : 'text'}
                         onChange={(e) => setNewField({ ...newField, type: e.target.value as any, entity: 'clients' })}
                         className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
                       >
-                        <option value="text">Text</option>
-                        <option value="number">Number</option>
-                        <option value="date">Date</option>
-                        <option value="boolean">Yes/No</option>
+                        <option value="text">{t('text')}</option>
+                        <option value="number">{t('number')}</option>
+                        <option value="date">{t('date_type')}</option>
+                        <option value="boolean">{t('boolean')}</option>
                       </select>
                     </div>
                     <button 
@@ -430,13 +421,13 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       disabled={newField.entity !== 'clients' || !newField.label}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm font-medium"
                     >
-                      <Plus className="w-4 h-4" /> Add
+                      <Plus className="w-4 h-4" /> {t('add')}
                     </button>
                   </div>
 
                   {/* List */}
                   {formData.customFields.clients.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">No custom fields defined for clients.</p>
+                    <p className="text-sm text-gray-400 italic">{t('no_custom_fields')}</p>
                   ) : (
                     <div className="space-y-2">
                       {formData.customFields.clients.map(field => (
@@ -445,7 +436,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                             <Type className="w-4 h-4 text-gray-400" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">{field.label}</p>
-                              <p className="text-xs text-gray-500 uppercase">{field.type}</p>
+                              <p className="text-xs text-gray-500 uppercase">{t(field.type) || field.type}</p>
                             </div>
                           </div>
                           <button 
@@ -463,14 +454,14 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
 
                 {/* Suppliers Fields */}
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <Building className="w-5 h-5 text-orange-600" /> Supplier Fields
+                  <Building className="w-5 h-5 text-orange-600" /> {t('supplier_fields')}
                 </h3>
                 
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   {/* Add Field */}
                   <div className="flex gap-3 items-end mb-4">
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Field Label</label>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('field_label')}</label>
                       <input 
                         type="text" 
                         value={newField.entity === 'suppliers' ? newField.label : ''}
@@ -481,16 +472,16 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       />
                     </div>
                     <div className="w-32">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Type</label>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('field_type')}</label>
                       <select 
                         value={newField.entity === 'suppliers' ? newField.type : 'text'}
                         onChange={(e) => setNewField({ ...newField, type: e.target.value as any, entity: 'suppliers' })}
                         className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none dark:text-white"
                       >
-                        <option value="text">Text</option>
-                        <option value="number">Number</option>
-                        <option value="date">Date</option>
-                        <option value="boolean">Yes/No</option>
+                        <option value="text">{t('text')}</option>
+                        <option value="number">{t('number')}</option>
+                        <option value="date">{t('date_type')}</option>
+                        <option value="boolean">{t('boolean')}</option>
                       </select>
                     </div>
                     <button 
@@ -499,13 +490,13 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       disabled={newField.entity !== 'suppliers' || !newField.label}
                       className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors text-sm font-medium"
                     >
-                      <Plus className="w-4 h-4" /> Add
+                      <Plus className="w-4 h-4" /> {t('add')}
                     </button>
                   </div>
 
                   {/* List */}
                   {formData.customFields.suppliers.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">No custom fields defined for suppliers.</p>
+                    <p className="text-sm text-gray-400 italic">{t('no_custom_fields')}</p>
                   ) : (
                     <div className="space-y-2">
                       {formData.customFields.suppliers.map(field => (
@@ -514,7 +505,7 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                             <Type className="w-4 h-4 text-gray-400" />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">{field.label}</p>
-                              <p className="text-xs text-gray-500 uppercase">{field.type}</p>
+                              <p className="text-xs text-gray-500 uppercase">{t(field.type) || field.type}</p>
                             </div>
                           </div>
                           <button 
@@ -602,69 +593,68 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                   />
                 </div>
               </div>
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">{t('two_factor_auth')}</h4>
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+
+              <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  {t('two_factor_auth')}
+                </h3>
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div>
-                    <p className="text-sm text-gray-900 dark:text-white font-medium">{t('secure_account')}</p>
-                    <p className="text-xs text-gray-500">{t('secure_account_desc')}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">Secure your account</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security to your account.</p>
                   </div>
                   <button 
-                    type="button" 
+                    type="button"
                     onClick={toggle2FA}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      securityData.is2FAEnabled 
-                        ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50' 
-                        : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50'
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${securityData.is2FAEnabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}
                   >
-                    {securityData.is2FAEnabled ? t('disable_2fa') : t('enable_2fa')}
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securityData.is2FAEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* --- BILLING TAB (Mock) --- */}
-          {activeTab === 'billing' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <div className="text-center py-12 text-gray-500">
-                <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p>Billing management is handled by the super-admin portal.</p>
-              </div>
-            </div>
-          )}
-
-          {/* --- NOTIFICATIONS TAB (Mock) --- */}
+          {/* --- NOTIFICATIONS TAB --- */}
           {activeTab === 'notifications' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                {t('email_notifications')}
+                Email Notifications
               </h3>
               <div className="space-y-3">
-                {['New Order Received', 'Low Stock Alerts', 'Invoice Payment Received', 'Weekly Reports'].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-2">
+                {['New Order Received', 'Low Stock Alert', 'Payment Success', 'Daily Report'].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
                     <span className="text-gray-700 dark:text-gray-300">{item}</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                    </label>
+                    <input type="checkbox" defaultChecked className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" />
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Footer Actions */}
-          <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-gray-800 py-4">
-            <button 
-              type="button"
-              onClick={() => { setFormData(settings); setSecurityData({currentPassword: '', newPassword: '', confirmPassword: '', is2FAEnabled: false}); }}
-              className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-            >
-              {t('cancel')}
-            </button>
-            <button 
+          {/* --- BILLING TAB --- */}
+          {activeTab === 'billing' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                Current Plan
+              </h3>
+              <div className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl text-white mb-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-xl font-bold">Pro Business</h4>
+                    <p className="opacity-90 mt-1">Active until Dec 31, 2024</p>
+                  </div>
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Active</span>
+                </div>
+              </div>
+              <button type="button" className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-medium text-sm">
+                Manage Subscription &rarr;
+              </button>
+            </div>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+            <button
               type="submit"
               className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors shadow-sm"
             >

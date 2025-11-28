@@ -296,4 +296,44 @@
     <string name="delete_confirm_title">Supprimer ?</string>
     <string name="delete_confirm_msg">Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.</string>
     <string name="yes_delete">Oui, Supprimer</string>
+
+    <!-- Warehouses -->
+    <string name="warehouse_management">Gestion Entrepôts</string>
+    <string name="warehouses">Entrepôts</string>
+    <string name="warehouse">Entrepôt</string>
+    <string name="warehouse_name">Nom Entrepôt</string>
+    <string name="add_warehouse">Ajouter Entrepôt</string>
+    <string name="edit_warehouse">Modifier Entrepôt</string>
+    <string name="warehouse_locations">Emplacements d'Entrepôt</string>
+    <string name="location">Emplacement</string>
+    <string name="default_warehouse">Défaut</string>
+    <string name="transfer_stock">Transférer Stock</string>
+    <string name="stock_transfer">Transfert de Stock</string>
+    <string name="source_warehouse">Entrepôt Source</string>
+    <string name="destination_warehouse">Entrepôt Destination</string>
+    <string name="from">De</string>
+    <string name="to">À</string>
+    <string name="products_list">Liste Produits</string>
+    <string name="product">Produit</string>
+    <string name="quantity">Quantité</string>
+    <string name="notes">Notes</string>
+    <string name="transfer_reason">Motif du transfert</string>
+    <string name="confirm_transfer">Confirmer Transfert</string>
+    <string name="added_to_default_warehouse">Ajouté à l'entrepôt par défaut</string>
+    <string name="stock_edit_warning">La quantité de stock ne peut pas être modifiée directement ici pour maintenir l'intégrité. Utilisez "Transférer Stock" ou créez des commandes d'achat pour ajuster les niveaux.</string>
+
+    <!-- Custom Fields -->
+    <string name="custom_fields">Champs Personnalisés</string>
+    <string name="field_label">Libellé</string>
+    <string name="field_type">Type</string>
+    <string name="text">Texte</string>
+    <string name="number">Nombre</string>
+    <string name="date_type">Date</string>
+    <string name="boolean">Oui/Non</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="add">Ajouter</string>
+    <string name="client_fields">Champs Clients</string>
+    <string name="supplier_fields">Champs Fournisseurs</string>
+    <string name="no_custom_fields">Aucun champ personnalisé défini.</string>
 </resources>

@@ -296,4 +296,44 @@
     <string name="delete_confirm_title">Delete Item?</string>
     <string name="delete_confirm_msg">Are you sure you want to delete this item? This action cannot be undone.</string>
     <string name="yes_delete">Yes, Delete</string>
+
+    <!-- Warehouses -->
+    <string name="warehouse_management">Warehouse Management</string>
+    <string name="warehouses">Warehouses</string>
+    <string name="warehouse">Warehouse</string>
+    <string name="warehouse_name">Warehouse Name</string>
+    <string name="add_warehouse">Add Warehouse</string>
+    <string name="edit_warehouse">Edit Warehouse</string>
+    <string name="warehouse_locations">Warehouse Locations</string>
+    <string name="location">Location</string>
+    <string name="default_warehouse">Default</string>
+    <string name="transfer_stock">Transfer Stock</string>
+    <string name="stock_transfer">Stock Transfer</string>
+    <string name="source_warehouse">Source Warehouse</string>
+    <string name="destination_warehouse">Destination Warehouse</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="products_list">Products List</string>
+    <string name="product">Product</string>
+    <string name="quantity">Quantity</string>
+    <string name="notes">Notes</string>
+    <string name="transfer_reason">Reason for transfer</string>
+    <string name="confirm_transfer">Confirm Transfer</string>
+    <string name="added_to_default_warehouse">Added to Default Warehouse</string>
+    <string name="stock_edit_warning">Stock quantity cannot be edited directly here to maintain integrity. Use "Transfer Stock" or create Purchase Orders to adjust stock levels.</string>
+    
+    <!-- Custom Fields -->
+    <string name="custom_fields">Custom Fields</string>
+    <string name="field_label">Field Label</string>
+    <string name="field_type">Field Type</string>
+    <string name="text">Text</string>
+    <string name="number">Number</string>
+    <string name="date_type">Date</string>
+    <string name="boolean">Yes/No</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="add">Add</string>
+    <string name="client_fields">Client Fields</string>
+    <string name="supplier_fields">Supplier Fields</string>
+    <string name="no_custom_fields">No custom fields defined.</string>
 </resources>
