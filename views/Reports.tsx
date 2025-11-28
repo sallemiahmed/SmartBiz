@@ -398,7 +398,101 @@ const Reports: React.FC = () => {
     }
   };
 
-  // --- RENDERERS ---
+  // --- UTILS: EXPORT & PRINT ---
+
+  const downloadCSV = (data: any[], filename: string, config?: ReportConfig) => {
+    if (!data || data.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Handle Financial Statement Structure
+    if (config?.type === 'financial_statement') {
+      csvContent += "Category,Item,Amount\n";
+      data.forEach((group: any) => {
+        group.items.forEach((item: any) => {
+          csvContent += `"${group.category}","${item.name}","${item.value}"\n`;
+        });
+      });
+    } else {
+      // Handle Flat Data
+      const headers = Object.keys(data[0]).join(",");
+      csvContent += headers + "\n";
+      data.forEach(row => {
+        const rowString = Object.values(row).map(value => 
+          typeof value === 'string' && value.includes(',') ? `"${value}"` : value
+        ).join(",");
+        csvContent += rowString + "\n";
+      });
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrintGeneric = (config: ReportConfig) => {
+    if (config.type === 'financial_statement') {
+      handlePrintFinancialReport(config);
+      return;
+    }
+
+    const data = config.dataGenerator();
+    const cols = config.columns || (Object.keys(data[0] || {}).map(k => ({ header: k, key: k })) as any[]);
+    const isRTL = settings.language === 'ar';
+
+    let htmlContent = `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="margin: 0; font-size: 24px;">${settings.companyName}</h1>
+          <h2 style="margin: 5px 0; font-size: 18px; color: #555;">${config.title}</h2>
+          <p style="margin: 0; color: #777;">Generated on: ${new Date().toLocaleDateString()}</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; direction: ${isRTL ? 'rtl' : 'ltr'}; font-size: 12px;">
+          <thead>
+            <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+              ${cols.map(c => `<th style="padding: 10px; text-align: ${isRTL ? 'right' : 'left'};">${c.header}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    data.forEach((row: any, index: number) => {
+      htmlContent += `<tr style="border-bottom: 1px solid #f3f4f6; background-color: ${index % 2 === 0 ? '#fff' : '#fafafa'};">`;
+      cols.forEach(col => {
+        let val = row[col.key];
+        if (col.isCurrency && typeof val === 'number') val = formatCurrency(val);
+        else if (col.key === 'margin' && typeof val === 'number') val = val.toFixed(1) + '%';
+        else if (typeof val === 'object') val = JSON.stringify(val);
+        
+        htmlContent += `<td style="padding: 8px;">${val || '-'}</td>`;
+      });
+      htmlContent += `</tr>`;
+    });
+
+    htmlContent += `
+          </tbody>
+        </table>
+        <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #9ca3af;">
+          ${settings.companyName} - Report
+        </div>
+      </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`<html><head><title>${config.title}</title></head><body>${htmlContent}</body></html>`);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  };
 
   const handlePrintFinancialReport = (config: ReportConfig) => {
     const data = config.dataGenerator();
@@ -521,7 +615,6 @@ const Reports: React.FC = () => {
     );
   };
 
-  // ... (DetailedProductReport, DetailedCustomerReport renderers remain unchanged)
   const DetailedProductReport: React.FC = () => {
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -582,26 +675,34 @@ const Reports: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
-            <span className="text-gray-400">-</span>
-            <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+        {/* Filters & Actions */}
+        <div className="flex flex-wrap gap-4 justify-between items-center">
+          <div className="flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+              <span className="text-gray-400">-</span>
+              <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+            </div>
+            <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+              <option value="All">{t('all_categories')}</option>
+              {categories.map(c => c !== 'All' && <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={selectedWarehouse} onChange={e => setSelectedWarehouse(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+              <option value="All">All Warehouses</option>
+              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
           </div>
-          <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
-            <option value="All">{t('all_categories')}</option>
-            {categories.map(c => c !== 'All' && <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={selectedWarehouse} onChange={e => setSelectedWarehouse(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
-            <option value="All">All Warehouses</option>
-            {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-          </select>
-          <select value={selectedSalesperson} onChange={e => setSelectedSalesperson(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
-            <option value="All">All Salespersons</option>
-            {salesPersons.map(s => s !== 'All' && <option key={s} value={s}>{s}</option>)}
-          </select>
+          <div className="flex gap-2">
+             <button 
+                onClick={() => downloadCSV(processedData.map(p => ({ 
+                  Name: p.name, Category: p.category, Qty: p.totalQty, Revenue: p.totalRev, Margin: p.margin 
+                })), 'product_report')}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+             >
+                <Download className="w-4 h-4" /> Export CSV
+             </button>
+          </div>
         </div>
 
         {/* Charts */}
@@ -787,26 +888,38 @@ const Reports: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
-            <span className="text-gray-400">-</span>
-            <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+        {/* Filters & Actions */}
+        <div className="flex flex-wrap gap-4 justify-between items-center">
+          <div className="flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+              <span className="text-gray-400">-</span>
+              <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white" />
+            </div>
+            <select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+              <option value="All">All Regions</option>
+              {regions.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+              {customerCategories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
+              <option value="All">{t('all_status')}</option>
+              <option value="active">{t('active')}</option>
+              <option value="inactive">{t('inactive')}</option>
+            </select>
           </div>
-          <select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
-            <option value="All">All Regions</option>
-            {regions.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
-            {customerCategories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm dark:text-white">
-            <option value="All">{t('all_status')}</option>
-            <option value="active">{t('active')}</option>
-            <option value="inactive">{t('inactive')}</option>
-          </select>
+          <div className="flex gap-2">
+             <button 
+                onClick={() => downloadCSV(processedData.map(c => ({ 
+                  Company: c.company, Contact: c.name, Region: c.region, Sales: c.totalPurchases, Balance: c.balanceDue 
+                })), 'customer_report')}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+             >
+                <Download className="w-4 h-4" /> Export CSV
+             </button>
+          </div>
         </div>
 
         {/* Chart */}
@@ -1027,14 +1140,24 @@ const Reports: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors">
-              <Printer className="w-5 h-5" />
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-              <Download className="w-4 h-4" /> {t('export_report')}
-            </button>
-          </div>
+          {/* Hide global buttons for complex reports that have their own internal controls */}
+          {config.type !== 'detailed_product' && config.type !== 'detailed_customer' && (
+            <div className="flex gap-2">
+              <button 
+                onClick={() => handlePrintGeneric(config)}
+                className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                title="Print Report"
+              >
+                <Printer className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => downloadCSV(config.dataGenerator(), activeReport, config)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Download className="w-4 h-4" /> {t('export_report')}
+              </button>
+            </div>
+          )}
         </div>
 
         {renderSummaryCards(config.summary)}
