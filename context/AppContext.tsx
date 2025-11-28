@@ -385,7 +385,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       quantity: -transferData.quantity,
       type: 'transfer_out',
       reference: ref,
-      notes: transferData.notes || `Transfer to ${destWarehouseName}`
+      notes: transferData.notes || `Transfer to ${destWarehouseName}`,
+      unitCost: product.cost,
+      costBefore: product.cost,
+      costAfter: product.cost
     });
     // In to dest
     addStockMovement({
@@ -397,7 +400,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       quantity: transferData.quantity,
       type: 'transfer_in',
       reference: ref,
-      notes: transferData.notes || `Transfer from ${sourceWarehouseName}`
+      notes: transferData.notes || `Transfer from ${sourceWarehouseName}`,
+      unitCost: product.cost,
+      costBefore: product.cost,
+      costAfter: product.cost
     });
 
     // 3. Update Product Stock
@@ -459,7 +465,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const warehouseId = docData.warehouseId;
       const warehouseName = warehouses.find(w => w.id === warehouseId)?.name || 'Unknown';
 
-      if (!warehouseId && type !== 'invoice') { // Invoice might not always deduct stock immediately if it's service-based, but here we assume product sales need warehouse
+      if (!warehouseId && type !== 'invoice') { 
          console.warn("No warehouse selected for stock deduction!");
       }
 
@@ -477,7 +483,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
               quantity: -soldItem.quantity,
               type: 'sale',
               reference: newNumber,
-              notes: `${type === 'issue' ? 'Manual Issue' : 'Sale'} to ${docData.clientName}`
+              notes: `${type === 'issue' ? 'Manual Issue' : 'Sale'} to ${docData.clientName}`,
+              unitCost: prod.cost,
+              costBefore: prod.cost,
+              costAfter: prod.cost
             });
 
             const currentWhStock = prod.warehouseStock[warehouseId] || 0;
@@ -517,7 +526,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
               quantity: returnedItem.quantity,
               type: 'return',
               reference: newNumber,
-              notes: `Return from ${docData.clientName}`
+              notes: `Return from ${docData.clientName}`,
+              unitCost: prod.cost, // Ideally this should be cost at time of sale, but simplicity uses current
+              costBefore: prod.cost,
+              costAfter: prod.cost
             });
 
             const currentWhStock = prod.warehouseStock[warehouseId] || 0;
@@ -577,18 +589,49 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // 1. Record Document
     setPurchases(prev => [newDoc, ...prev]);
 
-    // 2. Update Related Data
-    
-    // IMPACT: Stock Increase (Purchases / GRN)
+    // Update Supplier Financials if Invoice
+    if (type === 'invoice') {
+        setSuppliers(prevSuppliers => prevSuppliers.map(s => {
+          if (s.id === docData.supplierId) {
+            return { ...s, totalPurchased: s.totalPurchased + docData.amount };
+          }
+          return s;
+        }));
+    }
+
+    // IMPACT: Stock Increase (Purchases / GRN) & COST CALCULATION
+    // We only update stock and calculate new WAC when goods are delivered (GRN/Delivery)
     if (type === 'delivery') {
       const warehouseId = docData.warehouseId;
       const warehouseName = warehouses.find(w => w.id === warehouseId)?.name || 'Unknown';
+      const additionalCosts = docData.additionalCosts || 0;
+      const docSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
       if (warehouseId) {
         setProducts(prevProducts => prevProducts.map(prod => {
           const purchasedItem = items.find(item => item.id === prod.id);
+          
           if (purchasedItem) {
-            // Log Movement
+            const currentTotalStock = prod.stock;
+            const currentCost = prod.cost;
+            const currentTotalValue = currentTotalStock * currentCost;
+
+            // Calculate Allocated Cost for this item
+            const itemTotalValue = purchasedItem.price * purchasedItem.quantity;
+            const costAllocationRatio = docSubtotal > 0 ? (itemTotalValue / docSubtotal) : 0;
+            const allocatedAdditionalCost = additionalCosts * costAllocationRatio;
+            const totalIncomingCost = itemTotalValue + allocatedAdditionalCost;
+            
+            // Effective unit cost of this incoming batch
+            const incomingUnitCost = purchasedItem.quantity > 0 ? totalIncomingCost / purchasedItem.quantity : 0;
+
+            // New WAC Calculation
+            const newTotalStock = currentTotalStock + purchasedItem.quantity;
+            const newWAC = newTotalStock > 0 
+                ? (currentTotalValue + totalIncomingCost) / newTotalStock 
+                : incomingUnitCost; // fallback to incoming cost if previous stock was 0
+
+            // Log Movement with Cost Details
             addStockMovement({
               productId: prod.id,
               productName: prod.name,
@@ -598,77 +641,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
               quantity: purchasedItem.quantity,
               type: 'purchase',
               reference: newNumber,
-              notes: `Received from ${docData.supplierName}`
+              notes: `Received from ${docData.supplierName}`,
+              unitCost: incomingUnitCost,
+              costBefore: currentCost,
+              costAfter: newWAC
             });
 
-            const currentWhStock = prod.warehouseStock[warehouseId] || 0;
-            const newWhStock = currentWhStock + purchasedItem.quantity;
-            
-            const updatedWarehouseStock = { ...prod.warehouseStock, [warehouseId]: newWhStock };
-            const newTotalStock = (Object.values(updatedWarehouseStock) as number[]).reduce((a, b) => a + b, 0);
+            const updatedWarehouseStock = { ...prod.warehouseStock };
+            updatedWarehouseStock[warehouseId] = (updatedWarehouseStock[warehouseId] || 0) + purchasedItem.quantity;
 
             return {
               ...prod,
               stock: newTotalStock,
               warehouseStock: updatedWarehouseStock,
+              cost: newWAC,
               status: newTotalStock <= 0 ? 'out_of_stock' : newTotalStock <= 10 ? 'low_stock' : 'in_stock'
             };
           }
           return prod;
         }));
       }
-    }
-
-    // IMPACT: Supplier Total Purchased & COST CALCULATION (Weighted Average Cost)
-    if (type === 'invoice' || type === 'delivery') { // Assuming cost updates on invoice or GRN
-      
-      // Update Supplier
-      if (type === 'invoice') {
-        setSuppliers(prevSuppliers => prevSuppliers.map(s => {
-          if (s.id === docData.supplierId) {
-            return { ...s, totalPurchased: s.totalPurchased + docData.amount };
-          }
-          return s;
-        }));
-      }
-
-      // Calculate Weighted Average Cost
-      // Formula: ((CurrentStock * CurrentCost) + (IncomingQty * (PurchasePrice + AllocatedAdditionalCost))) / (CurrentStock + IncomingQty)
-      const additionalCosts = docData.additionalCosts || 0;
-      const docSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-      setProducts(prevProducts => prevProducts.map(prod => {
-        const purchasedItem = items.find(item => item.id === prod.id);
-        
-        if (purchasedItem) {
-          // Calculate Allocated Cost for this item (Weighted by value)
-          const itemTotalValue = purchasedItem.price * purchasedItem.quantity;
-          const costAllocationRatio = docSubtotal > 0 ? (itemTotalValue / docSubtotal) : 0;
-          const allocatedAdditionalCost = additionalCosts * costAllocationRatio;
-          
-          // Total cost of the incoming batch
-          const totalIncomingCost = itemTotalValue + allocatedAdditionalCost;
-
-          // Current Value of stock
-          const currentTotalValue = prod.stock * prod.cost;
-
-          // New Weighted Average Cost
-          const newTotalStock = prod.stock + purchasedItem.quantity; // Note: 'stock' here might already be updated if GRN ran first? 
-          // Actually, in the GRN block above, we updated stock. React state updates are batched/async. 
-          // If we run this in the same cycle, 'prod' here refers to the OLD state before GRN update.
-          // Which is correct for the WAC formula denominator (OldStock + NewQty).
-          
-          const newWAC = newTotalStock > 0 
-            ? (currentTotalValue + totalIncomingCost) / newTotalStock 
-            : prod.cost;
-
-          return {
-            ...prod,
-            cost: newWAC
-          };
-        }
-        return prod;
-      }));
     }
 
     return newDoc;

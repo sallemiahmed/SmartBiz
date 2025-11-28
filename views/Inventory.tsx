@@ -146,7 +146,10 @@ const Inventory: React.FC = () => {
           quantity: qty,
           type: 'initial',
           reference: 'INIT',
-          notes: 'Initial Stock'
+          notes: 'Initial Stock',
+          unitCost: newProduct.cost,
+          costBefore: 0,
+          costAfter: newProduct.cost
         });
       }
     });
@@ -177,7 +180,10 @@ const Inventory: React.FC = () => {
           quantity: diff,
           type: 'adjustment',
           reference: 'MANUAL-ADJ',
-          notes: 'Manual Inventory Adjustment'
+          notes: 'Manual Inventory Adjustment',
+          unitCost: selectedProduct.cost,
+          costBefore: selectedProduct.cost,
+          costAfter: selectedProduct.cost
         });
       }
     });
@@ -715,7 +721,7 @@ const Inventory: React.FC = () => {
       {/* History Modal */}
       {isHistoryModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh]">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-5xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh]">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('product_history')}</h2>
@@ -734,6 +740,8 @@ const Inventory: React.FC = () => {
                     <th className="px-6 py-4">{t('reference')}</th>
                     <th className="px-6 py-4">{t('warehouse')}</th>
                     <th className="px-6 py-4 text-right">{t('quantity')}</th>
+                    <th className="px-6 py-4 text-right">{t('unit_cost')} (In)</th>
+                    <th className="px-6 py-4 text-right">WAC Impact</th>
                     <th className="px-6 py-4">{t('notes')}</th>
                   </tr>
                 </thead>
@@ -758,12 +766,25 @@ const Inventory: React.FC = () => {
                         <td className={`px-6 py-4 text-right font-mono font-bold ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {movement.quantity > 0 ? '+' : ''}{movement.quantity}
                         </td>
+                        <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                          {movement.unitCost ? formatCurrency(movement.unitCost) : '-'}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {movement.costBefore && movement.costAfter && movement.costBefore !== movement.costAfter ? (
+                            <div className="flex flex-col items-end">
+                               <span className="text-xs line-through text-gray-400">{formatCurrency(movement.costBefore)}</span>
+                               <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(movement.costAfter)}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-gray-500 italic truncate max-w-xs" title={movement.notes}>{movement.notes}</td>
                       </tr>
                     ))}
                   {stockMovements.filter(m => m.productId === selectedProduct.id).length === 0 && (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan={8} className="p-8 text-center text-gray-500 dark:text-gray-400">
                         No movement history found for this product.
                       </td>
                     </tr>

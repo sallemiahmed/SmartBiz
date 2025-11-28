@@ -189,6 +189,9 @@ export interface StockMovement {
   type: 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return' | 'initial';
   reference: string;
   notes?: string;
+  unitCost?: number; 
+  costBefore?: number;
+  costAfter?: number;
 }
 
 // --- BANKING MODULE TYPES ---
