@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Landmark, CreditCard, ArrowUpRight, ArrowDownLeft, Plus, 
@@ -7,6 +6,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { BankAccount, BankTransaction } from '../types';
 import { BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { allCurrencies } from '../utils/currencyList';
 
 const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
   const { bankAccounts, bankTransactions, formatCurrency, addBankTransaction, addBankAccount, updateBankAccount, deleteBankAccount, deleteBankTransaction, t } = useApp();
@@ -432,10 +432,11 @@ const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('currency')}</label>
                   <select name="currency" defaultValue={editingAccount?.currency || 'USD'} className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white">
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="TND">TND</option>
+                    {allCurrencies.map((currency) => (
+                      <option key={currency.code} value={currency.code}>
+                        {currency.code}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

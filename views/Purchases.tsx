@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
@@ -7,6 +6,7 @@ import {
 import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
+import { allCurrencies } from '../utils/currencyList';
 
 interface POItem extends Product {
   cartId: string;
@@ -470,11 +470,11 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                 onChange={(e) => setSelectedCurrency(e.target.value)}
                 className="w-full pl-9 pr-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
               >
-                <option value="TND">TND</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="SAR">SAR</option>
+                {allCurrencies.map((currency) => (
+                  <option key={currency.code} value={currency.code}>
+                    {currency.code}
+                  </option>
+                ))}
               </select>
             </div>
             {selectedCurrency !== settings.currency && (

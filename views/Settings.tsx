@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Save, Globe, User, Shield, Bell, Building, CreditCard, 
@@ -6,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AppSettings, TaxRate, CustomFieldDefinition } from '../types';
+import { allCurrencies } from '../utils/currencyList';
 
 type SettingsTab = 'general' | 'profile' | 'security' | 'billing' | 'notifications' | 'custom_fields';
 
@@ -338,11 +338,11 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                       onChange={handleChange}
                       className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
                     >
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="TND">TND (DT)</option>
-                      <option value="GBP">GBP (£)</option>
-                      <option value="SAR">SAR (﷼)</option>
+                      {allCurrencies.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} ({currency.symbol})
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
