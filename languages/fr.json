@@ -1,3 +1,4 @@
+
 {
     "dashboard": "Tableau de bord",
     "clients": "Clients",
@@ -189,6 +190,8 @@
     "inventory_stock_report": "Inventaire et Stock",
     "financials_report": "Finances",
     "rep_sales_customer": "Ventes par Client",
+    "rep_sales_customer_detailed": "Analyse Détaillée Clients",
+    "rep_sales_product_detailed": "Analyse Détaillée Produits",
     "rep_sales_vat": "TVA sur Ventes",
     "rep_cust_trans": "Transactions Client",
     "rep_supp_purch": "Achats par Fournisseur",
@@ -374,5 +377,21 @@
     "remaining_qty": "Reste à livrer",
     "create_invoice_from_selected": "Créer facture pour la sélection",
     "error_mixed_clients": "Impossible de combiner les commandes de différents clients.",
-    "error_mixed_currencies": "Impossible de combiner des devises différentes."
+    "error_mixed_currencies": "Impossible de combiner des devises différentes.",
+    "rfq": "RFQ",
+    "request_for_quotation": "Demande de Cotation",
+    "rfq_desc": "Gérez les demandes de prix aux fournisseurs.",
+    "new_rfq": "Nouvelle RFQ",
+    "search_rfqs": "Chercher RFQ ou fournisseur...",
+    "deadline": "Date limite",
+    "rfq_details": "Détails RFQ",
+    "enter_prices": "Saisir les prix",
+    "convert_to_po": "Convertir en Commande",
+    "price_input": "Saisie des prix",
+    "sent": "Envoyé",
+    "responded": "Répondu",
+    "accepted": "Accepté",
+    "rejected": "Rejeté",
+    "view_rfq": "Voir RFQ",
+    "delete_rfq_msg": "Êtes-vous sûr de vouloir supprimer cette demande de cotation ?"
 }

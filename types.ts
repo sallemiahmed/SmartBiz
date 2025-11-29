@@ -4,7 +4,7 @@ export type AppView =
   | 'clients'
   | 'suppliers'
   | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
-  | 'purchases' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create'
+  | 'purchases' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-rfq-create'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
   | 'invoices'
   | 'banking' | 'banking-accounts' | 'banking-transactions'
@@ -13,7 +13,7 @@ export type AppView =
   | 'reports'
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
 
-export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice' | 'grn';
+export type PurchaseDocumentType = 'rfq' | 'order' | 'delivery' | 'invoice' | 'grn';
 export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue' | 'credit';
 
 export interface InvoiceItem {
@@ -99,11 +99,12 @@ export interface Purchase {
   supplierId: string;
   supplierName: string;
   date: string;
+  deadline?: string; // Specific for RFQ
   amount: number;
   currency?: string;
   exchangeRate?: number;
   additionalCosts?: number;
-  status: 'pending' | 'completed' | 'received';
+  status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected';
   items: InvoiceItem[];
   warehouseId?: string;
   paymentTerms?: string;

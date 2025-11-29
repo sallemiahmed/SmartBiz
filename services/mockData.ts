@@ -1,3 +1,4 @@
+
 import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
 
 const currentYear = new Date().getFullYear();
@@ -160,6 +161,19 @@ export const mockPurchases: Purchase[] = [
     date: `${currentYear}-05-12`, amount: 12000.000, status: 'pending',
     items: [{ id: 'p5', description: 'Serveur Dell', quantity: 5, price: 2100 }],
     warehouseId: 'w1'
+  },
+  // RFQs
+  {
+    id: 'rfq1', number: 'DC-24-001', type: 'rfq', supplierId: 's1', supplierName: 'MegaDistro',
+    date: `${currentYear}-05-20`, deadline: `${currentYear}-05-25`, amount: 0, status: 'sent',
+    items: [{ id: 'p1', description: 'HP EliteBook 840 G8', quantity: 10, price: 0 }],
+    warehouseId: 'w1'
+  },
+  {
+    id: 'rfq2', number: 'DC-24-002', type: 'rfq', supplierId: 's3', supplierName: 'Office World',
+    date: `${currentYear}-05-21`, deadline: `${currentYear}-05-28`, amount: 0, status: 'responded',
+    items: [{ id: 'p6', description: 'Chaise Ergonomique Pro', quantity: 50, price: 195.000 }],
+    warehouseId: 'w1', subtotal: 9750
   }
 ];
 

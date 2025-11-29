@@ -1,3 +1,4 @@
+
 {
     "dashboard": "لوحة القيادة",
     "clients": "العملاء",
@@ -376,5 +377,21 @@
     "remaining_qty": "الكمية المتبقية",
     "create_invoice_from_selected": "إنشاء فاتورة من المحدد",
     "error_mixed_clients": "لا يمكن دمج طلبات من عملاء مختلفين.",
-    "error_mixed_currencies": "لا يمكن دمج طلبات بعملات مختلفة."
+    "error_mixed_currencies": "لا يمكن دمج طلبات بعملات مختلفة.",
+    "rfq": "طلب تسعير",
+    "request_for_quotation": "طلب عرض سعر",
+    "rfq_desc": "إدارة طلبات الأسعار للموردين.",
+    "new_rfq": "طلب تسعير جديد",
+    "search_rfqs": "بحث في الطلبات...",
+    "deadline": "الموعد النهائي",
+    "rfq_details": "تفاصيل الطلب",
+    "enter_prices": "إدخال الأسعار",
+    "convert_to_po": "تحويل لطلب شراء",
+    "price_input": "إدخال السعر",
+    "sent": "تم الإرسال",
+    "responded": "تم الرد",
+    "accepted": "مقبول",
+    "rejected": "مرفوض",
+    "view_rfq": "عرض الطلب",
+    "delete_rfq_msg": "هل أنت متأكد من حذف طلب التسعير هذا؟"
 }

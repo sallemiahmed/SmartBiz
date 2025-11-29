@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, 
@@ -280,7 +281,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       type,
       number: docData.number || `${type.toUpperCase().substring(0,3)}-${Date.now()}`,
       items,
-      status: docData.status || 'pending',
+      status: docData.status || (type === 'rfq' ? 'sent' : 'pending'),
       date: docData.date || new Date().toISOString(),
       amount: docData.amount || 0,
       supplierId: docData.supplierId || '',
@@ -304,6 +305,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         });
         return [newDoc, ...updatedPurchases];
       });
+    } else if (type === 'order' && docData.linkedDocumentId) {
+        // Converting RFQ to Order
+        setPurchases(prev => {
+            const updatedPurchases = prev.map(p => {
+              if (p.id === docData.linkedDocumentId) {
+                return { ...p, status: 'accepted' as const };
+              }
+              return p;
+            });
+            return [newDoc, ...updatedPurchases];
+        });
     } else {
       setPurchases(prev => [newDoc, ...prev]);
     }

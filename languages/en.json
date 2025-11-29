@@ -1,3 +1,4 @@
+
 {
     "dashboard": "Dashboard",
     "clients": "Clients",
@@ -376,5 +377,21 @@
     "remaining_qty": "Remaining Qty",
     "create_invoice_from_selected": "Create invoice from selection",
     "error_mixed_clients": "Cannot merge orders from different clients.",
-    "error_mixed_currencies": "Cannot merge orders with different currencies."
+    "error_mixed_currencies": "Cannot merge orders with different currencies.",
+    "rfq": "RFQ",
+    "request_for_quotation": "Request for Quotation",
+    "rfq_desc": "Manage price requests to suppliers.",
+    "new_rfq": "New RFQ",
+    "search_rfqs": "Search RFQ or supplier...",
+    "deadline": "Deadline",
+    "rfq_details": "RFQ Details",
+    "enter_prices": "Enter Prices",
+    "convert_to_po": "Convert to PO",
+    "price_input": "Price Input",
+    "sent": "Sent",
+    "responded": "Responded",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "view_rfq": "View RFQ",
+    "delete_rfq_msg": "Are you sure you want to delete this RFQ?"
 }

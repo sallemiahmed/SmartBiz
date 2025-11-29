@@ -24,6 +24,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       case 'return': return 'RETURN NOTE';
       case 'credit': return 'CREDIT NOTE';
       // Purchase Specifics
+      case 'rfq': return 'REQUEST FOR QUOTATION';
       case 'grn': return 'GOODS RECEIVED NOTE';
       default: return type.toUpperCase();
     }
@@ -33,6 +34,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
   const isPurchase = 'supplierName' in document;
   const entityName = isPurchase ? (document as Purchase).supplierName : (document as Invoice).clientName;
   const isCredit = document.type === 'credit';
+  const isRFQ = document.type === 'rfq';
 
   const logoHtml = settings.companyLogo 
     ? `<img src="${settings.companyLogo}" style="max-width: 150px; max-height: 80px; margin-bottom: 10px; display: block;" alt="Company Logo" />` 
@@ -131,7 +133,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       </div>
 
       <div class="client-container">
-        <div class="bill-to">${isPurchase ? 'From Supplier:' : (isCredit ? 'Credit To:' : 'Bill To:')}</div>
+        <div class="bill-to">${isPurchase ? 'To Supplier:' : (isCredit ? 'Credit To:' : 'Bill To:')}</div>
         <div class="client-name">${entityName}</div>
       </div>
 
@@ -140,9 +142,11 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
           <tr>
             <th style="width: 40%">Description</th>
             <th class="text-center">Quantity</th>
+            ${!isRFQ ? `
             <th class="text-right">Price</th>
             <th class="text-center" style="width: 15%">VAT %</th>
             <th class="text-right">Total</th>
+            ` : ''}
           </tr>
         </thead>
         <tbody>
@@ -150,14 +154,17 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
             <tr>
               <td>${item.description}</td>
               <td class="text-center">${item.quantity}</td>
+              ${!isRFQ ? `
               <td class="text-right">${currencyFormatter.format(item.price)}</td>
               <td class="text-center">${taxRate}%</td>
               <td class="text-right">${currencyFormatter.format(item.price * item.quantity)}</td>
+              ` : ''}
             </tr>
           `).join('')}
         </tbody>
       </table>
 
+      ${!isRFQ ? `
       <div class="totals-container">
         <table class="totals-table">
           <tr>
@@ -191,12 +198,13 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
           </tr>
         </table>
       </div>
+      ` : ''}
 
       <!-- Payment & Notes Section -->
       ${(document.paymentTerms || document.paymentMethod || document.notes) ? `
       <div class="notes-section">
         <div class="notes-grid">
-          ${document.paymentTerms || document.paymentMethod ? `
+          ${(document.paymentTerms || document.paymentMethod) && !isRFQ ? `
           <div class="note-column">
             <h4>Payment Information</h4>
             ${document.paymentTerms ? `<p><strong>Terms:</strong> ${document.paymentTerms}</p>` : ''}

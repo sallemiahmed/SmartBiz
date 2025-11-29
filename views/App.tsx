@@ -21,6 +21,7 @@ import SalesEstimates from './views/SalesEstimates';
 import SalesDeliveries from './views/SalesDeliveries';
 import SalesInvoices from './views/SalesInvoices';
 import SalesIssues from './views/SalesIssues';
+import RequestForQuotation from './views/RequestForQuotation'; // NEW
 import Reports from './views/Reports';
 import Settings from './views/Settings';
 import BankManagement from './views/BankManagement'; 
@@ -116,6 +117,14 @@ function AppContent() {
     }
 
     // --- Purchases Routing ---
+
+    // 0. Request for Quotation (RFQ)
+    if (currentView === 'purchases-rfq') {
+        return <RequestForQuotation onAddNew={() => handleNavigate('purchases-rfq-create' as AppView)} />;
+    }
+    if (currentView === 'purchases-rfq-create' as AppView) {
+        return <Purchases mode="rfq" />;
+    }
 
     // 1. Supplier Order
     if (currentView === 'purchases-order') {
