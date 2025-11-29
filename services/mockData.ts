@@ -1,10 +1,10 @@
 
 // ... existing imports
-import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
+import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, Technician, ServiceItem, ServiceJob } from '../types';
 
 const currentYear = new Date().getFullYear();
 
-// ... existing mock data (warehouses, inventory, clients, suppliers, invoices)
+// ... (Keep all existing mock data: mockWarehouses, mockInventory, mockClients, mockSuppliers, mockInvoices, mockPurchases, mockStockMovements, mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions, mockStockTransfers) ...
 export const mockWarehouses: Warehouse[] = [
   { id: 'w1', name: 'Dépôt Principal', location: 'Tunis Z.I.', isDefault: true },
   { id: 'w2', name: 'Showroom Sousse', location: 'Sousse Centre' },
@@ -71,7 +71,6 @@ export const mockSuppliers: Supplier[] = [
   { id: 's4', company: 'SoftCorp', contactName: 'Bill Gates', email: 'bill@softcorp.com', phone: '+1 555 0199', category: 'Logiciel', status: 'active', totalPurchased: 8000.000 }
 ];
 
-// Generate invoices across months for chart data
 export const mockInvoices: Invoice[] = [
   // Jan
   { 
@@ -80,21 +79,18 @@ export const mockInvoices: Invoice[] = [
     items: [ { id: 'p1', description: 'HP EliteBook', quantity: 3, price: 3200 }, { id: 'p2', description: 'Ecran Dell', quantity: 2, price: 1450 } ],
     warehouseId: 'w1', subtotal: 12500, taxRate: 19
   },
-  // Feb
   { 
     id: 'inv2', number: 'FAC-24-002', type: 'invoice', clientId: 'c4', clientName: 'Banque Zitouna', 
     date: `${currentYear}-02-10`, dueDate: `${currentYear}-03-10`, amount: 45000.000, status: 'paid',
     items: [ { id: 'p7', description: 'Routeur Cisco', quantity: 10, price: 1800 }, { id: 'p8', description: 'Win 11 Lic', quantity: 60, price: 450 } ],
     warehouseId: 'w1', subtotal: 45000, taxRate: 19
   },
-  // Mar
   { 
     id: 'inv3', number: 'FAC-24-003', type: 'invoice', clientId: 'c2', clientName: 'Global Services', 
     date: `${currentYear}-03-05`, dueDate: `${currentYear}-03-20`, amount: 3250.000, status: 'paid',
     items: [ { id: 'p3', description: 'Imprimante Epson', quantity: 5, price: 650 } ],
     warehouseId: 'w2', subtotal: 3250, taxRate: 19
   },
-  // Apr
   { 
     id: 'inv4', number: 'FAC-24-004', type: 'invoice', clientId: 'c1', clientName: 'TechSolutions SARL', 
     date: `${currentYear}-04-12`, dueDate: `${currentYear}-05-12`, amount: 8900.000, status: 'pending',
@@ -136,35 +132,30 @@ export const mockPurchases: Purchase[] = [
     items: [{ id: 'p1', description: 'HP EliteBook', quantity: 20, price: 2400 }],
     warehouseId: 'w1', subtotal: 48000, taxRate: 19
   },
-  // Feb
   {
     id: 'po2', number: 'ACH-24-002', type: 'invoice', supplierId: 's3', supplierName: 'Office World',
     date: `${currentYear}-02-02`, amount: 15000.000, status: 'completed',
     items: [{ id: 'p6', description: 'Chaise Ergonomique', quantity: 75, price: 200 }],
     warehouseId: 'w1', subtotal: 15000
   },
-  // Mar
   {
     id: 'po3', number: 'ACH-24-003', type: 'invoice', supplierId: 's1', supplierName: 'MegaDistro',
     date: `${currentYear}-03-15`, amount: 8000.000, status: 'completed',
     items: [{ id: 'p2', description: 'Ecrans', quantity: 8, price: 980 }],
     warehouseId: 'w1', subtotal: 7840
   },
-  // Apr
   {
     id: 'po4', number: 'ACH-24-004', type: 'invoice', supplierId: 's4', supplierName: 'SoftCorp',
     date: `${currentYear}-04-10`, amount: 2800.000, status: 'completed',
     items: [{ id: 'p8', description: 'Windows Lic', quantity: 10, price: 280 }],
     warehouseId: 'w1', subtotal: 2800
   },
-  // May
   {
     id: 'po5', number: 'CMD-F-24-01', type: 'order', supplierId: 's1', supplierName: 'MegaDistro',
     date: `${currentYear}-05-12`, amount: 12000.000, status: 'pending',
     items: [{ id: 'p5', description: 'Serveur Dell', quantity: 5, price: 2100 }],
     warehouseId: 'w1'
   },
-  // RFQs
   {
     id: 'rfq1', number: 'DC-24-001', type: 'rfq', supplierId: 's1', supplierName: 'MegaDistro',
     date: `${currentYear}-05-20`, deadline: `${currentYear}-05-25`, amount: 0, status: 'sent',
@@ -177,7 +168,6 @@ export const mockPurchases: Purchase[] = [
     items: [{ id: 'p6', description: 'Chaise Ergonomique Pro', quantity: 50, price: 195.000 }],
     warehouseId: 'w1', subtotal: 9750
   },
-  // Internal Purchase Requests
   {
     id: 'pr1', number: 'DA-24-001', type: 'pr', supplierId: '', supplierName: '',
     requesterName: 'Sami IT', department: 'Information Technology',
@@ -190,7 +180,6 @@ export const mockPurchases: Purchase[] = [
   }
 ];
 
-// ... existing code for stock movements, bank accounts, transactions etc.
 export const mockStockMovements: StockMovement[] = [
   { 
     id: 'sm1', productId: 'p1', productName: 'HP EliteBook 840 G8', warehouseId: 'w1', warehouseName: 'Dépôt Principal',
@@ -230,3 +219,50 @@ export const mockCashTransactions: CashTransaction[] = [
 ];
 
 export const mockStockTransfers: StockTransfer[] = [];
+
+// --- Service Module Mock Data ---
+
+export const mockTechnicians: Technician[] = [
+  { id: 'tech1', name: 'Karim S.', specialty: 'Hardware Repair', status: 'available', phone: '50 111 222' },
+  { id: 'tech2', name: 'Leila B.', specialty: 'Software & Network', status: 'busy', phone: '55 333 444' },
+  { id: 'tech3', name: 'Omar J.', specialty: 'General Maintenance', status: 'off_duty', phone: '22 555 666' }
+];
+
+export const mockServiceCatalog: ServiceItem[] = [
+  { id: 'srv1', name: 'Diagnostic & Devis', description: 'Diagnostic complet du matériel', basePrice: 30.000, durationMinutes: 30 },
+  { id: 'srv2', name: 'Formatage & Installation OS', description: 'Windows/Linux + Drivers + Office', basePrice: 50.000, durationMinutes: 60 },
+  { id: 'srv3', name: 'Remplacement Ecran Laptop', description: 'Main d\'oeuvre uniquement', basePrice: 60.000, durationMinutes: 45 },
+  { id: 'srv4', name: 'Nettoyage & Pâte Thermique', description: 'Nettoyage interne complet', basePrice: 40.000, durationMinutes: 45 },
+  { id: 'srv5', name: 'Configuration Réseau', description: 'Configuration routeur/wifi sur site', basePrice: 80.000, durationMinutes: 90 },
+];
+
+export const mockServiceJobs: ServiceJob[] = [
+  { 
+    id: 'job1', ticketNumber: 'JOB-24-001', clientId: 'c1', clientName: 'TechSolutions SARL', 
+    date: `${currentYear}-05-25`, status: 'in_progress', priority: 'high', 
+    technicianId: 'tech1', technicianName: 'Karim S.', deviceInfo: 'Dell Latitude 5420',
+    problemDescription: 'Overheating and shutting down randomly.',
+    estimatedCost: 120.000,
+    services: [{ serviceId: 'srv4', name: 'Nettoyage & Pâte Thermique', price: 40 }],
+    usedParts: [{ productId: 'p4', name: 'Souris Logitech MX Master 3', quantity: 1, price: 380 }] // Just an example part
+  },
+  { 
+    id: 'job2', ticketNumber: 'JOB-24-002', clientId: 'c5', clientName: 'Clinique Espoir', 
+    date: `${currentYear}-05-26`, status: 'pending', priority: 'medium', 
+    deviceInfo: 'HP Printer LaserJet',
+    problemDescription: 'Paper jam error persistent.',
+    estimatedCost: 0,
+    services: [{ serviceId: 'srv1', name: 'Diagnostic', price: 30 }],
+    usedParts: []
+  },
+  { 
+    id: 'job3', ticketNumber: 'JOB-24-003', clientId: 'c2', clientName: 'Global Services', 
+    date: `${currentYear}-05-20`, status: 'completed', priority: 'low', 
+    technicianId: 'tech2', technicianName: 'Leila B.', deviceInfo: 'Serveur de fichiers',
+    problemDescription: 'Mise à jour sécurité',
+    resolutionNotes: 'Mise à jour effectuée avec succès.',
+    estimatedCost: 80.000,
+    services: [{ serviceId: 'srv2', name: 'Installation OS', price: 50 }],
+    usedParts: []
+  }
+];

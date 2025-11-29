@@ -6,6 +6,7 @@ export type AppView =
   | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
   | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-rfq-create' | 'purchases-pr-create'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
+  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-catalog' | 'services-technicians' | 'services-jobs-create'
   | 'invoices'
   | 'banking' | 'banking-accounts' | 'banking-transactions'
   | 'cash_register'
@@ -191,6 +192,43 @@ export interface StockMovement {
   costBefore?: number;
   costAfter?: number;
   relatedWarehouseName?: string;
+}
+
+// --- Service Module Types ---
+
+export interface Technician {
+  id: string;
+  name: string;
+  specialty: string;
+  status: 'available' | 'busy' | 'off_duty';
+  email?: string;
+  phone?: string;
+}
+
+export interface ServiceItem {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  durationMinutes: number;
+}
+
+export interface ServiceJob {
+  id: string;
+  ticketNumber: string;
+  clientId: string;
+  clientName: string;
+  date: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'invoiced';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  technicianId?: string;
+  technicianName?: string;
+  deviceInfo?: string; // E.g. "Laptop HP Omen", "Car Model X"
+  problemDescription: string;
+  resolutionNotes?: string;
+  estimatedCost: number;
+  services: { serviceId: string; name: string; price: number }[];
+  usedParts: { productId: string; name: string; quantity: number; price: number }[];
 }
 
 export interface TaxRate {

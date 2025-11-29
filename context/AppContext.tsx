@@ -3,12 +3,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { 
   Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, 
   CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, 
-  AppSettings, InvoiceItem, PurchaseDocumentType, SalesDocumentType
+  AppSettings, InvoiceItem, PurchaseDocumentType, SalesDocumentType,
+  Technician, ServiceItem, ServiceJob
 } from '../types';
 import { 
   mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, 
   mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions, 
-  mockWarehouses, mockStockTransfers, mockStockMovements 
+  mockWarehouses, mockStockTransfers, mockStockMovements,
+  mockTechnicians, mockServiceCatalog, mockServiceJobs
 } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
@@ -65,6 +67,22 @@ interface AppContextType {
   cashTransactions: CashTransaction[];
   addCashTransaction: (transaction: CashTransaction) => void;
   
+  // Services Module
+  technicians: Technician[];
+  addTechnician: (tech: Technician) => void;
+  updateTechnician: (tech: Technician) => void;
+  deleteTechnician: (id: string) => void;
+
+  serviceCatalog: ServiceItem[];
+  addServiceItem: (item: ServiceItem) => void;
+  updateServiceItem: (item: ServiceItem) => void;
+  deleteServiceItem: (id: string) => void;
+
+  serviceJobs: ServiceJob[];
+  addServiceJob: (job: ServiceJob) => void;
+  updateServiceJob: (job: ServiceJob) => void;
+  deleteServiceJob: (id: string) => void;
+
   settings: AppSettings;
   updateSettings: (settings: AppSettings) => void;
   
@@ -98,15 +116,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cashSessions, setCashSessions] = useState<CashSession[]>(mockCashSessions);
   const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>(mockCashTransactions);
   
+  // Service Module Data
+  const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
+  const [serviceCatalog, setServiceCatalog] = useState<ServiceItem[]>(mockServiceCatalog);
+  const [serviceJobs, setServiceJobs] = useState<ServiceJob[]>(mockServiceJobs);
+
   const [settings, setSettings] = useState<AppSettings>({
     companyName: 'SmartBiz Demo',
     companyEmail: 'contact@smartbiz.com',
     companyPhone: '+216 71 123 456',
     companyAddress: 'Les Berges du Lac 2, Tunis, Tunisie',
-    // Default logo for PDFs
     companyLogo: 'https://placehold.co/300x100/4f46e5/ffffff?text=SmartBiz+Corp',
     currency: 'TND',
-    language: 'fr', // Default language changed to French
+    language: 'fr',
     timezone: 'UTC+1',
     geminiApiKey: '',
     enableFiscalStamp: true,
@@ -134,7 +156,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  // --- CRUD Operations --- (unchanged logic)
+  // --- CRUD Operations ---
 
   const addClient = (client: Client) => setClients([...clients, client]);
   const updateClient = (client: Client) => setClients(clients.map(c => c.id === client.id ? client : c));
@@ -152,6 +174,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateWarehouse = (wh: Warehouse) => setWarehouses(warehouses.map(w => w.id === wh.id ? wh : w));
   const deleteWarehouse = (id: string) => setWarehouses(warehouses.filter(w => w.id !== id));
 
+  // Service Module CRUD
+  const addTechnician = (tech: Technician) => setTechnicians([...technicians, tech]);
+  const updateTechnician = (tech: Technician) => setTechnicians(technicians.map(t => t.id === tech.id ? tech : t));
+  const deleteTechnician = (id: string) => setTechnicians(technicians.filter(t => t.id !== id));
+
+  const addServiceItem = (item: ServiceItem) => setServiceCatalog([...serviceCatalog, item]);
+  const updateServiceItem = (item: ServiceItem) => setServiceCatalog(serviceCatalog.map(s => s.id === item.id ? item : s));
+  const deleteServiceItem = (id: string) => setServiceCatalog(serviceCatalog.filter(s => s.id !== id));
+
+  const addServiceJob = (job: ServiceJob) => setServiceJobs([...serviceJobs, job]);
+  const updateServiceJob = (job: ServiceJob) => setServiceJobs(serviceJobs.map(j => j.id === job.id ? job : j));
+  const deleteServiceJob = (id: string) => setServiceJobs(serviceJobs.filter(j => j.id !== id));
+
+  // Banking
   const addBankTransaction = (tx: BankTransaction) => {
     setBankTransactions([tx, ...bankTransactions]);
     setBankAccounts(prev => prev.map(acc => {
@@ -226,6 +262,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setInvoices([newDoc, ...invoices]);
 
     if (type === 'invoice' || type === 'delivery') {
+       // Logic to deduct stock only if items are Products (not services)
        if (newDoc.warehouseId) {
          setProducts(prev => prev.map(p => {
            const item = items.find(i => i.id === p.id);
@@ -295,6 +332,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     }
 
+    // Logic for linking docs (same as before)
     if (type === 'delivery' && docData.linkedDocumentId) {
       setPurchases(prev => {
         const updatedPurchases = prev.map(p => {
@@ -306,7 +344,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return [newDoc, ...updatedPurchases];
       });
     } else if (type === 'order' && docData.linkedDocumentId) {
-        // Converting RFQ to Order
         setPurchases(prev => {
             const updatedPurchases = prev.map(p => {
               if (p.id === docData.linkedDocumentId) {
@@ -479,6 +516,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       bankTransactions, addBankTransaction, deleteBankTransaction,
       cashSessions, openCashSession, closeCashSession,
       cashTransactions, addCashTransaction,
+      // Services
+      technicians, addTechnician, updateTechnician, deleteTechnician,
+      serviceCatalog, addServiceItem, updateServiceItem, deleteServiceItem,
+      serviceJobs, addServiceJob, updateServiceJob, deleteServiceJob,
       settings, updateSettings,
       stats: { revenue, expenses, profit },
       chartData,

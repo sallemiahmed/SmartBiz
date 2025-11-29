@@ -15,7 +15,8 @@ import {
   Plus,
   Landmark,
   Wallet,
-  Calculator
+  Calculator,
+  Wrench
 } from 'lucide-react';
 import { AppView } from '../types';
 import { useApp } from '../context/AppContext';
@@ -115,6 +116,18 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'purchases-order', labelKey: 'supplier_order' },
         { id: 'purchases-delivery', labelKey: 'supplier_delivery', hasAction: true },
         { id: 'purchases-invoice', labelKey: 'supplier_invoice' },
+      ]
+    },
+    {
+      id: 'services',
+      labelKey: 'services',
+      icon: Wrench,
+      emoji: '🛠️',
+      subItems: [
+        { id: 'services-dashboard', labelKey: 'dashboard' },
+        { id: 'services-jobs', labelKey: 'job_cards', hasAction: true },
+        { id: 'services-catalog', labelKey: 'service_catalog' },
+        { id: 'services-technicians', labelKey: 'technicians' }
       ]
     },
     { 
