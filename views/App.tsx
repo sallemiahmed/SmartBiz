@@ -23,8 +23,12 @@ import SalesInvoices from './views/SalesInvoices';
 import SalesIssues from './views/SalesIssues';
 import RequestForQuotation from './views/RequestForQuotation';
 import InternalPurchaseRequest from './views/InternalPurchaseRequest';
-import Services from './views/Services'; // New Import
-import ServiceJobs from './views/ServiceJobs'; // New Import
+import Services from './views/Services';
+import ServiceJobs from './views/ServiceJobs';
+import ServiceDashboard from './views/ServiceDashboard'; 
+import ServiceCatalog from './views/ServiceCatalog'; 
+import ServiceSales from './views/ServiceSales'; // Import new component
+import Technicians from './views/Technicians'; 
 import Reports from './views/Reports';
 import Settings from './views/Settings';
 import BankManagement from './views/BankManagement'; 
@@ -73,16 +77,23 @@ function AppContent() {
 
   const renderView = () => {
     // --- Services Routing ---
+    if (currentView === 'services' || currentView === 'services-dashboard') {
+        return <ServiceDashboard />;
+    }
     if (currentView === 'services-jobs') {
         return <ServiceJobs onAddNew={() => handleNavigate('services-jobs-create' as AppView)} />;
     }
     if (currentView === 'services-jobs-create' as AppView) {
-        return <Services mode="create" />;
+        return <Services mode="create" onCancel={() => handleNavigate('services-jobs' as AppView)} />;
     }
-    if (currentView.startsWith('services')) {
-        const mode = currentView.replace('services-', '');
-        // if mode is just 'services', default to dashboard
-        return <Services mode={mode === 'services' ? undefined : mode} />;
+    if (currentView === 'services-catalog') {
+        return <ServiceCatalog />;
+    }
+    if (currentView === 'services-technicians') {
+        return <Technicians />;
+    }
+    if (currentView === 'services-sales') {
+        return <ServiceSales />;
     }
 
     // --- Specific Sales Lists Routing ---

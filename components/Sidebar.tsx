@@ -124,8 +124,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       icon: Wrench,
       emoji: '🛠️',
       subItems: [
-        { id: 'services-dashboard', labelKey: 'dashboard' },
+        { id: 'services-dashboard', labelKey: 'service_dashboard' },
         { id: 'services-jobs', labelKey: 'job_cards', hasAction: true },
+        { id: 'services-sales', labelKey: 'service_sales' }, 
         { id: 'services-catalog', labelKey: 'service_catalog' },
         { id: 'services-technicians', labelKey: 'technicians' }
       ]

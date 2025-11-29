@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Filter, CreditCard, Printer } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Filter, CreditCard, Printer, CheckCircle, Landmark, Wallet } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -10,12 +10,17 @@ interface PurchaseInvoicesProps {
 }
 
 const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, formatCurrency, settings, t } = useApp();
+  const { purchases, deletePurchase, formatCurrency, settings, t, recordDocPayment, bankAccounts, cashSessions } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDoc, setSelectedDoc] = useState<Purchase | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  // Payment State
+  const [paymentMethod, setPaymentMethod] = useState<'bank' | 'cash'>('bank');
+  const [selectedAccountId, setSelectedAccountId] = useState('');
 
   // Filter only purchase invoices
   const purchaseInvoices = purchases.filter(p => p.type === 'invoice');
@@ -39,6 +44,28 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
       case 'pending': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
     }
+  };
+
+  const handlePaymentSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!selectedDoc) return;
+      if (paymentMethod === 'bank' && !selectedAccountId) {
+          alert("Please select a bank account.");
+          return;
+      }
+      
+      if (paymentMethod === 'cash') {
+          const activeSession = cashSessions.find(s => s.status === 'open');
+          if (!activeSession) {
+              alert(t('register_closed') + ". Please open register first.");
+              return;
+          }
+      }
+
+      recordDocPayment('purchase', selectedDoc.id, selectedDoc.amount, selectedAccountId, paymentMethod);
+      setIsPaymentModalOpen(false);
+      setIsViewModalOpen(false);
+      alert(t('success'));
   };
 
   return (
@@ -157,6 +184,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
             </div>
             
             <div className="space-y-4">
+              {/* Existing Fields */}
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('supplier_management')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.supplierName}</span>
@@ -172,48 +200,16 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                 </span>
               </div>
 
-              {/* Payment & Conditions - Read Only */}
-              {(selectedDoc.paymentTerms || selectedDoc.paymentMethod || selectedDoc.notes) && (
-                <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
-                    <CreditCard className="w-4 h-4" /> Payment & Conditions
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {selectedDoc.paymentTerms && (
-                      <div>
-                        <span className="text-gray-500 block">Terms:</span>
-                        <span className="text-gray-900 dark:text-white">{selectedDoc.paymentTerms}</span>
-                      </div>
-                    )}
-                    {selectedDoc.paymentMethod && (
-                      <div>
-                        <span className="text-gray-500 block">Method:</span>
-                        <span className="text-gray-900 dark:text-white">{selectedDoc.paymentMethod}</span>
-                      </div>
-                    )}
-                  </div>
-                  {selectedDoc.notes && (
-                    <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                      <span className="text-gray-500 block">Notes:</span>
-                      <span className="text-gray-700 dark:text-gray-300 italic">{selectedDoc.notes}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              
+              {/* Items List */}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('received_items')}</h4>
                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                  {selectedDoc.items.length > 0 ? (
-                    selectedDoc.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
-                        <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">No items recorded</p>
-                  )}
+                  {selectedDoc.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
+                      <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -230,6 +226,14 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
               >
                 <Printer className="w-4 h-4" /> Print Invoice
               </button>
+              {selectedDoc.status !== 'completed' && (
+                  <button 
+                    onClick={() => setIsPaymentModalOpen(true)}
+                    className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" /> Pay Supplier
+                  </button>
+              )}
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -239,6 +243,66 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Payment Modal */}
+      {isPaymentModalOpen && selectedDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Record Supplier Payment</h3>
+                <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source of Funds</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod('bank')}
+                                className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-colors ${paymentMethod === 'bank' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
+                            >
+                                <Landmark className="w-5 h-5" />
+                                <span className="text-sm">Bank</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod('cash')}
+                                className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-colors ${paymentMethod === 'cash' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
+                            >
+                                <Wallet className="w-5 h-5" />
+                                <span className="text-sm">Cash</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {paymentMethod === 'bank' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Account</label>
+                            <select 
+                                required
+                                value={selectedAccountId}
+                                onChange={(e) => setSelectedAccountId(e.target.value)}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                            >
+                                <option value="">Select Account...</option>
+                                {bankAccounts.map(acc => (
+                                    <option key={acc.id} value={acc.id}>{acc.name} ({acc.bankName})</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-between mb-4 text-sm">
+                            <span className="text-gray-500">Amount to Pay:</span>
+                            <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(selectedDoc.amount)}</span>
+                        </div>
+                        <button type="submit" className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
+                            <CheckCircle className="w-4 h-4" /> Confirm Payment
+                        </button>
+                        <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="w-full mt-2 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                    </div>
+                </form>
+            </div>
+          </div>
       )}
     </div>
   );

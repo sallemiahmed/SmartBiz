@@ -6,7 +6,7 @@ export type AppView =
   | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
   | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-rfq-create' | 'purchases-pr-create'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
-  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-catalog' | 'services-technicians' | 'services-jobs-create'
+  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-catalog' | 'services-technicians' | 'services-jobs-create' | 'services-sales'
   | 'invoices'
   | 'banking' | 'banking-accounts' | 'banking-transactions'
   | 'cash_register'
@@ -75,7 +75,7 @@ export interface Invoice {
   date: string;
   dueDate?: string;
   amount: number;
-  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed';
+  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'sent';
   items: InvoiceItem[];
   warehouseId?: string;
   currency?: string;
@@ -229,6 +229,35 @@ export interface ServiceJob {
   estimatedCost: number;
   services: { serviceId: string; name: string; price: number }[];
   usedParts: { productId: string; name: string; quantity: number; price: number }[];
+}
+
+export interface ServiceSaleItem {
+  id: string;
+  serviceId?: string; // If linked to catalog
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface ServiceSale {
+  id: string;
+  reference: string;
+  date: string;
+  clientId: string;
+  clientName: string;
+  technicianId?: string;
+  technicianName?: string;
+  status: 'draft' | 'pending' | 'paid' | 'cancelled';
+  items: ServiceSaleItem[];
+  subtotal: number;
+  discountType: 'percent' | 'amount';
+  discountValue: number;
+  discountAmount: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  notes?: string;
 }
 
 export interface TaxRate {

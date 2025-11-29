@@ -22,12 +22,13 @@ interface PurchasesProps {
 }
 
 const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
-  const { products, suppliers, warehouses, purchases, createPurchaseDocument, formatCurrency, settings, t } = useApp();
+  const { products, suppliers, warehouses, purchases, createPurchaseDocument, formatCurrency, settings, t, addProduct } = useApp();
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
+  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastDocNumber, setLastDocNumber] = useState('');
   const [lastCreatedDoc, setLastCreatedDoc] = useState<Purchase | null>(null);
@@ -56,6 +57,15 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const defaultRate = settings.taxRates.find(r => r.isDefault)?.rate || 0;
   const [taxRate, setTaxRate] = useState<number>(defaultRate); 
   
+  // New Product Form State
+  const [newProductForm, setNewProductForm] = useState({
+    name: '',
+    sku: '',
+    category: 'General',
+    cost: '',
+    price: ''
+  });
+
   useEffect(() => {
     setCart([]);
     setSelectedSupplier('');
@@ -224,6 +234,30 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setShowCustomItemModal(false);
   };
 
+  const handleCreateProductSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cost = parseFloat(newProductForm.cost) || 0;
+    const price = parseFloat(newProductForm.price) || 0;
+    
+    const newProduct: Product = {
+        id: `p-${Date.now()}`,
+        name: newProductForm.name,
+        sku: newProductForm.sku || `SKU-${Date.now().toString().slice(-6)}`,
+        category: newProductForm.category,
+        cost: cost,
+        price: price,
+        stock: 0,
+        warehouseStock: {},
+        status: 'out_of_stock',
+        marginPercent: price > 0 ? ((price - cost) / price) * 100 : 0
+    };
+
+    addProduct(newProduct);
+    addToCart(newProduct);
+    setShowCreateProductModal(false);
+    setNewProductForm({ name: '', sku: '', category: 'General', cost: '', price: '' });
+  };
+
   const updateQuantity = (cartId: string, delta: number) => {
     setCart(prev => prev.map(item => {
       if (item.cartId === cartId) {
@@ -331,12 +365,20 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
               <ShoppingBag className="w-5 h-5 text-emerald-600" />
               {getPageTitle()} <span className="text-sm font-normal text-gray-400">| Catalog</span>
             </h2>
-            <button 
-              onClick={() => setShowCustomItemModal(true)}
-              className="text-sm px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors flex items-center gap-1 font-medium"
-            >
-              <Plus className="w-4 h-4" /> Non-Inventory Item
-            </button>
+            <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowCreateProductModal(true)}
+                  className="text-sm px-3 py-1.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1 font-medium"
+                >
+                  <Plus className="w-4 h-4" /> New Product
+                </button>
+                <button 
+                  onClick={() => setShowCustomItemModal(true)}
+                  className="text-sm px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors flex items-center gap-1 font-medium"
+                >
+                  <Plus className="w-4 h-4" /> Non-Inventory Item
+                </button>
+            </div>
           </div>
           
           <div className="flex gap-4">
@@ -413,6 +455,12 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-400">
                 <Package className="w-12 h-12 mb-2 opacity-50" />
                 <p>No items found</p>
+                <button 
+                  onClick={() => setShowCreateProductModal(true)}
+                  className="mt-4 text-sm text-indigo-600 hover:underline"
+                >
+                  Create new product?
+                </button>
               </div>
             )}
           </div>
@@ -705,6 +753,83 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       </div>
 
       {/* --- MODALS --- */}
+      {/* Create Product Modal */}
+      {showCreateProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">New Inventory Product</h3>
+              <button onClick={() => setShowCreateProductModal(false)}><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+            <form onSubmit={handleCreateProductSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
+                <input 
+                  autoFocus
+                  type="text" 
+                  value={newProductForm.name}
+                  onChange={(e) => setNewProductForm({...newProductForm, name: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
+                <input 
+                  type="text" 
+                  value={newProductForm.sku}
+                  onChange={(e) => setNewProductForm({...newProductForm, sku: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                  placeholder="Auto-generated if empty"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
+                <input 
+                  type="text" 
+                  value={newProductForm.category}
+                  onChange={(e) => setNewProductForm({...newProductForm, category: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                  list="categoriesList"
+                />
+                <datalist id="categoriesList">
+                    <option value="General" />
+                    <option value="Electronics" />
+                    <option value="Office Supplies" />
+                </datalist>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
+                    <input 
+                    type="number" 
+                    step="0.01"
+                    value={newProductForm.cost}
+                    onChange={(e) => setNewProductForm({...newProductForm, cost: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                    required 
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
+                    <input 
+                    type="number" 
+                    step="0.01"
+                    value={newProductForm.price}
+                    onChange={(e) => setNewProductForm({...newProductForm, price: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                    required 
+                    />
+                </div>
+              </div>
+              <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                Create & Add to Cart
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Custom Item Modal */}
       {showCustomItemModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

@@ -4,13 +4,13 @@ import {
   Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, 
   CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, 
   AppSettings, InvoiceItem, PurchaseDocumentType, SalesDocumentType,
-  Technician, ServiceItem, ServiceJob
+  Technician, ServiceItem, ServiceJob, ServiceSale
 } from '../types';
 import { 
   mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, 
   mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions, 
   mockWarehouses, mockStockTransfers, mockStockMovements,
-  mockTechnicians, mockServiceCatalog, mockServiceJobs
+  mockTechnicians, mockServiceCatalog, mockServiceJobs, mockServiceSales
 } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
@@ -67,6 +67,9 @@ interface AppContextType {
   cashTransactions: CashTransaction[];
   addCashTransaction: (transaction: CashTransaction) => void;
   
+  // New Financial Logic
+  recordDocPayment: (docType: 'invoice' | 'purchase', docId: string, amount: number, accountId: string, method: 'bank' | 'cash') => void;
+
   // Services Module
   technicians: Technician[];
   addTechnician: (tech: Technician) => void;
@@ -82,6 +85,11 @@ interface AppContextType {
   addServiceJob: (job: ServiceJob) => void;
   updateServiceJob: (job: ServiceJob) => void;
   deleteServiceJob: (id: string) => void;
+
+  serviceSales: ServiceSale[];
+  addServiceSale: (sale: ServiceSale) => void;
+  updateServiceSale: (sale: ServiceSale) => void;
+  deleteServiceSale: (id: string) => void;
 
   settings: AppSettings;
   updateSettings: (settings: AppSettings) => void;
@@ -120,6 +128,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
   const [serviceCatalog, setServiceCatalog] = useState<ServiceItem[]>(mockServiceCatalog);
   const [serviceJobs, setServiceJobs] = useState<ServiceJob[]>(mockServiceJobs);
+  const [serviceSales, setServiceSales] = useState<ServiceSale[]>(mockServiceSales);
 
   const [settings, setSettings] = useState<AppSettings>({
     companyName: 'SmartBiz Demo',
@@ -187,6 +196,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateServiceJob = (job: ServiceJob) => setServiceJobs(serviceJobs.map(j => j.id === job.id ? job : j));
   const deleteServiceJob = (id: string) => setServiceJobs(serviceJobs.filter(j => j.id !== id));
 
+  const addServiceSale = (sale: ServiceSale) => setServiceSales([...serviceSales, sale]);
+  const updateServiceSale = (sale: ServiceSale) => setServiceSales(serviceSales.map(s => s.id === sale.id ? sale : s));
+  const deleteServiceSale = (id: string) => setServiceSales(serviceSales.filter(s => s.id !== id));
+
   // Banking
   const addBankTransaction = (tx: BankTransaction) => {
     setBankTransactions([tx, ...bankTransactions]);
@@ -245,6 +258,63 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
   };
 
+  // --- Core Financial Logic: Record Payment ---
+  const recordDocPayment = (docType: 'invoice' | 'purchase', docId: string, amount: number, accountId: string, method: 'bank' | 'cash') => {
+    const description = `${docType === 'invoice' ? 'Payment Received' : 'Payment Sent'} - Ref: ${docId}`;
+    
+    // 1. Update Document Status
+    if (docType === 'invoice') {
+        setInvoices(prev => prev.map(inv => {
+            if (inv.id === docId) {
+                // If payment amount covers the total, mark paid, else could be partial (simplified to paid here)
+                return { ...inv, status: 'paid' };
+            }
+            return inv;
+        }));
+    } else {
+        setPurchases(prev => prev.map(pur => {
+            if (pur.id === docId) {
+                return { ...pur, status: 'completed' }; // or 'paid' if status supported
+            }
+            return pur;
+        }));
+    }
+
+    // 2. Create Transaction & Update Balance
+    if (method === 'bank') {
+        // Invoice = Deposit (Positive), Purchase = Payment (Negative)
+        const txAmount = docType === 'invoice' ? amount : -amount; 
+        
+        const newTx: BankTransaction = {
+            id: `tx-${Date.now()}`,
+            accountId: accountId,
+            date: new Date().toISOString().split('T')[0],
+            description: description,
+            amount: txAmount,
+            type: docType === 'invoice' ? 'deposit' : 'payment',
+            status: 'cleared'
+        };
+        addBankTransaction(newTx);
+    } else {
+        // Cash Logic
+        const activeSession = cashSessions.find(s => s.status === 'open');
+        if (activeSession) {
+            const txAmount = docType === 'invoice' ? amount : -amount; 
+            const newTx: CashTransaction = {
+                id: `ctx-${Date.now()}`,
+                sessionId: activeSession.id,
+                date: new Date().toISOString(),
+                type: docType === 'invoice' ? 'sale' : 'expense',
+                amount: txAmount,
+                description: description
+            };
+            addCashTransaction(newTx);
+        } else {
+            alert(t('register_closed') + " - " + t('open_register') + " " + t('first'));
+        }
+    }
+  };
+
   const createSalesDocument = (type: SalesDocumentType, docData: Partial<Invoice>, items: InvoiceItem[]): Invoice => {
     const newDoc: Invoice = {
       ...docData,
@@ -262,10 +332,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setInvoices([newDoc, ...invoices]);
 
     if (type === 'invoice' || type === 'delivery') {
-       // Logic to deduct stock only if items are Products (not services)
+       // Logic to deduct stock only if items are Products (check by finding in product list)
        if (newDoc.warehouseId) {
          setProducts(prev => prev.map(p => {
            const item = items.find(i => i.id === p.id);
+           // Only deduct if item exists in inventory (skips services or custom non-inventory items)
            if (item) {
              const newStock = p.stock - item.quantity;
              const whStock = { ...p.warehouseStock };
@@ -332,7 +403,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     }
 
-    // Logic for linking docs (same as before)
+    // Logic for linking docs
     if (type === 'delivery' && docData.linkedDocumentId) {
       setPurchases(prev => {
         const updatedPurchases = prev.map(p => {
@@ -516,10 +587,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       bankTransactions, addBankTransaction, deleteBankTransaction,
       cashSessions, openCashSession, closeCashSession,
       cashTransactions, addCashTransaction,
+      recordDocPayment, // Export the new function
       // Services
       technicians, addTechnician, updateTechnician, deleteTechnician,
       serviceCatalog, addServiceItem, updateServiceItem, deleteServiceItem,
       serviceJobs, addServiceJob, updateServiceJob, deleteServiceJob,
+      serviceSales, addServiceSale, updateServiceSale, deleteServiceSale,
       settings, updateSettings,
       stats: { revenue, expenses, profit },
       chartData,
