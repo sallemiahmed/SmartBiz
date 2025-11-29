@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, ClipboardCheck, ArrowRightCircle, ShoppingCart, FileText } from 'lucide-react';
-import { Invoice, SalesDocumentType } from '../types';
+import { Search, Plus, Eye, Trash2, X, FileText } from 'lucide-react';
+import { Invoice } from '../types';
 import { useApp } from '../context/AppContext';
 
 interface SalesEstimatesProps {
@@ -8,7 +9,7 @@ interface SalesEstimatesProps {
 }
 
 const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, createSalesDocument, updateInvoice, t } = useApp();
+  const { invoices, deleteInvoice, t, formatCurrency } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -17,37 +18,16 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
   const estimates = invoices.filter(inv => inv.type === 'estimate');
 
   const filteredDocs = estimates.filter(doc => {
-    const matchesSearch = 
-      doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  const handleConvert = (targetType: SalesDocumentType) => {
-    if (!selectedDoc) return;
-
-    // Create the new document based on the estimate
-    createSalesDocument(targetType, {
-      clientId: selectedDoc.clientId,
-      clientName: selectedDoc.clientName,
-      date: new Date().toISOString().split('T')[0],
-      dueDate: selectedDoc.dueDate,
-      amount: selectedDoc.amount,
-      status: targetType === 'order' ? 'pending' : 'pending', // Default status for new doc
-    }, selectedDoc.items);
-
-    // Mark the estimate as completed/converted
-    updateInvoice({ ...selectedDoc, status: 'completed' });
-    
-    setIsViewModalOpen(false);
-  };
 
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('estimates_quotes')} 📋</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('estimates_desc')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('estimate')} 📋</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage quotes and estimates</p>
         </div>
         <button 
           onClick={onAddNew}
@@ -64,7 +44,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder={t('search_estimates')} 
+              placeholder={t('search_estimates')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
@@ -79,7 +59,6 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                 <th className="px-6 py-4">{t('ref_num')}</th>
                 <th className="px-6 py-4">{t('client')}</th>
                 <th className="px-6 py-4">{t('date')}</th>
-                <th className="px-6 py-4">{t('valid_until')}</th>
                 <th className="px-6 py-4">{t('amount')}</th>
                 <th className="px-6 py-4">{t('status')}</th>
                 <th className="px-6 py-4 text-right">{t('actions')}</th>
@@ -91,14 +70,11 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
-                  <td className="px-6 py-4 text-gray-500">{doc.dueDate}</td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">${doc.amount.toLocaleString()}</td>
+                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      doc.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
-                    }`}>
-                      {t(doc.status)}
-                    </span>
+                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                       {t(doc.status)}
+                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -124,14 +100,13 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
           </table>
           {filteredDocs.length === 0 && (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-              <ClipboardCheck className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
               <p>{t('no_documents')}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* View Modal */}
       {isViewModalOpen && selectedDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
@@ -149,7 +124,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.clientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('issued_date')}</span>
+                <span className="text-gray-500">{t('date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
               
@@ -160,7 +135,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                     selectedDoc.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
-                        <span className="text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
                       </div>
                     ))
                   ) : (
@@ -169,31 +144,37 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                 </div>
               </div>
 
-              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
+              {selectedDoc.subtotal !== undefined && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-1">
+                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                    <span>{t('subtotal')}</span>
+                    <span>{formatCurrency(selectedDoc.subtotal)}</span>
+                  </div>
+                  {selectedDoc.discount && selectedDoc.discount > 0 && (
+                    <div className="flex justify-between text-sm text-red-500">
+                      <span>
+                        {t('discount')} 
+                        {selectedDoc.discountType === 'percent' ? ` (${selectedDoc.discountValue}%)` : ''}
+                      </span>
+                      <span>-{formatCurrency(selectedDoc.discount)}</span>
+                    </div>
+                  )}
+                  {selectedDoc.amount - (selectedDoc.subtotal - (selectedDoc.discount || 0)) > 0 && (
+                     <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                        <span>{t('tax')}</span>
+                        <span>{formatCurrency(selectedDoc.amount - (selectedDoc.subtotal - (selectedDoc.discount || 0)))}</span>
+                     </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2 font-bold text-lg">
                 <span className="text-gray-900 dark:text-white">{t('total')}</span>
-                <span className="text-blue-600 dark:text-blue-400">${selectedDoc.amount.toLocaleString()}</span>
+                <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedDoc.amount)}</span>
               </div>
             </div>
 
-            {/* Conversion Actions */}
-            {selectedDoc.status !== 'completed' && (
-              <div className="mt-6 grid grid-cols-2 gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button 
-                  onClick={() => handleConvert('order')}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
-                >
-                  <ShoppingCart className="w-4 h-4" /> {t('convert_to_order')}
-                </button>
-                <button 
-                  onClick={() => handleConvert('invoice')}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
-                >
-                  <FileText className="w-4 h-4" /> {t('convert_to_invoice')}
-                </button>
-              </div>
-            )}
-
-            <div className="mt-4 flex justify-end">
+            <div className="mt-6 flex justify-end">
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"

@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, ShoppingCart, Plus, Trash2, User, CreditCard, 
-  X, Minus, Package, ChevronRight, CheckCircle, Printer, Building, FilePenLine, RefreshCcw
+  Package, Search, Plus, ShoppingCart, Building, User, ChevronRight, RefreshCcw, 
+  Trash2, Minus, FilePenLine, CreditCard, Printer, CheckCircle, X
 } from 'lucide-react';
-import { Product, SalesDocumentType, Invoice } from '../types';
 import { useApp } from '../context/AppContext';
+import { Product, InvoiceItem, SalesDocumentType } from '../types';
 import { printInvoice } from '../utils/printGenerator';
 
 interface CartItem extends Product {
@@ -20,20 +20,23 @@ interface SalesProps {
 
 const Sales: React.FC<SalesProps> = ({ mode }) => {
   const { products, clients, warehouses, createSalesDocument, formatCurrency, settings, t } = useApp();
-
+  
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastDocNumber, setLastDocNumber] = useState('');
-  const [lastCreatedDoc, setLastCreatedDoc] = useState<Invoice | null>(null);
-  
+  const [lastCreatedDoc, setLastCreatedDoc] = useState<any>(null);
+
   // Transaction State
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
-  const [discount, setDiscount] = useState<number>(0);
+  
+  // Discount State
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
   
   // Currency State
   const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
@@ -52,7 +55,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   useEffect(() => {
     setCart([]);
     setSelectedClient('');
-    setDiscount(0);
+    setDiscountValue(0);
+    setDiscountType('percent');
     setTaxRate(defaultRate);
     setPaymentTerms('Due on Receipt');
     setPaymentMethod('Bank Transfer');
@@ -109,13 +113,19 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
 
   // Calculations
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const taxAmount = subtotal * (taxRate / 100);
-  const discountAmount = subtotal * (discount / 100);
+  
+  // Calculate Discount Amount based on type
+  const discountAmount = discountType === 'percent' 
+    ? subtotal * (discountValue / 100)
+    : discountValue;
+
+  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const taxAmount = taxableAmount * (taxRate / 100);
   
   // Fiscal Stamp Logic
   const fiscalStampAmount = (mode === 'invoice' && settings.enableFiscalStamp) ? settings.fiscalStampValue : 0;
 
-  const total = subtotal + taxAmount - discountAmount + fiscalStampAmount;
+  const total = taxableAmount + taxAmount + fiscalStampAmount;
 
   // Handlers
   const addToCart = (product: Product) => {
@@ -231,6 +241,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       taxRate: taxRate,
       subtotal: subtotal,
       discount: discountAmount,
+      discountValue: discountValue,
+      discountType: discountType,
       fiscalStamp: fiscalStampAmount
     }, invoiceItems);
 
@@ -248,7 +260,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   const resetSale = () => {
     setCart([]);
     setSelectedClient('');
-    setDiscount(0);
+    setDiscountValue(0);
     setNotes('');
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
@@ -261,7 +273,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       
       {/* LEFT COLUMN: PRODUCT CATALOG */}
       <div className="flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 dark:border-gray-700">
-        {/* Header / Search */}
         <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -298,12 +309,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           </div>
         </div>
 
-        {/* Product Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map(product => {
               const stockInSelected = product.warehouseStock?.[selectedWarehouse] || 0;
-              // Calculate display price based on selected currency
               const displayPrice = selectedCurrency !== settings.currency 
                 ? product.price / exchangeRate 
                 : product.price;
@@ -350,7 +359,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
 
       {/* RIGHT COLUMN: CART / CHECKOUT */}
       <div className="w-full lg:w-96 bg-white dark:bg-gray-800 shadow-xl flex flex-col h-[40vh] lg:h-full z-20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
-        {/* Cart Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -362,7 +370,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             </span>
           </div>
           
-          {/* Warehouse Select */}
           <div className="relative">
             <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select
@@ -377,7 +384,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
           </div>
 
-          {/* Customer Select */}
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select
@@ -393,7 +399,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
           </div>
 
-          {/* Currency Selection */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <RefreshCcw className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
@@ -425,7 +430,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           </div>
         </div>
 
-        {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
@@ -479,7 +483,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           )}
         </div>
 
-        {/* Payment & Conditions - New Section */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -523,7 +526,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           </div>
         </div>
 
-        {/* Totals Section */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 space-y-3">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
@@ -538,12 +540,18 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   <input 
                     type="number" 
                     min="0" 
-                    max="100" 
-                    value={discount} 
-                    onChange={(e) => setDiscount(Number(e.target.value))}
-                    className="w-10 px-1 py-0.5 text-center text-xs bg-transparent outline-none dark:text-white" 
+                    value={discountValue} 
+                    onChange={(e) => setDiscountValue(Number(e.target.value))}
+                    className="w-14 px-1 py-0.5 text-center text-xs bg-transparent outline-none dark:text-white" 
                   />
-                  <span className="text-xs px-1 text-gray-400">%</span>
+                  <select
+                    value={discountType}
+                    onChange={(e) => setDiscountType(e.target.value as any)}
+                    className="px-1 py-0.5 text-xs bg-transparent border-l border-gray-200 dark:border-gray-700 outline-none cursor-pointer dark:text-white"
+                  >
+                    <option value="percent">%</option>
+                    <option value="amount">{settings.currency}</option>
+                  </select>
                 </div>
               </span>
               <span className="text-red-500">-{formatCurrency(discountAmount, selectedCurrency)}</span>
@@ -572,7 +580,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               <span>{formatCurrency(taxAmount, selectedCurrency)}</span>
             </div>
 
-            {/* Fiscal Stamp Display */}
             {mode === 'invoice' && settings.enableFiscalStamp && (
               <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Fiscal Stamp</span>
@@ -605,8 +612,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
         </div>
       </div>
 
-      {/* --- MODALS --- */}
-      {/* Custom Item Modal */}
       {showCustomItemModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6">
@@ -647,7 +652,6 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
         </div>
       )}
 
-      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 text-center">
