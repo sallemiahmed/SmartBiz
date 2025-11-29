@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer, Truck, CheckCircle } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer, Truck, CheckCircle, Receipt } from 'lucide-react';
 import { Purchase, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -44,6 +44,29 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
     if (selectedOrder) {
       printInvoice(selectedOrder, settings);
     }
+  };
+
+  const handleGenerateInvoice = () => {
+    if (!selectedOrder) return;
+
+    createPurchaseDocument('invoice', {
+      supplierId: selectedOrder.supplierId,
+      supplierName: selectedOrder.supplierName,
+      date: new Date().toISOString().split('T')[0],
+      amount: selectedOrder.amount,
+      currency: selectedOrder.currency,
+      exchangeRate: selectedOrder.exchangeRate,
+      warehouseId: selectedOrder.warehouseId,
+      paymentTerms: selectedOrder.paymentTerms,
+      paymentMethod: selectedOrder.paymentMethod,
+      notes: `Invoice generated from PO ${selectedOrder.number}. \n${selectedOrder.notes || ''}`,
+      taxRate: selectedOrder.taxRate,
+      subtotal: selectedOrder.subtotal,
+      linkedDocumentId: selectedOrder.id
+    }, selectedOrder.items);
+
+    setIsViewModalOpen(false);
+    alert(t('success'));
   };
 
   const handleOpenReceiveModal = () => {
@@ -323,6 +346,14 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                 <Printer className="w-4 h-4" /> Print Order
               </button>
               
+              <button
+                onClick={handleGenerateInvoice}
+                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Receipt className="w-4 h-4" />
+                {t('generate_invoice')}
+              </button>
+
               {selectedOrder.status !== 'received' && (
                 <button
                   onClick={handleOpenReceiveModal}
