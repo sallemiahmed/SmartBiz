@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, 
@@ -30,6 +29,7 @@ interface AppContextType {
   
   invoices: Invoice[];
   createSalesDocument: (type: SalesDocumentType, docData: Partial<Invoice>, items: InvoiceItem[]) => Invoice;
+  updateInvoice: (invoice: Invoice) => void;
   deleteInvoice: (id: string) => void;
   
   purchases: Purchase[];
@@ -247,6 +247,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return newDoc;
   };
 
+  const updateInvoice = (updatedInvoice: Invoice) => {
+    setInvoices(prev => prev.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv));
+  };
+
   const deleteInvoice = (id: string) => setInvoices(invoices.filter(i => i.id !== id));
 
   // --- Purchase Logic ---
@@ -414,7 +418,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       clients, addClient, updateClient, deleteClient,
       suppliers, addSupplier, updateSupplier, deleteSupplier,
       products, addProduct, updateProduct, deleteProduct,
-      invoices, createSalesDocument, deleteInvoice,
+      invoices, createSalesDocument, updateInvoice, deleteInvoice,
       purchases, createPurchaseDocument, deletePurchase,
       warehouses, addWarehouse, updateWarehouse, deleteWarehouse,
       stockMovements, addStockMovement,

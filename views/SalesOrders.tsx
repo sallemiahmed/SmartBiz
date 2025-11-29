@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
@@ -9,7 +8,7 @@ interface SalesOrdersProps {
 }
 
 const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, t, formatCurrency, createSalesDocument } = useApp();
+  const { invoices, deleteInvoice, t, formatCurrency, createSalesDocument, updateInvoice } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Invoice | null>(null);
@@ -70,13 +69,32 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       return;
     }
 
+    // 1. Create the Delivery Document
     createSalesDocument('delivery', {
       clientId: selectedOrder.clientId,
       clientName: selectedOrder.clientName,
       warehouseId: selectedOrder.warehouseId,
-      linkedDocumentId: selectedOrder.id,
+      linkedDocumentId: selectedOrder.id, // Ensure link
       notes: `Delivery for Order ${selectedOrder.number}`
     }, itemsToDeliver);
+
+    // 2. Update the Source Order (Traceability & Fulfillment)
+    const updatedItems = selectedOrder.items.map(item => {
+      const deliveredNow = deliveryQuantities[item.id] || 0;
+      return {
+        ...item,
+        fulfilledQuantity: (item.fulfilledQuantity || 0) + deliveredNow
+      };
+    });
+
+    // Check if order is fully completed
+    const isFullyCompleted = updatedItems.every(item => (item.fulfilledQuantity || 0) >= item.quantity);
+
+    updateInvoice({
+      ...selectedOrder,
+      items: updatedItems,
+      status: isFullyCompleted ? 'completed' : 'pending'
+    });
 
     setIsDeliveryModalOpen(false);
     setSelectedOrder(null);
@@ -104,7 +122,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       discountValue: selectedOrder.discountValue,
       discountType: selectedOrder.discountType,
       fiscalStamp: selectedOrder.fiscalStamp,
-      linkedDocumentId: selectedOrder.id
+      linkedDocumentId: selectedOrder.id // Ensure link
     }, selectedOrder.items);
 
     setIsViewModalOpen(false);

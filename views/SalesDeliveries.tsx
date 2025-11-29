@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, Truck } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, Truck, Link } from 'lucide-react';
 import { Invoice } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -20,6 +20,12 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
     return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
            doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  const getLinkedOrderRef = (doc: Invoice) => {
+    if (!doc.linkedDocumentId) return null;
+    const linkedOrder = invoices.find(i => i.id === doc.linkedDocumentId);
+    return linkedOrder ? linkedOrder.number : doc.linkedDocumentId;
+  };
 
   return (
     <div className="p-6">
@@ -127,6 +133,17 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
                 <span className="text-gray-500">{t('shipped_date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
+              
+              {selectedDoc.linkedDocumentId && (
+                <div className="flex justify-between items-center bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-lg">
+                  <span className="text-indigo-600 dark:text-indigo-400 text-sm flex items-center gap-1">
+                    <Link className="w-3 h-3" /> Linked Order
+                  </span>
+                  <span className="font-medium text-indigo-700 dark:text-indigo-300 font-mono text-sm">
+                    {getLinkedOrderRef(selectedDoc)}
+                  </span>
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('shipped_items')}</h4>
