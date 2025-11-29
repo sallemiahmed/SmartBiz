@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign, RefreshCcw
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign, RefreshCcw, ArrowDownCircle
 } from 'lucide-react';
 import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
@@ -20,7 +20,7 @@ interface PurchasesProps {
 }
 
 const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
-  const { products, suppliers, warehouses, createPurchaseDocument, formatCurrency, settings, t } = useApp();
+  const { products, suppliers, warehouses, purchases, createPurchaseDocument, formatCurrency, settings, t } = useApp();
 
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +34,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const [cart, setCart] = useState<POItem[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
+  const [linkedOrderId, setLinkedOrderId] = useState<string>('');
   
   // Currency State
   const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
@@ -52,6 +53,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   useEffect(() => {
     setCart([]);
     setSelectedSupplier('');
+    setLinkedOrderId('');
     setTaxRate(defaultRate);
     setPaymentTerms('Due on Receipt');
     setPaymentMethod('Bank Transfer');
@@ -88,6 +90,56 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     }
   };
   
+  // Pending Orders for GRN
+  const pendingOrders = mode === 'delivery' 
+    ? purchases.filter(p => p.type === 'order' && p.status === 'pending')
+    : [];
+
+  const handleOrderSelect = (orderId: string) => {
+    setLinkedOrderId(orderId);
+    const order = purchases.find(p => p.id === orderId);
+    if (order) {
+      setSelectedSupplier(order.supplierId);
+      if (order.warehouseId) setSelectedWarehouse(order.warehouseId);
+      setNotes(`Received against PO: ${order.number}`);
+      
+      // Populate Cart
+      const newCart: POItem[] = order.items.map(item => {
+        const product = products.find(p => p.id === item.id);
+        if (product) {
+          return {
+            ...product,
+            cartId: `${product.id}-${Date.now()}`,
+            quantity: item.quantity,
+            unitCost: item.price
+          };
+        } else {
+          // Handle non-inventory items if necessary
+          return {
+            id: item.id,
+            sku: 'N/A',
+            name: item.description,
+            category: 'General',
+            stock: 0,
+            warehouseStock: {},
+            price: 0,
+            cost: item.price,
+            status: 'in_stock',
+            cartId: `${item.id}-${Date.now()}`,
+            quantity: item.quantity,
+            unitCost: item.price
+          } as POItem;
+        }
+      });
+      setCart(newCart);
+    } else {
+      // Clear selection
+      setCart([]);
+      setSelectedSupplier('');
+      setNotes('');
+    }
+  };
+
   // Custom Item Form State
   const [customItem, setCustomItem] = useState({ name: '', cost: '' });
 
@@ -211,13 +263,14 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       currency: selectedCurrency,
       exchangeRate: exchangeRate,
       additionalCosts: additionalCosts,
-      status: mode === 'order' ? 'pending' : 'completed',
+      status: mode === 'order' ? 'pending' : 'completed', // GRN and Invoice are completed immediately here
       warehouseId: selectedWarehouse,
       paymentTerms,
       paymentMethod,
       notes,
       taxRate: taxRate,
-      subtotal: subtotal
+      subtotal: subtotal,
+      linkedDocumentId: linkedOrderId || undefined
     }, purchaseItems);
 
     setLastCreatedDoc(createdDoc);
@@ -234,6 +287,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const resetForm = () => {
     setCart([]);
     setSelectedSupplier('');
+    setLinkedOrderId('');
     setNotes('');
     setAdditionalCosts(0);
     setLastCreatedDoc(null);
@@ -355,6 +409,24 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
               {cart.reduce((acc, item) => acc + item.quantity, 0)} Items
             </span>
           </div>
+
+          {/* Pending Order Selector (Only for Deliveries) */}
+          {mode === 'delivery' && (
+            <div className="relative">
+              <ArrowDownCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+              <select
+                value={linkedOrderId}
+                onChange={(e) => handleOrderSelect(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="">-- Select Pending Order (Optional) --</option>
+                {pendingOrders.map(p => (
+                  <option key={p.id} value={p.id}>{p.number} - {p.supplierName} ({formatCurrency(p.amount)})</option>
+                ))}
+              </select>
+              <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 pointer-events-none rotate-90" />
+            </div>
+          )}
           
           {/* Warehouse Select */}
           <div className="relative">
@@ -377,7 +449,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             <select
               value={selectedSupplier}
               onChange={(e) => setSelectedSupplier(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border ${!selectedSupplier ? 'border-amber-300 dark:border-amber-700' : 'border-gray-200 dark:border-gray-700'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white appearance-none cursor-pointer`}
+              disabled={!!linkedOrderId} // Disable if linked to an order to prevent mismatch
+              className={`w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border ${!selectedSupplier ? 'border-amber-300 dark:border-amber-700' : 'border-gray-200 dark:border-gray-700'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white appearance-none cursor-pointer disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed`}
             >
               <option value="">Select Supplier...</option>
               {suppliers.map(s => (
@@ -564,7 +637,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             </div>
             
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
-              <span className="font-bold text-gray-900 dark:text-white">Total Cost</span>
+              <span className="font-bold text-gray-900 dark:text-white">Total Amount</span>
               <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(total, selectedCurrency)}</span>
             </div>
           </div>

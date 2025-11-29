@@ -1,70 +1,28 @@
 
-export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue' | 'return' | 'credit';
-export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice' | 'grn';
-export type DocumentType = SalesDocumentType | PurchaseDocumentType;
-
-export type AppView = 
-  | 'dashboard' | 'clients' | 'suppliers' | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
+export type AppView =
+  | 'dashboard'
+  | 'clients'
+  | 'suppliers'
+  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
   | 'purchases' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
-  | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
-  | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
+  | 'invoices'
+  | 'banking' | 'banking-accounts' | 'banking-transactions'
+  | 'cash_register'
+  | 'cost_analysis'
+  | 'reports'
+  | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
+
+export type PurchaseDocumentType = 'order' | 'delivery' | 'invoice' | 'grn';
+export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue' | 'credit';
 
 export interface InvoiceItem {
   id: string;
   description: string;
   quantity: number;
   price: number;
+  fulfilledQuantity?: number;
   historicalCost?: number;
-  fulfilledQuantity?: number; // Added for partial delivery tracking
-}
-
-export interface Invoice {
-  id: string;
-  number: string;
-  type: SalesDocumentType;
-  clientId: string;
-  clientName: string;
-  date: string; // ISO date
-  dueDate?: string; // ISO date
-  amount: number; // Total in Transaction Currency
-  currency?: string; // Transaction Currency Code (e.g. USD)
-  exchangeRate?: number; // Rate to Base Currency (e.g. 3.1)
-  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'completed';
-  items: InvoiceItem[];
-  warehouseId?: string;
-  paymentTerms?: string;
-  paymentMethod?: string;
-  notes?: string;
-  taxRate?: number;
-  subtotal?: number;
-  discount?: number; // The calculated amount to subtract
-  discountValue?: number; // The raw input value (e.g. 10)
-  discountType?: 'percent' | 'amount'; // The type of discount
-  fiscalStamp?: number;
-  linkedDocumentId?: string;
-  salespersonName?: string;
-}
-
-export interface Purchase {
-  id: string;
-  number: string;
-  type: PurchaseDocumentType;
-  supplierId: string;
-  supplierName: string;
-  date: string;
-  amount: number;
-  currency?: string;
-  exchangeRate?: number;
-  additionalCosts?: number;
-  status: 'pending' | 'completed' | 'received';
-  items: InvoiceItem[];
-  warehouseId?: string;
-  paymentTerms?: string;
-  paymentMethod?: string;
-  notes?: string;
-  taxRate?: number;
-  subtotal?: number;
 }
 
 export interface Client {
@@ -103,43 +61,57 @@ export interface Product {
   price: number;
   cost: number;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
-  marginPercent?: number; 
+  description?: string;
+  marginPercent: number; // Added for CostAnalysis
 }
 
-export interface Warehouse {
+export interface Invoice {
   id: string;
-  name: string;
-  location: string;
-  isDefault?: boolean;
-}
-
-export interface StockMovement {
-  id: string;
-  productId: string;
-  productName: string;
-  warehouseId: string;
-  warehouseName: string;
-  relatedWarehouseName?: string; 
+  number: string;
+  type: SalesDocumentType;
+  clientId: string;
+  clientName: string;
   date: string;
-  quantity: number;
-  type: 'initial' | 'sale' | 'purchase' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return';
-  reference?: string;
+  dueDate?: string;
+  amount: number;
+  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed';
+  items: InvoiceItem[];
+  warehouseId?: string;
+  currency?: string;
+  exchangeRate?: number;
+  subtotal?: number;
+  discount?: number;
+  discountValue?: number;
+  discountType?: 'percent' | 'amount';
+  taxRate?: number;
+  fiscalStamp?: number;
+  paymentTerms?: string;
+  paymentMethod?: string;
   notes?: string;
-  unitCost?: number;
-  costBefore?: number;
-  costAfter?: number;
+  salespersonName?: string;
+  linkedDocumentId?: string;
 }
 
-export interface StockTransfer {
+export interface Purchase {
   id: string;
+  number: string;
+  type: PurchaseDocumentType;
+  supplierId: string;
+  supplierName: string;
   date: string;
-  productId: string;
-  productName: string;
-  fromWarehouseId: string;
-  toWarehouseId: string;
-  quantity: number;
-  reference?: string;
+  amount: number;
+  currency?: string;
+  exchangeRate?: number;
+  additionalCosts?: number;
+  status: 'pending' | 'completed' | 'received';
+  items: InvoiceItem[];
+  warehouseId?: string;
+  paymentTerms?: string;
+  paymentMethod?: string;
   notes?: string;
+  taxRate?: number;
+  subtotal?: number;
+  linkedDocumentId?: string;
 }
 
 export interface BankAccount {
@@ -159,7 +131,7 @@ export interface BankTransaction {
   description: string;
   amount: number;
   type: 'deposit' | 'withdrawal' | 'payment' | 'transfer' | 'fee';
-  status: 'pending' | 'cleared' | 'reconciled';
+  status: 'cleared' | 'pending' | 'reconciled';
 }
 
 export interface CashSession {
@@ -182,6 +154,42 @@ export interface CashTransaction {
   description: string;
 }
 
+export interface Warehouse {
+  id: string;
+  name: string;
+  location: string;
+  isDefault?: boolean;
+}
+
+export interface StockTransfer {
+  id: string;
+  productId: string;
+  productName: string;
+  fromWarehouseId: string;
+  toWarehouseId: string;
+  quantity: number;
+  date: string;
+  reference?: string;
+  notes?: string;
+}
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  warehouseName: string;
+  date: string;
+  quantity: number;
+  type: 'initial' | 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return';
+  reference?: string;
+  notes?: string;
+  unitCost?: number;
+  costBefore?: number;
+  costAfter?: number;
+  relatedWarehouseName?: string;
+}
+
 export interface TaxRate {
   id: string;
   name: string;
@@ -202,12 +210,12 @@ export interface AppSettings {
   companyEmail: string;
   companyPhone: string;
   companyAddress: string;
-  companyVatId?: string;
   companyLogo?: string;
+  companyVatId?: string;
   currency: string;
   language: string;
   timezone: string;
-  geminiApiKey?: string;
+  geminiApiKey: string;
   enableFiscalStamp: boolean;
   fiscalStampValue: number;
   taxRates: TaxRate[];
