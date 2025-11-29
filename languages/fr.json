@@ -189,8 +189,6 @@
     "inventory_stock_report": "Inventaire et Stock",
     "financials_report": "Finances",
     "rep_sales_customer": "Ventes par Client",
-    "rep_sales_customer_detailed": "Analyse Client Détaillée",
-    "rep_sales_product_detailed": "Analyse Produit Détaillée",
     "rep_sales_vat": "TVA sur Ventes",
     "rep_cust_trans": "Transactions Client",
     "rep_supp_purch": "Achats par Fournisseur",
@@ -292,6 +290,7 @@
     "opened_at": "Ouvert le",
     "closed_at": "Fermé le",
     "movement_log": "Mouvements",
+    "reason": "Motif",
     "search": "Rechercher...",
     "new": "Nouveau",
     "view_details": "Voir détails",
@@ -371,5 +370,9 @@
     "send_email": "Envoyer",
     "sending": "Envoi en cours...",
     "email_sent_success": "Email envoyé avec succès !",
-    "attach_pdf": "Facture PDF jointe"
+    "attach_pdf": "Facture PDF jointe",
+    "remaining_qty": "Reste à livrer",
+    "create_invoice_from_selected": "Créer facture pour la sélection",
+    "error_mixed_clients": "Impossible de combiner les commandes de différents clients.",
+    "error_mixed_currencies": "Impossible de combiner des devises différentes."
 }

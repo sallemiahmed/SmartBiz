@@ -292,6 +292,7 @@
     "opened_at": "Opened At",
     "closed_at": "Closed At",
     "movement_log": "Movement Log",
+    "reason": "Reason",
     "search": "Search...",
     "new": "New",
     "view_details": "View Details",
@@ -342,6 +343,7 @@
     "to": "To",
     "products_list": "Products List",
     "product": "Product",
+    "quantity": "Quantity",
     "notes": "Notes",
     "transfer_reason": "Reason for transfer",
     "confirm_transfer": "Confirm Transfer",
@@ -370,5 +372,9 @@
     "send_email": "Send Email",
     "sending": "Sending...",
     "email_sent_success": "Email sent successfully!",
-    "attach_pdf": "Invoice PDF attached"
+    "attach_pdf": "Invoice PDF attached",
+    "remaining_qty": "Remaining Qty",
+    "create_invoice_from_selected": "Create invoice from selection",
+    "error_mixed_clients": "Cannot merge orders from different clients.",
+    "error_mixed_currencies": "Cannot merge orders with different currencies."
 }

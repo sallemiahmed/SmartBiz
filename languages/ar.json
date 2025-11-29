@@ -372,5 +372,9 @@
     "send_email": "إرسال البريد",
     "sending": "جاري الإرسال...",
     "email_sent_success": "تم إرسال البريد بنجاح!",
-    "attach_pdf": "تم إرفاق ملف PDF"
+    "attach_pdf": "تم إرفاق ملف PDF",
+    "remaining_qty": "الكمية المتبقية",
+    "create_invoice_from_selected": "إنشاء فاتورة من المحدد",
+    "error_mixed_clients": "لا يمكن دمج طلبات من عملاء مختلفين.",
+    "error_mixed_currencies": "لا يمكن دمج طلبات بعملات مختلفة."
 }

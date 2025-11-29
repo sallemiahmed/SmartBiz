@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -15,6 +15,9 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [deliveryQuantities, setDeliveryQuantities] = useState<Record<string, number>>({});
+  
+  // Bulk Actions State
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
 
   const orders = invoices.filter(inv => inv.type === 'order');
 
@@ -22,6 +25,94 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
            doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // --- Bulk Selection Handlers ---
+
+  const toggleSelectOrder = (id: string) => {
+    setSelectedOrderIds(prev => 
+      prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedOrderIds(filteredOrders.map(o => o.id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleBulkInvoice = () => {
+    if (selectedOrderIds.length === 0) return;
+
+    // Get full order objects
+    const selectedOrdersList = orders.filter(o => selectedOrderIds.includes(o.id));
+    
+    if (selectedOrdersList.length === 0) return;
+
+    // Validation 1: Same Client
+    const firstClient = selectedOrdersList[0].clientId;
+    if (selectedOrdersList.some(o => o.clientId !== firstClient)) {
+        alert(t('error_mixed_clients'));
+        return;
+    }
+
+    // Validation 2: Same Currency
+    const firstCurrency = selectedOrdersList[0].currency;
+    if (selectedOrdersList.some(o => o.currency !== firstCurrency)) {
+        alert(t('error_mixed_currencies'));
+        return;
+    }
+
+    // Aggregate Items
+    let aggregatedItems: InvoiceItem[] = [];
+    selectedOrdersList.forEach(order => {
+        aggregatedItems = [...aggregatedItems, ...order.items];
+    });
+
+    // Calculate Totals (simplified, usually recalculate tax per item line or total)
+    const totalAmount = selectedOrdersList.reduce((sum, o) => sum + o.amount, 0);
+    const subtotal = selectedOrdersList.reduce((sum, o) => sum + (o.subtotal || 0), 0);
+    const discount = selectedOrdersList.reduce((sum, o) => sum + (o.discount || 0), 0);
+    
+    // Create Invoice
+    const baseOrder = selectedOrdersList[0];
+    const orderNumbers = selectedOrdersList.map(o => o.number).join(', ');
+
+    createSalesDocument('invoice', {
+        clientId: baseOrder.clientId,
+        clientName: baseOrder.clientName,
+        date: new Date().toISOString().split('T')[0],
+        dueDate: baseOrder.dueDate, // Use first order due date or default
+        amount: totalAmount,
+        currency: baseOrder.currency,
+        exchangeRate: baseOrder.exchangeRate,
+        status: 'pending',
+        warehouseId: baseOrder.warehouseId, // Assume primary warehouse or logic needs refinement
+        paymentTerms: baseOrder.paymentTerms,
+        paymentMethod: baseOrder.paymentMethod,
+        notes: `Consolidated Invoice for Orders: ${orderNumbers}. \n${baseOrder.notes || ''}`,
+        taxRate: baseOrder.taxRate, // Assuming consistent tax rate
+        subtotal: subtotal,
+        discount: discount,
+        // fiscalStamp: ... (handled in context/logic usually)
+    }, aggregatedItems);
+
+    // Update Status of Orders to 'Completed' (assuming fully invoiced)
+    selectedOrdersList.forEach(order => {
+        updateInvoice({
+            ...order,
+            status: 'completed',
+            // Update fulfilled quantity for traceability if needed, simplified here:
+            items: order.items.map(i => ({ ...i, fulfilledQuantity: i.quantity })) 
+        });
+    });
+
+    setSelectedOrderIds([]);
+    alert(t('success'));
+  };
+
+  // --- Existing Handlers ---
 
   const handleOpenDeliveryModal = () => {
     if (!selectedOrder) return;
@@ -136,13 +227,24 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('client_order')} 🛒</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Manage pending sales orders</p>
         </div>
-        <button 
-          onClick={onAddNew}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg flex items-center gap-2 hover:bg-orange-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('new_order')}
-        </button>
+        <div className="flex gap-2">
+            {selectedOrderIds.length > 0 && (
+                <button 
+                    onClick={handleBulkInvoice}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors animate-in fade-in zoom-in duration-200"
+                >
+                    <Layers className="w-4 h-4" />
+                    {t('create_invoice_from_selected')} ({selectedOrderIds.length})
+                </button>
+            )}
+            <button 
+            onClick={onAddNew}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg flex items-center gap-2 hover:bg-orange-700 transition-colors"
+            >
+            <Plus className="w-4 h-4" />
+            {t('new_order')}
+            </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
@@ -163,6 +265,14 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
               <tr>
+                <th className="px-6 py-4 w-10">
+                    <input 
+                        type="checkbox" 
+                        onChange={handleSelectAll}
+                        checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                        className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    />
+                </th>
                 <th className="px-6 py-4">{t('ref_num')}</th>
                 <th className="px-6 py-4">{t('client')}</th>
                 <th className="px-6 py-4">{t('date')}</th>
@@ -174,6 +284,14 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredOrders.map((doc) => (
                 <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <input 
+                        type="checkbox" 
+                        checked={selectedOrderIds.includes(doc.id)}
+                        onChange={() => toggleSelectOrder(doc.id)}
+                        className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    />
+                  </td>
                   <td className="px-6 py-4 font-medium text-orange-600 dark:text-orange-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
@@ -244,6 +362,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                     selectedOrder.items.map((item, idx) => {
                       const fulfilled = item.fulfilledQuantity || 0;
                       const isComplete = fulfilled >= item.quantity;
+                      const remaining = Math.max(0, item.quantity - fulfilled);
                       
                       return (
                         <div key={idx} className="flex justify-between items-center text-sm py-1">
@@ -252,6 +371,11 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                             <span className="text-xs text-gray-400">
                               Delivered: <span className={isComplete ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
                             </span>
+                            {remaining > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {t('remaining_qty')}: <span className="font-bold text-red-500">{remaining}</span>
+                              </span>
+                            )}
                           </div>
                           <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
                         </div>
@@ -341,6 +465,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                     <th className="px-3 py-2 text-left">Item</th>
                     <th className="px-3 py-2 text-center">Ordered</th>
                     <th className="px-3 py-2 text-center">Delivered</th>
+                    <th className="px-3 py-2 text-center font-bold text-red-500">{t('remaining_qty')}</th>
                     <th className="px-3 py-2 text-right">Deliver Now</th>
                   </tr>
                 </thead>
@@ -357,6 +482,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                         </td>
                         <td className="px-3 py-3 text-center text-gray-500">{item.quantity}</td>
                         <td className="px-3 py-3 text-center text-green-600">{fulfilled}</td>
+                        <td className="px-3 py-3 text-center font-bold text-red-500">{Math.max(0, remaining)}</td>
                         <td className="px-3 py-3 text-right">
                           <input 
                             type="number" 
