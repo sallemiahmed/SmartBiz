@@ -1,106 +1,118 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
-  Client, Supplier, Product, Invoice, Purchase, Warehouse, 
-  StockMovement, StockTransfer, BankAccount, BankTransaction, 
-  CashSession, CashTransaction, AppSettings, SalesDocumentType, 
-  PurchaseDocumentType, InvoiceItem
+  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, StockTransfer, 
+  BankAccount, BankTransaction, CashSession, CashTransaction, AppSettings, SalesDocumentType, 
+  PurchaseDocumentType, InvoiceItem 
 } from '../types';
 import { 
-  mockClients, mockSuppliers, mockInventory, mockInvoices, 
-  mockPurchases, mockWarehouses, mockStockMovements, mockStockTransfers,
-  mockBankAccounts, mockBankTransactions, mockCashSessions, mockCashTransactions 
+  mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, mockWarehouses, 
+  mockStockMovements, mockStockTransfers, mockBankAccounts, mockBankTransactions, 
+  mockCashSessions, mockCashTransactions 
 } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
+// Define the shape of the context
 interface AppContextType {
   clients: Client[];
-  suppliers: Supplier[];
-  products: Product[];
-  invoices: Invoice[];
-  purchases: Purchase[];
-  warehouses: Warehouse[];
-  stockMovements: StockMovement[];
-  stockTransfers: StockTransfer[];
-  bankAccounts: BankAccount[];
-  bankTransactions: BankTransaction[];
-  cashSessions: CashSession[];
-  cashTransactions: CashTransaction[];
-  settings: AppSettings;
-  stats: { revenue: number; expenses: number; profit: number };
-  chartData: any[];
-  isLoading: boolean;
-  
   addClient: (client: Client) => void;
   updateClient: (client: Client) => void;
   deleteClient: (id: string) => void;
+
+  suppliers: Supplier[];
   addSupplier: (supplier: Supplier) => void;
   updateSupplier: (supplier: Supplier) => void;
   deleteSupplier: (id: string) => void;
+
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   addProduct: (product: Product) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (id: string) => void;
+
+  warehouses: Warehouse[];
   addWarehouse: (warehouse: Warehouse) => void;
   updateWarehouse: (warehouse: Warehouse) => void;
   deleteWarehouse: (id: string) => void;
-  
-  createSalesDocument: (type: SalesDocumentType, docData: Partial<Invoice>, items: InvoiceItem[]) => Invoice;
-  createPurchaseDocument: (type: PurchaseDocumentType, docData: Partial<Purchase>, items: InvoiceItem[]) => Purchase;
-  deleteInvoice: (id: string) => void;
-  deletePurchase: (id: string) => void;
-  
+
+  stockMovements: StockMovement[];
   addStockMovement: (movement: StockMovement) => void;
-  transferStock: (transfer: any) => void;
-  
+
+  stockTransfers: StockTransfer[];
+  transferStock: (transfer: { productId: string, fromWarehouseId: string, toWarehouseId: string, quantity: number, reference?: string, notes?: string }) => void;
+
+  invoices: Invoice[];
+  setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
+  createSalesDocument: (type: SalesDocumentType, docData: Partial<Invoice>, items: InvoiceItem[]) => Invoice;
+  deleteInvoice: (id: string) => void;
+
+  purchases: Purchase[];
+  createPurchaseDocument: (type: PurchaseDocumentType, docData: Partial<Purchase>, items: InvoiceItem[]) => Purchase;
+  deletePurchase: (id: string) => void;
+
+  bankAccounts: BankAccount[];
   addBankAccount: (account: BankAccount) => void;
   updateBankAccount: (account: BankAccount) => void;
   deleteBankAccount: (id: string) => void;
-  addBankTransaction: (tx: BankTransaction) => void;
-  deleteBankTransaction: (id: string) => void;
-  
-  openCashSession: (amount: number) => void;
-  closeCashSession: (amount: number, notes?: string) => void;
-  addCashTransaction: (tx: CashTransaction) => void;
-  
-  updateSettings: (newSettings: AppSettings) => void;
-  setIsLoading: (loading: boolean) => void;
-  formatCurrency: (amount: number, currency?: string) => string;
-  t: (key: string) => string;
-}
 
-const defaultSettings: AppSettings = {
-  companyName: 'My Business',
-  companyEmail: 'contact@business.com',
-  companyPhone: '+1 234 567 890',
-  companyAddress: '123 Business St',
-  currency: 'TND',
-  language: 'en',
-  timezone: 'UTC+1',
-  enableFiscalStamp: true,
-  fiscalStampValue: 1.000,
-  taxRates: [{ id: '1', name: 'VAT Standard', rate: 19, isDefault: true }],
-  customFields: { clients: [], suppliers: [] }
-};
+  bankTransactions: BankTransaction[];
+  addBankTransaction: (transaction: BankTransaction) => void;
+  deleteBankTransaction: (id: string) => void;
+
+  cashSessions: CashSession[];
+  openCashSession: (openingBalance: number) => void;
+  closeCashSession: (closingBalance: number, notes?: string) => void;
+
+  cashTransactions: CashTransaction[];
+  addCashTransaction: (transaction: CashTransaction) => void;
+
+  settings: AppSettings;
+  updateSettings: (newSettings: AppSettings) => void;
+
+  stats: { revenue: number; expenses: number; profit: number };
+  chartData: { name: string; revenue: number; expenses: number }[];
+
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+
+  t: (key: string) => string;
+  formatCurrency: (amount: number, currency?: string) => string;
+}
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // State Initialization
   const [clients, setClients] = useState<Client[]>(mockClients);
   const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
   const [products, setProducts] = useState<Product[]>(mockInventory);
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
-  const [purchases, setPurchases] = useState<Purchase[]>(mockPurchases);
   const [warehouses, setWarehouses] = useState<Warehouse[]>(mockWarehouses);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>(mockStockMovements);
   const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
+  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const [purchases, setPurchases] = useState<Purchase[]>(mockPurchases);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(mockBankAccounts);
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>(mockBankTransactions);
   const [cashSessions, setCashSessions] = useState<CashSession[]>(mockCashSessions);
   const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>(mockCashTransactions);
-  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
-  const [translations, setTranslations] = useState<Record<string, string>>({});
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
 
+  const [settings, setSettingsState] = useState<AppSettings>({
+    companyName: 'My Business',
+    companyEmail: 'info@business.com',
+    companyPhone: '+1 234 567 890',
+    companyAddress: '123 Business St, City, Country',
+    currency: 'USD',
+    language: 'en',
+    timezone: 'UTC',
+    enableFiscalStamp: false,
+    fiscalStampValue: 0.600,
+    taxRates: [{ id: 't1', name: 'VAT', rate: 19, isDefault: true }],
+    customFields: { clients: [], suppliers: [] }
+  });
+
+  // Load Translations
   useEffect(() => {
     loadTranslations(settings.language).then(setTranslations);
   }, [settings.language]);
@@ -108,48 +120,158 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const t = (key: string) => translations[key] || key;
 
   const formatCurrency = (amount: number, currencyCode?: string) => {
-    return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-TN' : 'en-US'), {
+    return new Intl.NumberFormat(settings.language, {
       style: 'currency',
       currency: currencyCode || settings.currency,
-      minimumFractionDigits: (currencyCode || settings.currency) === 'TND' ? 3 : 2
     }).format(amount);
   };
 
-  // CRUD Operations
-  const addClient = (client: Client) => setClients([...clients, client]);
-  const updateClient = (client: Client) => setClients(clients.map(c => c.id === client.id ? client : c));
-  const deleteClient = (id: string) => setClients(clients.filter(c => c.id !== id));
+  // CRUD Helpers
+  const addClient = (c: Client) => setClients(prev => [c, ...prev]);
+  const updateClient = (c: Client) => setClients(prev => prev.map(item => item.id === c.id ? c : item));
+  const deleteClient = (id: string) => setClients(prev => prev.filter(item => item.id !== id));
 
-  const addSupplier = (supplier: Supplier) => setSuppliers([...suppliers, supplier]);
-  const updateSupplier = (supplier: Supplier) => setSuppliers(suppliers.map(s => s.id === supplier.id ? supplier : s));
-  const deleteSupplier = (id: string) => setSuppliers(suppliers.filter(s => s.id !== id));
+  const addSupplier = (s: Supplier) => setSuppliers(prev => [s, ...prev]);
+  const updateSupplier = (s: Supplier) => setSuppliers(prev => prev.map(item => item.id === s.id ? s : item));
+  const deleteSupplier = (id: string) => setSuppliers(prev => prev.filter(item => item.id !== id));
 
-  const addProduct = (product: Product) => setProducts([...products, product]);
-  const updateProduct = (product: Product) => setProducts(products.map(p => p.id === product.id ? product : p));
-  const deleteProduct = (id: string) => setProducts(products.filter(p => p.id !== id));
+  const addProduct = (p: Product) => setProducts(prev => [p, ...prev]);
+  const updateProduct = (p: Product) => setProducts(prev => prev.map(item => item.id === p.id ? p : item));
+  const deleteProduct = (id: string) => setProducts(prev => prev.filter(item => item.id !== id));
 
-  const addWarehouse = (warehouse: Warehouse) => setWarehouses([...warehouses, warehouse]);
-  const updateWarehouse = (warehouse: Warehouse) => setWarehouses(warehouses.map(w => w.id === warehouse.id ? warehouse : w));
-  const deleteWarehouse = (id: string) => setWarehouses(warehouses.filter(w => w.id !== id));
+  const addWarehouse = (w: Warehouse) => setWarehouses(prev => [w, ...prev]);
+  const updateWarehouse = (w: Warehouse) => setWarehouses(prev => prev.map(item => item.id === w.id ? w : item));
+  const deleteWarehouse = (id: string) => setWarehouses(prev => prev.filter(item => item.id !== id));
 
-  const addStockMovement = (movement: StockMovement) => setStockMovements(prev => [...prev, movement]);
+  const addStockMovement = (m: StockMovement) => setStockMovements(prev => [m, ...prev]);
+
+  const transferStock = (data: { productId: string, fromWarehouseId: string, toWarehouseId: string, quantity: number, reference?: string, notes?: string }) => {
+    const { productId, fromWarehouseId, toWarehouseId, quantity, reference, notes } = data;
+    
+    // Update Product Stock
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        const newWarehouseStock = { ...p.warehouseStock };
+        newWarehouseStock[fromWarehouseId] = (newWarehouseStock[fromWarehouseId] || 0) - quantity;
+        newWarehouseStock[toWarehouseId] = (newWarehouseStock[toWarehouseId] || 0) + quantity;
+        return { ...p, warehouseStock: newWarehouseStock };
+      }
+      return p;
+    }));
+
+    // Log Transfer
+    const transfer: StockTransfer = {
+      id: `tr-${Date.now()}`,
+      date: new Date().toISOString(),
+      productId,
+      productName: products.find(p => p.id === productId)?.name || '',
+      fromWarehouseId,
+      toWarehouseId,
+      quantity,
+      reference,
+      notes
+    };
+    setStockTransfers(prev => [transfer, ...prev]);
+
+    // Log Movements
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        const fromWhName = warehouses.find(w => w.id === fromWarehouseId)?.name || fromWarehouseId;
+        const toWhName = warehouses.find(w => w.id === toWarehouseId)?.name || toWarehouseId;
+
+        addStockMovement({
+            id: `sm-out-${Date.now()}`,
+            productId,
+            productName: product.name,
+            warehouseId: fromWarehouseId,
+            warehouseName: fromWhName,
+            relatedWarehouseName: toWhName,
+            date: new Date().toISOString(),
+            quantity: -quantity,
+            type: 'transfer_out',
+            reference,
+            notes: notes || `Transfer to ${toWhName}`,
+            unitCost: product.cost
+        });
+
+        addStockMovement({
+            id: `sm-in-${Date.now()}`,
+            productId,
+            productName: product.name,
+            warehouseId: toWarehouseId,
+            warehouseName: toWhName,
+            relatedWarehouseName: fromWhName,
+            date: new Date().toISOString(),
+            quantity: quantity,
+            type: 'transfer_in',
+            reference,
+            notes: notes || `Transfer from ${fromWhName}`,
+            unitCost: product.cost
+        });
+    }
+  };
 
   const createSalesDocument = (type: SalesDocumentType, docData: Partial<Invoice>, items: InvoiceItem[]): Invoice => {
-    const newNumber = `${type.toUpperCase().substring(0,3)}-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`;
+    const newNumber = docData.number || `${type.toUpperCase().substring(0,3)}-${Date.now()}`;
     const newDoc: Invoice = {
-      id: `${type}-${Date.now()}`,
-      number: newNumber,
+      ...docData,
+      id: docData.id || `inv-${Date.now()}`,
       type,
-      status: 'draft',
+      number: newNumber,
       items,
-      clientId: '',
-      clientName: 'Unknown',
-      date: new Date().toISOString(),
-      amount: 0,
-      ...docData
+      status: docData.status || 'draft',
+      date: docData.date || new Date().toISOString(),
+      dueDate: docData.dueDate || new Date().toISOString(),
+      amount: docData.amount || 0,
+      clientId: docData.clientId || '',
+      clientName: docData.clientName || ''
     } as Invoice;
 
-    setInvoices(prev => [newDoc, ...prev]);
+    // PARTIAL DELIVERY LOGIC: Update the Original Order
+    if (type === 'delivery' && docData.linkedDocumentId) {
+      setInvoices(prevInvoices => {
+        const updatedInvoices = prevInvoices.map(inv => {
+          if (inv.id === docData.linkedDocumentId) {
+            // Update fulfilled quantities on the order items
+            const updatedItems = inv.items.map(orderItem => {
+              const deliveredItem = items.find(i => i.id === orderItem.id);
+              if (deliveredItem) {
+                return {
+                  ...orderItem,
+                  fulfilledQuantity: (orderItem.fulfilledQuantity || 0) + deliveredItem.quantity
+                };
+              }
+              return orderItem;
+            });
+
+            // Check if order is completely fulfilled
+            const isFullyDelivered = updatedItems.every(
+              item => (item.fulfilledQuantity || 0) >= item.quantity
+            );
+
+            return {
+              ...inv,
+              items: updatedItems,
+              status: isFullyDelivered ? 'completed' : 'pending'
+            };
+          }
+          return inv;
+        });
+        
+        // Add the new delivery document
+        return [newDoc, ...updatedInvoices];
+      });
+    } else {
+      setInvoices(prev => [newDoc, ...prev]);
+    }
+
+    // Update Client Spend
+    if (newDoc.status !== 'draft' && type === 'invoice') {
+      const client = clients.find(c => c.id === newDoc.clientId);
+      if (client) {
+        updateClient({ ...client, totalSpent: client.totalSpent + newDoc.amount });
+      }
+    }
 
     // Stock Deduction Logic
     if (type === 'delivery' || type === 'invoice' || type === 'issue') {
@@ -162,6 +284,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const updatedWarehouseStock = { ...prod.warehouseStock };
             updatedWarehouseStock[warehouseId] = (updatedWarehouseStock[warehouseId] || 0) - soldItem.quantity;
             
+            // Log movement
             addStockMovement({
               id: `sm-${Date.now()}-${prod.id}`,
               productId: prod.id,
@@ -190,6 +313,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    // Stock Return Logic
     if (type === 'return') {
       const warehouseId = warehouses.find(w => w.isDefault)?.id || warehouses[0].id;
       setProducts(prevProducts => prevProducts.map(prod => {
@@ -224,61 +348,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newDoc;
   };
 
+  const deleteInvoice = (id: string) => setInvoices(prev => prev.filter(item => item.id !== id));
+
   const createPurchaseDocument = (type: PurchaseDocumentType, docData: Partial<Purchase>, items: InvoiceItem[]): Purchase => {
-    const newNumber = `PO-${new Date().getFullYear()}-${String(purchases.length + 1).padStart(4, '0')}`;
     const newDoc: Purchase = {
-      id: `${type}-${Date.now()}`,
-      number: newNumber,
+      ...docData,
+      id: docData.id || `po-${Date.now()}`,
       type,
-      status: 'pending',
+      number: docData.number || `${type.toUpperCase().substring(0,3)}-${Date.now()}`,
       items,
-      supplierId: '',
-      supplierName: 'Unknown',
-      date: new Date().toISOString(),
-      amount: 0,
-      ...docData
+      status: docData.status || 'pending',
+      date: docData.date || new Date().toISOString(),
+      amount: docData.amount || 0,
+      supplierId: docData.supplierId || '',
+      supplierName: docData.supplierName || ''
     } as Purchase;
 
     setPurchases(prev => [newDoc, ...prev]);
+
+    // Update Supplier Stats
+    if (type === 'invoice' || type === 'order') {
+        const supplier = suppliers.find(s => s.id === newDoc.supplierId);
+        if (supplier) {
+            updateSupplier({ ...supplier, totalPurchased: supplier.totalPurchased + newDoc.amount });
+        }
+    }
 
     // Stock Addition Logic (GRN)
     if (type === 'delivery') {
       const warehouseId = docData.warehouseId;
       if (warehouseId) {
         setProducts(prevProducts => prevProducts.map(prod => {
-          const receivedItem = items.find(item => item.id === prod.id);
-          if (receivedItem) {
-            const newTotalStock = prod.stock + receivedItem.quantity;
+          const purchasedItem = items.find(item => item.id === prod.id);
+          if (purchasedItem) {
+            const newTotalStock = prod.stock + purchasedItem.quantity;
             const updatedWarehouseStock = { ...prod.warehouseStock };
-            updatedWarehouseStock[warehouseId] = (updatedWarehouseStock[warehouseId] || 0) + receivedItem.quantity;
+            updatedWarehouseStock[warehouseId] = (updatedWarehouseStock[warehouseId] || 0) + purchasedItem.quantity;
             
-            // Recalculate WAC
-            const currentTotalValue = prod.stock * prod.cost;
-            const incomingValue = receivedItem.quantity * receivedItem.price;
-            const newCost = (currentTotalValue + incomingValue) / newTotalStock;
+            // WAC Calculation (Weighted Average Cost)
+            // New Cost = ((Old Stock * Old Cost) + (New Qty * New Cost)) / (Old Stock + New Qty)
+            // Note: Use global stock for WAC or per warehouse? Usually global.
+            const oldTotalValue = prod.stock * prod.cost;
+            const newPurchaseValue = purchasedItem.quantity * purchasedItem.price; // purchasedItem.price holds unit cost here
+            const newCost = (oldTotalValue + newPurchaseValue) / newTotalStock;
 
             addStockMovement({
-              id: `sm-grn-${Date.now()}-${prod.id}`,
-              productId: prod.id,
-              productName: prod.name,
-              warehouseId,
-              warehouseName: warehouses.find(w => w.id === warehouseId)?.name || 'Unknown',
-              date: new Date().toISOString(),
-              quantity: receivedItem.quantity,
-              type: 'purchase',
-              reference: newNumber,
-              notes: `Received via ${type}`,
-              unitCost: receivedItem.price,
-              costBefore: prod.cost,
-              costAfter: newCost
+                id: `sm-in-${Date.now()}-${prod.id}`,
+                productId: prod.id,
+                productName: prod.name,
+                warehouseId,
+                warehouseName: warehouses.find(w => w.id === warehouseId)?.name || 'Unknown',
+                date: new Date().toISOString(),
+                quantity: purchasedItem.quantity,
+                type: 'purchase',
+                reference: newDoc.number,
+                notes: `Received via ${type}`,
+                unitCost: purchasedItem.price,
+                costBefore: prod.cost,
+                costAfter: newCost
             });
 
             return { 
               ...prod, 
               stock: newTotalStock, 
-              warehouseStock: updatedWarehouseStock, 
+              warehouseStock: updatedWarehouseStock,
               cost: newCost,
-              status: newTotalStock > 10 ? 'in_stock' : 'low_stock'
+              status: newTotalStock > 10 ? 'in_stock' : newTotalStock > 0 ? 'low_stock' : 'out_of_stock'
             };
           }
           return prod;
@@ -289,89 +424,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newDoc;
   };
 
-  const deleteInvoice = (id: string) => setInvoices(invoices.filter(i => i.id !== id));
-  const deletePurchase = (id: string) => setPurchases(purchases.filter(p => p.id !== id));
+  const deletePurchase = (id: string) => setPurchases(prev => prev.filter(item => item.id !== id));
 
-  const transferStock = (transfer: any) => {
-    const { productId, fromWarehouseId, toWarehouseId, quantity, reference, notes } = transfer;
-    
-    setProducts(prevProducts => prevProducts.map(prod => {
-      if (prod.id === productId) {
-        const fromStock = prod.warehouseStock[fromWarehouseId] || 0;
-        if (fromStock < quantity) {
-          alert(`Insufficient stock in source warehouse. Available: ${fromStock}`);
-          return prod;
-        }
+  const addBankAccount = (a: BankAccount) => setBankAccounts(prev => [a, ...prev]);
+  const updateBankAccount = (a: BankAccount) => setBankAccounts(prev => prev.map(item => item.id === a.id ? a : item));
+  const deleteBankAccount = (id: string) => setBankAccounts(prev => prev.filter(item => item.id !== id));
 
-        const newWhStock = { ...prod.warehouseStock };
-        newWhStock[fromWarehouseId] = fromStock - quantity;
-        newWhStock[toWarehouseId] = (newWhStock[toWarehouseId] || 0) + quantity;
-
-        const fromWhName = warehouses.find(w => w.id === fromWarehouseId)?.name || fromWarehouseId;
-        const toWhName = warehouses.find(w => w.id === toWarehouseId)?.name || toWarehouseId;
-
-        // Log Movements
-        setStockMovements(prev => [
-          ...prev,
-          {
-            id: `sm-tr-out-${Date.now()}`,
-            productId,
-            productName: prod.name,
-            warehouseId: fromWarehouseId,
-            warehouseName: fromWhName,
-            relatedWarehouseName: toWhName,
-            date: new Date().toISOString(),
-            quantity: -quantity,
-            type: 'transfer_out',
-            reference,
-            notes,
-            unitCost: prod.cost,
-            costBefore: prod.cost,
-            costAfter: prod.cost
-          },
-          {
-            id: `sm-tr-in-${Date.now()}`,
-            productId,
-            productName: prod.name,
-            warehouseId: toWarehouseId,
-            warehouseName: toWhName,
-            relatedWarehouseName: fromWhName,
-            date: new Date().toISOString(),
-            quantity: quantity,
-            type: 'transfer_in',
-            reference,
-            notes,
-            unitCost: prod.cost,
-            costBefore: prod.cost,
-            costAfter: prod.cost
-          }
-        ]);
-
-        setStockTransfers(prev => [...prev, {
-          id: `tr-${Date.now()}`,
-          date: new Date().toISOString(),
-          productId,
-          productName: prod.name,
-          fromWarehouseId,
-          toWarehouseId,
-          quantity,
-          reference,
-          notes
-        }]);
-
-        return { ...prod, warehouseStock: newWhStock };
-      }
-      return prod;
-    }));
-  };
-
-  // Banking & Cash
-  const addBankAccount = (acc: BankAccount) => setBankAccounts([...bankAccounts, acc]);
-  const updateBankAccount = (acc: BankAccount) => setBankAccounts(bankAccounts.map(a => a.id === acc.id ? acc : a));
-  const deleteBankAccount = (id: string) => setBankAccounts(bankAccounts.filter(a => a.id !== id));
-  
   const addBankTransaction = (tx: BankTransaction) => {
-    setBankTransactions([...bankTransactions, tx]);
+    setBankTransactions(prev => [tx, ...prev]);
+    // Update Account Balance
     setBankAccounts(prev => prev.map(acc => {
       if (acc.id === tx.accountId) {
         return { ...acc, balance: acc.balance + tx.amount };
@@ -379,42 +440,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return acc;
     }));
   };
-  
+
   const deleteBankTransaction = (id: string) => {
     const tx = bankTransactions.find(t => t.id === id);
     if (tx) {
+      setBankTransactions(prev => prev.filter(t => t.id !== id));
+      // Revert Balance
       setBankAccounts(prev => prev.map(acc => {
         if (acc.id === tx.accountId) {
           return { ...acc, balance: acc.balance - tx.amount };
         }
         return acc;
       }));
-      setBankTransactions(bankTransactions.filter(t => t.id !== id));
     }
   };
 
-  const openCashSession = (amount: number) => {
-    setCashSessions([...cashSessions, {
+  const openCashSession = (openingBalance: number) => {
+    const newSession: CashSession = {
       id: `cs-${Date.now()}`,
-      openedBy: 'CurrentUser',
+      openedBy: 'Current User', // Auth context would go here
       startTime: new Date().toISOString(),
-      openingBalance: amount,
-      expectedBalance: amount,
+      openingBalance,
+      expectedBalance: openingBalance,
       status: 'open'
-    }]);
+    };
+    setCashSessions(prev => [newSession, ...prev]);
   };
 
-  const closeCashSession = (amount: number) => {
+  const closeCashSession = (closingBalance: number, notes?: string) => {
     setCashSessions(prev => prev.map(s => {
       if (s.status === 'open') {
-        return { ...s, status: 'closed', closingBalance: amount, endTime: new Date().toISOString() };
+        return { ...s, status: 'closed', endTime: new Date().toISOString(), closingBalance };
       }
       return s;
     }));
   };
 
   const addCashTransaction = (tx: CashTransaction) => {
-    setCashTransactions([...cashTransactions, tx]);
+    setCashTransactions(prev => [tx, ...prev]);
+    // Update Session Expected Balance
     setCashSessions(prev => prev.map(s => {
       if (s.id === tx.sessionId) {
         return { ...s, expectedBalance: s.expectedBalance + tx.amount };
@@ -423,11 +487,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const updateSettings = (newSettings: AppSettings) => setSettings(newSettings);
+  const updateSettings = (newSettings: AppSettings) => setSettingsState(newSettings);
 
+  // Stats Logic
   const stats = {
-    revenue: invoices.reduce((acc, inv) => acc + (inv.status !== 'draft' ? inv.amount : 0), 0),
-    expenses: purchases.reduce((acc, pur) => acc + (pur.status === 'completed' ? pur.amount : 0), 0),
+    revenue: invoices.filter(i => i.status !== 'draft' && i.type === 'invoice').reduce((acc, curr) => acc + curr.amount, 0),
+    expenses: purchases.filter(p => p.status !== 'pending' && p.type === 'invoice').reduce((acc, curr) => acc + curr.amount, 0),
     profit: 0
   };
   stats.profit = stats.revenue - stats.expenses;
@@ -443,17 +508,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      clients, suppliers, products, invoices, purchases, warehouses, stockMovements, stockTransfers,
-      bankAccounts, bankTransactions, cashSessions, cashTransactions, settings, stats, chartData, isLoading,
-      addClient, updateClient, deleteClient,
-      addSupplier, updateSupplier, deleteSupplier,
-      addProduct, updateProduct, deleteProduct,
-      addWarehouse, updateWarehouse, deleteWarehouse,
-      createSalesDocument, createPurchaseDocument, deleteInvoice, deletePurchase,
-      addStockMovement, transferStock,
-      addBankAccount, updateBankAccount, deleteBankAccount, addBankTransaction, deleteBankTransaction,
-      openCashSession, closeCashSession, addCashTransaction,
-      updateSettings, setIsLoading, formatCurrency, t
+      clients, addClient, updateClient, deleteClient,
+      suppliers, addSupplier, updateSupplier, deleteSupplier,
+      products, setProducts, addProduct, updateProduct, deleteProduct,
+      warehouses, addWarehouse, updateWarehouse, deleteWarehouse,
+      stockMovements, addStockMovement,
+      stockTransfers, transferStock,
+      invoices, setInvoices, createSalesDocument, deleteInvoice,
+      purchases, createPurchaseDocument, deletePurchase,
+      bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount,
+      bankTransactions, addBankTransaction, deleteBankTransaction,
+      cashSessions, openCashSession, closeCashSession,
+      cashTransactions, addCashTransaction,
+      settings, updateSettings,
+      stats, chartData,
+      isLoading, setIsLoading,
+      t, formatCurrency
     }}>
       {children}
     </AppContext.Provider>

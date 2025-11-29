@@ -16,6 +16,7 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   historicalCost?: number;
+  fulfilledQuantity?: number; // Added for partial delivery tracking
 }
 
 export interface Invoice {

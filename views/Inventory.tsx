@@ -95,7 +95,7 @@ const Inventory: React.FC = () => {
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const totalStock = Object.values(formData.warehouseStock || {}).reduce((a: number, b) => a + Number(b), 0);
+    const totalStock = Object.values(formData.warehouseStock || {}).reduce((a: number, b: any) => a + Number(b), 0);
     const newProduct: Product = {
       ...formData as Product,
       id: `p-${Date.now()}`,
@@ -136,7 +136,7 @@ const Inventory: React.FC = () => {
     if (!selectedProduct) return;
     
     const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
-    const totalStock = Object.values(currentWhStock).reduce((a, b) => a + (Number(b) || 0), 0);
+    const totalStock = Object.values(currentWhStock).reduce((a: number, b: any) => a + (Number(b) || 0), 0);
 
     // 1. Calculate Quantity Deltas for Stock Movements
     Object.entries(currentWhStock).forEach(([whId, newQty]) => {
