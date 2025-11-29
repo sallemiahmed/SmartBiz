@@ -1,73 +1,81 @@
-
 import React, { useState, useMemo } from 'react';
-import { 
-  Search, Plus, AlertCircle, Filter, 
-  Pencil, Trash2, X, Save, Package, ArrowUp, ArrowDown,
-  LayoutGrid, RotateCcw, ArrowRightLeft, History, Upload, Image as ImageIcon
-} from 'lucide-react';
-import { Product, Warehouse, StockMovement } from '../types';
+import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { Product } from '../types';
 import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
 
 const Inventory: React.FC = () => {
-  const { products, warehouses, addProduct, updateProduct, deleteProduct, addStockMovement, stockMovements, formatCurrency, t } = useApp();
-
-  // --- State ---
+  const { products, warehouses, stockMovements, addProduct, updateProduct, deleteProduct, addStockMovement, formatCurrency, t } = useApp();
+  
+  // State initialization
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [priceRange, setPriceRange] = useState<{ min: string, max: string }>({ min: '', max: '' });
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>({ key: 'name', direction: 'asc' });
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 7;
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>({ key: 'name', direction: 'asc' });
 
-  // Modal States
+  // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-
-  // Selection
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Form State
+  // Form state
   const initialFormState: Partial<Product> = {
-    name: '',
-    sku: '',
-    category: '',
-    image: '',
-    stock: 0,
-    price: 0,
-    cost: 0,
-    status: 'in_stock',
-    warehouseStock: {}
+    name: '', sku: '', category: '', price: 0, cost: 0, stock: 0, warehouseStock: {}, image: ''
   };
   const [formData, setFormData] = useState<Partial<Product>>(initialFormState);
 
   // Categories
-  const categories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category));
-    return Array.from(cats).sort();
-  }, [products]);
+  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))), [products]);
 
-  // --- Helpers ---
-  
-  const determineStatus = (stock: number): 'in_stock' | 'low_stock' | 'out_of_stock' => {
+  // Helpers
+  const determineStatus = (stock: number) => {
     if (stock <= 0) return 'out_of_stock';
     if (stock <= 10) return 'low_stock';
     return 'in_stock';
   };
 
   const getStatusColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'in_stock': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
       case 'low_stock': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
       case 'out_of_stock': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+      default: return 'bg-gray-100 text-gray-700';
     }
   };
 
-  // --- Handlers ---
+  // Handlers
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: name === 'price' || name === 'cost' ? parseFloat(value) : value }));
+  };
+
+  const handleWarehouseStockChange = (whId: string, value: string) => {
+    const qty = parseInt(value) || 0;
+    setFormData(prev => ({
+      ...prev,
+      warehouseStock: { ...prev.warehouseStock, [whId]: qty }
+    }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: undefined }));
+  };
 
   const handleSort = (key: keyof Product) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -83,83 +91,26 @@ const Inventory: React.FC = () => {
     setCategoryFilter('all');
     setPriceRange({ min: '', max: '' });
     setCurrentPage(1);
-    setSortConfig({ key: 'name', direction: 'asc' });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    // Don't handle 'stock' here directly if it's derived
-    const numericFields = ['price', 'cost'];
-    const parsedValue = numericFields.includes(name) ? parseFloat(value) || 0 : value;
-    
-    setFormData(prev => {
-      const updated = { ...prev, [name]: parsedValue };
-      return updated;
-    });
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        alert("File size too large. Please upload an image under 2MB.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setFormData(prev => ({ ...prev, image: '' }));
-  };
-
-  const handleWarehouseStockChange = (warehouseId: string, value: string) => {
-    const qty = parseInt(value) || 0;
-    setFormData(prev => {
-      const currentWhStock: Record<string, number> = { ...(prev.warehouseStock || {}) };
-      currentWhStock[warehouseId] = qty;
-      
-      // Recalculate total stock
-      const total = Object.values(currentWhStock).reduce((sum, val) => sum + val, 0);
-      
-      return {
-        ...prev,
-        warehouseStock: currentWhStock,
-        stock: total
-      };
-    });
   };
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Use manual distribution or default to 0
-    const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
-    // Ensure all warehouses exist in the map
-    warehouses.forEach(w => {
-        if (currentWhStock[w.id] === undefined) currentWhStock[w.id] = 0;
-    });
-
-    const totalStock = Object.values(currentWhStock).reduce((a, b) => a + (Number(b) || 0), 0);
-
+    const totalStock = Object.values(formData.warehouseStock || {}).reduce((a: number, b) => a + Number(b), 0);
     const newProduct: Product = {
-      ...formData,
-      id: `p${Date.now()}`,
+      ...formData as Product,
+      id: `p-${Date.now()}`,
       stock: totalStock,
       status: determineStatus(totalStock),
-      warehouseStock: currentWhStock
-    } as Product;
+      warehouseStock: formData.warehouseStock || {}
+    };
     
     addProduct(newProduct);
     
-    // Log Initial Stock for each warehouse if > 0
-    Object.entries(currentWhStock).forEach(([whId, qty]) => {
+    // Log initial stock movement if any
+    Object.entries(newProduct.warehouseStock).forEach(([whId, qty]) => {
       if (qty > 0) {
         addStockMovement({
+          id: `sm-${Date.now()}-${whId}`,
           productId: newProduct.id,
           productName: newProduct.name,
           warehouseId: whId,
@@ -187,13 +138,14 @@ const Inventory: React.FC = () => {
     const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
     const totalStock = Object.values(currentWhStock).reduce((a, b) => a + (Number(b) || 0), 0);
 
-    // Calculate Deltas for Stock Movements
+    // 1. Calculate Quantity Deltas for Stock Movements
     Object.entries(currentWhStock).forEach(([whId, newQty]) => {
       const oldQty = selectedProduct.warehouseStock[whId] || 0;
       const diff = newQty - oldQty;
       
       if (diff !== 0) {
         addStockMovement({
+          id: `sm-adj-${Date.now()}-${whId}`,
           productId: selectedProduct.id,
           productName: formData.name || selectedProduct.name,
           warehouseId: whId,
@@ -209,6 +161,26 @@ const Inventory: React.FC = () => {
         });
       }
     });
+
+    // 2. Calculate Cost Change (Manual Revaluation)
+    const newCost = Number(formData.cost) || 0;
+    if (newCost !== selectedProduct.cost) {
+        addStockMovement({
+            id: `sm-cost-${Date.now()}`,
+            productId: selectedProduct.id,
+            productName: formData.name || selectedProduct.name,
+            warehouseId: warehouses.find(w => w.isDefault)?.id || Object.keys(currentWhStock)[0] || 'Unknown',
+            warehouseName: 'System', // Cost is global usually
+            date: new Date().toISOString(),
+            quantity: 0, // No quantity change
+            type: 'adjustment',
+            reference: 'COST-REV',
+            notes: 'Manual Cost Revaluation',
+            unitCost: 0,
+            costBefore: selectedProduct.cost,
+            costAfter: newCost
+        });
+    }
 
     const updatedProduct = { 
       ...selectedProduct, 
@@ -248,7 +220,64 @@ const Inventory: React.FC = () => {
     setIsHistoryModalOpen(true);
   };
 
-  // --- Component Parts ---
+  // --- Process Data ---
+
+  const processedProducts = useMemo(() => {
+    return products
+      .filter(p => {
+        // Robust Search: Split by space and ensure all terms are found in name, sku, or category
+        const searchTerms = searchTerm.toLowerCase().split(' ').filter(t => t.trim() !== '');
+        const matchesSearch = searchTerms.every(term => 
+          p.name.toLowerCase().includes(term) || 
+          p.sku.toLowerCase().includes(term) ||
+          p.category.toLowerCase().includes(term)
+        );
+
+        const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+        const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+        
+        // Price Range Filter
+        const minP = parseFloat(priceRange.min);
+        const maxP = parseFloat(priceRange.max);
+        const matchesMinPrice = isNaN(minP) || p.price >= minP;
+        const matchesMaxPrice = isNaN(maxP) || p.price <= maxP;
+
+        return matchesSearch && matchesStatus && matchesCategory && matchesMinPrice && matchesMaxPrice;
+      })
+      .sort((a, b) => {
+        if (!sortConfig) return 0;
+        const { key, direction } = sortConfig;
+        const aValue = a[key];
+        const bValue = b[key];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        }
+        if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+  }, [products, searchTerm, statusFilter, categoryFilter, priceRange, sortConfig]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(processedProducts.length / itemsPerPage);
+  const paginatedProducts = processedProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter, priceRange]);
+
+  const lowStockCount = products.filter(p => p.status === 'low_stock').length;
+  const outOfStockCount = products.filter(p => p.status === 'out_of_stock').length;
+  const totalValue = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
+
+  const SortIcon = ({ columnKey }: { columnKey: keyof Product }) => {
+    if (sortConfig?.key !== columnKey) return <div className="w-4 h-4 inline-block ml-1" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="w-4 h-4 ml-1 inline text-indigo-500" /> : <ArrowDown className="w-4 h-4 ml-1 inline text-indigo-500" />;
+  };
 
   const renderStockDistribution = () => (
     <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
@@ -317,65 +346,6 @@ const Inventory: React.FC = () => {
       </div>
     </div>
   );
-
-  // --- Processing ---
-
-  const processedProducts = useMemo(() => {
-    return products
-      .filter(p => {
-        // Robust Search: Split by space and ensure all terms are found in name, sku, or category
-        const searchTerms = searchTerm.toLowerCase().split(' ').filter(t => t.trim() !== '');
-        const matchesSearch = searchTerms.every(term => 
-          p.name.toLowerCase().includes(term) || 
-          p.sku.toLowerCase().includes(term) ||
-          p.category.toLowerCase().includes(term)
-        );
-
-        const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-        const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
-        
-        // Price Range Filter
-        const minP = parseFloat(priceRange.min);
-        const maxP = parseFloat(priceRange.max);
-        const matchesMinPrice = isNaN(minP) || p.price >= minP;
-        const matchesMaxPrice = isNaN(maxP) || p.price <= maxP;
-
-        return matchesSearch && matchesStatus && matchesCategory && matchesMinPrice && matchesMaxPrice;
-      })
-      .sort((a, b) => {
-        if (!sortConfig) return 0;
-        const { key, direction } = sortConfig;
-        const aValue = a[key];
-        const bValue = b[key];
-
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        }
-        if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-  }, [products, searchTerm, statusFilter, categoryFilter, priceRange, sortConfig]);
-
-  // Pagination Logic
-  const totalPages = Math.ceil(processedProducts.length / itemsPerPage);
-  const paginatedProducts = processedProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter, categoryFilter, priceRange]);
-
-  const lowStockCount = products.filter(p => p.status === 'low_stock').length;
-  const outOfStockCount = products.filter(p => p.status === 'out_of_stock').length;
-  const totalValue = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
-
-  const SortIcon = ({ columnKey }: { columnKey: keyof Product }) => {
-    if (sortConfig?.key !== columnKey) return <div className="w-4 h-4 inline-block ml-1" />;
-    return sortConfig.direction === 'asc' ? <ArrowUp className="w-4 h-4 ml-1 inline text-indigo-500" /> : <ArrowDown className="w-4 h-4 ml-1 inline text-indigo-500" />;
-  };
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -796,6 +766,7 @@ const Inventory: React.FC = () => {
                       className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
                       required
                     />
+                    <p className="text-[10px] text-gray-400 mt-1">Manual edits will log a "Cost Revaluation".</p>
                   </div>
                 </div>
                 {renderStockDistribution()}
@@ -812,7 +783,7 @@ const Inventory: React.FC = () => {
                   type="submit"
                   className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
                 >
-                  <Save className="w-4 h-4" />
+                  <Pencil className="w-4 h-4" />
                   {t('save_changes')}
                 </button>
               </div>
@@ -862,6 +833,8 @@ const Inventory: React.FC = () => {
                         ? (movement.type === 'transfer_in' ? `From: ${movement.relatedWarehouseName}` : `To: ${movement.relatedWarehouseName}`)
                         : '';
                       
+                      const isRevaluation = movement.quantity === 0 && movement.costBefore !== movement.costAfter;
+
                       return (
                         <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-6 py-4 text-gray-500">{new Date(movement.date).toLocaleString()}</td>
@@ -869,21 +842,23 @@ const Inventory: React.FC = () => {
                             <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase
                               ${movement.type === 'purchase' || movement.type === 'return' || movement.type === 'initial' || movement.type === 'transfer_in' 
                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
+                                : isRevaluation 
+                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
+                                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
                             `}>
-                              {t(movement.type)}
+                              {isRevaluation ? 'Revaluation' : t(movement.type)}
                             </span>
                           </td>
                           <td className="px-6 py-4 font-mono text-gray-900 dark:text-white">{movement.reference}</td>
                           <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{movement.warehouseName}</td>
-                          <td className={`px-6 py-4 text-right font-mono font-bold ${movement.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <td className={`px-6 py-4 text-right font-mono font-bold ${movement.quantity > 0 ? 'text-green-600' : movement.quantity < 0 ? 'text-red-600' : 'text-gray-400'}`}>
                             {movement.quantity > 0 ? '+' : ''}{movement.quantity}
                           </td>
                           <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
                             {movement.unitCost ? formatCurrency(movement.unitCost) : '-'}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            {movement.costBefore && movement.costAfter && movement.costBefore !== movement.costAfter ? (
+                            {movement.costBefore !== undefined && movement.costAfter !== undefined && movement.costBefore !== movement.costAfter ? (
                               <div className="flex flex-col items-end">
                                 <span className="text-xs line-through text-gray-400">{formatCurrency(movement.costBefore)}</span>
                                 <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(movement.costAfter)}</span>
