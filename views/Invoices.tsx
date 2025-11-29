@@ -145,18 +145,18 @@ const Invoices: React.FC = () => {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div className="p-4 sm:p-6 h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('documents_history')} 🧮</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t('documents_history')} 🧮</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('documents_desc')}</p>
         </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col flex-1">
         {/* Filter Bar */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col lg:flex-row gap-4 bg-gray-50 dark:bg-gray-800">
-          <div className="relative flex-1 min-w-[200px]">
+        <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col xl:flex-row gap-4 bg-gray-50 dark:bg-gray-800">
+          <div className="relative flex-1 min-w-full sm:min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
@@ -168,56 +168,58 @@ const Invoices: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
+            <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 w-full sm:w-auto">
               <button 
                 onClick={() => startDateRef.current?.showPicker()}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-500 hover:text-indigo-600 transition-colors"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-500 hover:text-indigo-600 transition-colors hidden sm:block"
                 title="Open Calendar"
               >
                 <Calendar className="w-4 h-4" />
               </button>
-              <span className="text-xs text-gray-500">{t('date')}:</span>
+              <span className="text-xs text-gray-500 whitespace-nowrap">{t('date')}:</span>
               <input 
                 ref={startDateRef}
                 type="date" 
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                className="bg-transparent text-sm outline-none dark:text-white w-28 cursor-pointer"
+                className="bg-transparent text-sm outline-none dark:text-white w-28 sm:w-28 cursor-pointer"
               />
               <span className="text-gray-400">-</span>
               <input 
                 type="date" 
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                className="bg-transparent text-sm outline-none dark:text-white w-28 cursor-pointer"
+                className="bg-transparent text-sm outline-none dark:text-white w-28 sm:w-28 cursor-pointer"
               />
             </div>
 
-            <select 
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-            >
-              <option value="all">{t('all_types')}</option>
-              <option value="estimate">{t('estimate')}</option>
-              <option value="order">{t('client_order')}</option>
-              <option value="delivery">{t('delivery_note')}</option>
-              <option value="invoice">{t('invoice')}</option>
-              <option value="issue">{t('issue_note')}</option>
-            </select>
+            <div className="flex gap-2 flex-1 sm:flex-none">
+              <select 
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="flex-1 sm:flex-none px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+              >
+                <option value="all">{t('all_types')}</option>
+                <option value="estimate">{t('estimate')}</option>
+                <option value="order">{t('client_order')}</option>
+                <option value="delivery">{t('delivery_note')}</option>
+                <option value="invoice">{t('invoice')}</option>
+                <option value="issue">{t('issue_note')}</option>
+              </select>
 
-            <select 
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-            >
-              <option value="all">{t('all_status')}</option>
-              <option value="paid">{t('paid')}</option>
-              <option value="pending">{t('pending')}</option>
-              <option value="overdue">{t('overdue')}</option>
-              <option value="draft">{t('draft')}</option>
-              <option value="completed">{t('completed')}</option>
-            </select>
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="flex-1 sm:flex-none px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+              >
+                <option value="all">{t('all_status')}</option>
+                <option value="paid">{t('paid')}</option>
+                <option value="pending">{t('pending')}</option>
+                <option value="overdue">{t('overdue')}</option>
+                <option value="draft">{t('draft')}</option>
+                <option value="completed">{t('completed')}</option>
+              </select>
+            </div>
 
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all' || dateRange.start || dateRange.end) && (
                <button 
@@ -236,51 +238,51 @@ const Invoices: React.FC = () => {
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0">
               <tr>
                 <th 
-                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('number')}
                 >
                   {t('ref_num')} <SortIcon columnKey="number" />
                 </th>
-                <th className="px-6 py-4">{t('type')}</th>
+                <th className="px-6 py-4 whitespace-nowrap">{t('type')}</th>
                 <th 
-                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('clientName')}
                 >
                   {t('client')} <SortIcon columnKey="clientName" />
                 </th>
                 <th 
-                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('date')}
                 >
                   {t('date')} <SortIcon columnKey="date" />
                 </th>
                 <th 
-                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('amount')}
                 >
                   {t('amount')} <SortIcon columnKey="amount" />
                 </th>
-                <th className="px-6 py-4">{t('status')}</th>
-                <th className="px-6 py-4 text-right">{t('actions')}</th>
+                <th className="px-6 py-4 whitespace-nowrap">{t('status')}</th>
+                <th className="px-6 py-4 text-right whitespace-nowrap">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {paginatedInvoices.map((inv) => (
                 <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="px-6 py-4 font-mono font-medium text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 font-mono font-medium text-gray-900 dark:text-white whitespace-nowrap">
                     {inv.number}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${getTypeStyle(inv.type)}`}>
                       {getTypeLabel(inv.type)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{inv.clientName}</td>
-                  <td className="px-6 py-4 text-gray-500">{inv.date}</td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 text-gray-900 dark:text-white whitespace-nowrap">{inv.clientName}</td>
+                  <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{inv.date}</td>
+                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white whitespace-nowrap">
                     {formatCurrency(inv.amount)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       inv.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                       inv.status === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
@@ -290,7 +292,7 @@ const Invoices: React.FC = () => {
                       {t(inv.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
                        <button 
                          onClick={() => handleEmailClick(inv)}

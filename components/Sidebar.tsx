@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -169,10 +169,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       <aside 
         style={{ width: isOpen && window.innerWidth >= 768 ? sidebarWidth : undefined }}
         className={`
-          fixed left-0 top-0 z-40 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-          transition-transform duration-300 ease-in-out flex flex-col relative group
+          fixed left-0 top-0 z-50 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+          transition-transform duration-300 ease-in-out flex flex-col group
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0 md:static
+          md:translate-x-0 md:static md:relative
           ${isResizing ? 'duration-0' : ''}
         `}
       >

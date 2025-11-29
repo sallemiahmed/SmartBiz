@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -40,8 +41,8 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800">
-      <div className="text-sm text-gray-500 dark:text-gray-400">
+    <div className="px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800">
+      <div className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
         Showing <span className="font-medium text-gray-900 dark:text-white">{startItem}</span> to <span className="font-medium text-gray-900 dark:text-white">{endItem}</span> of <span className="font-medium text-gray-900 dark:text-white">{totalItems}</span> results
       </div>
       <div className="flex items-center gap-2">

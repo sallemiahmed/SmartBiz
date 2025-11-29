@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Plus, AlertCircle, Filter, 
   Pencil, Trash2, X, Save, Package, ArrowUp, ArrowDown,
-  LayoutGrid, RotateCcw, ArrowRightLeft, History
+  LayoutGrid, RotateCcw, ArrowRightLeft, History, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { Product, Warehouse, StockMovement } from '../types';
 import { useApp } from '../context/AppContext';
@@ -35,6 +35,7 @@ const Inventory: React.FC = () => {
     name: '',
     sku: '',
     category: '',
+    image: '',
     stock: 0,
     price: 0,
     cost: 0,
@@ -95,6 +96,25 @@ const Inventory: React.FC = () => {
       const updated = { ...prev, [name]: parsedValue };
       return updated;
     });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        alert("File size too large. Please upload an image under 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: '' }));
   };
 
   const handleWarehouseStockChange = (warehouseId: string, value: string) => {
@@ -257,6 +277,43 @@ const Inventory: React.FC = () => {
             />
           </div>
         ))}
+      </div>
+    </div>
+  );
+
+  const renderImageUpload = () => (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Image</label>
+      <div className="flex items-start gap-4">
+        <div className={`
+          w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
+          flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 relative group
+        `}>
+          {formData.image ? (
+            <>
+              <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+              <button 
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </>
+          ) : (
+            <ImageIcon className="w-8 h-8 text-gray-400" />
+          )}
+        </div>
+        <div className="flex-1">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-2">
+            <Upload className="w-4 h-4" />
+            Upload Image
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+          </label>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Recommended: Square JPG/PNG, Max 2MB.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -471,8 +528,17 @@ const Inventory: React.FC = () => {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {paginatedProducts.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                    {item.name}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100 dark:bg-gray-700" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                      <span className="font-medium text-gray-900 dark:text-white line-clamp-2">{item.name}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.sku}</td>
                   <td className="px-6 py-4 text-gray-500">{item.category}</td>
@@ -566,6 +632,7 @@ const Inventory: React.FC = () => {
             </div>
             <form onSubmit={handleAddSubmit} className="p-6 overflow-y-auto">
               <div className="space-y-4">
+                {renderImageUpload()}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
                   <input
@@ -669,6 +736,7 @@ const Inventory: React.FC = () => {
             </div>
             <form onSubmit={handleEditSubmit} className="p-6 overflow-y-auto">
               <div className="space-y-4">
+                {renderImageUpload()}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
                   <input
@@ -758,9 +826,14 @@ const Inventory: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-5xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh]">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('product_history')}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{selectedProduct.name} ({selectedProduct.sku})</p>
+              <div className="flex items-center gap-4">
+                {selectedProduct.image && (
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700" />
+                )}
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('product_history')}</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{selectedProduct.name} ({selectedProduct.sku})</p>
+                </div>
               </div>
               <button onClick={() => setIsHistoryModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                 <X className="w-5 h-5" />

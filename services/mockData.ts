@@ -1,87 +1,22 @@
 
-import { Client, DashboardStats, Invoice, Product, Supplier, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
-
-// Helper to get a date string relative to today
-const getDate = (daysOffset: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + daysOffset);
-  return d.toISOString().split('T')[0];
-};
-
-// Mock Warehouses
-export const mockWarehouses: Warehouse[] = [
-  { id: 'w1', name: 'Dépôt Tunis', location: 'ZI Charguia 1', isDefault: true },
-  { id: 'w2', name: 'Dépôt Sfax', location: 'Route de Gabès' },
-  { id: 'w3', name: 'Showroom Lac 2', location: 'Les Berges du Lac 2' }
-];
-
-// Mock Stock Transfers
-export const mockStockTransfers: StockTransfer[] = [
-  { id: 'tr1', date: getDate(-5), productId: 'p1', productName: 'Chaise de Bureau Ergonomique', fromWarehouseId: 'w1', toWarehouseId: 'w3', quantity: 5, notes: 'Réapprovisionnement Showroom' }
-];
-
-// Mock Stock Movements (Traceability)
-export const mockStockMovements: StockMovement[] = [
-  { id: 'sm1', productId: 'p1', productName: 'Chaise de Bureau Ergonomique', warehouseId: 'w1', warehouseName: 'Dépôt Tunis', date: getDate(-30), quantity: 50, type: 'initial', reference: 'INIT', notes: 'Stock Initial' },
-  { id: 'sm2', productId: 'p1', productName: 'Chaise de Bureau Ergonomique', warehouseId: 'w1', warehouseName: 'Dépôt Tunis', date: getDate(-20), quantity: -2, type: 'sale', reference: 'F-2024-1001', notes: 'Facture Vente' },
-  { id: 'sm3', productId: 'p1', productName: 'Chaise de Bureau Ergonomique', warehouseId: 'w1', warehouseName: 'Dépôt Tunis', date: getDate(-5), quantity: -5, type: 'transfer_out', reference: 'TR-001', notes: 'Transfert vers Showroom' },
-  { id: 'sm4', productId: 'p1', productName: 'Chaise de Bureau Ergonomique', warehouseId: 'w3', warehouseName: 'Showroom Lac 2', date: getDate(-5), quantity: 5, type: 'transfer_in', reference: 'TR-001', notes: 'Transfert depuis Tunis' },
-];
-
-// Mock Clients
-export const mockClients: Client[] = [
-  { id: '1', name: 'Tunisie Télécom', email: 'achat@tunisietelecom.tn', phone: '+216 71 000 000', company: 'Tunisie Télécom', status: 'active', category: 'Corporate', region: 'Tunis', totalSpent: 45200.500, customFields: { matricule_fiscale: '123456/A/M/000' } },
-  { id: '2', name: 'Monoprix', email: 'appro@monoprix.tn', phone: '+216 71 111 222', company: 'Société Nouvelle Maison de la Ville', status: 'active', category: 'Retail', region: 'Grand Tunis', totalSpent: 18500.000, customFields: { matricule_fiscale: '987654/B/A/000' } },
-  { id: '3', name: 'SOTETEL', email: 'contact@sotetel.tn', phone: '+216 71 333 444', company: 'SOTETEL', status: 'active', category: 'Corporate', region: 'Ariana', totalSpent: 8900.250, customFields: { matricule_fiscale: '456789/C/P/000' } },
-  { id: '4', name: 'Pharmacie Centrale', email: 'achat@pharma-centrale.tn', phone: '+216 71 555 666', company: 'PCT', status: 'active', category: 'Government', region: 'Ben Arous', totalSpent: 125000.000, customFields: { matricule_fiscale: '112233/D/N/000' } },
-  { id: '5', name: 'Poulina Group', email: 'info@poulina.com', phone: '+216 79 777 888', company: 'Poulina Group Holding', status: 'active', category: 'Corporate', region: 'Ezzahra', totalSpent: 250000.750, customFields: { matricule_fiscale: '998877/E/P/000' } },
-];
-
-// Mock Suppliers
-export const mockSuppliers: Supplier[] = [
-  { id: 's1', company: 'MyTek', contactName: 'Service Commercial', email: 'commercial@mytek.tn', phone: '+216 36 010 010', category: 'Informatique', status: 'active', totalPurchased: 54000.000 },
-  { id: 's2', company: 'Meublatex', contactName: 'Ahmed Meuble', email: 'pro@meublatex.tn', phone: '+216 73 111 111', category: 'Mobilier', status: 'active', totalPurchased: 12500.000 },
-  { id: 's3', company: 'SOTUVER', contactName: 'Hassan Verre', email: 'sales@sotuver.com.tn', phone: '+216 72 222 222', category: 'Matières Premières', status: 'active', totalPurchased: 89000.000 },
-  { id: 's4', company: 'Aramex Tunisie', contactName: 'Logistique', email: 'tunis@aramex.com', phone: '+216 71 123 123', category: 'Logistique', status: 'active', totalPurchased: 3400.500 },
-  { id: 's5', company: 'STEG', contactName: 'Service Facturation', email: 'facture@steg.com.tn', phone: '+216 71 888 888', category: 'Utilitaires', status: 'active', totalPurchased: 7600.000 },
-];
-
-// Mock Invoices
-export const mockInvoices: Invoice[] = [
-  { id: '101', number: 'F-2024-001', type: 'invoice', clientId: '1', clientName: 'Tunisie Télécom', salespersonName: 'Ali Ben Salah', date: getDate(-60), dueDate: getDate(-45), amount: 3500.000, status: 'paid', items: [{id: 'p1', description: 'Chaise Bureau', quantity: 15, price: 199.000}, {id: 'p4', description: 'Câbles Réseau', quantity: 50, price: 10.000}], warehouseId: 'w1', fiscalStamp: 1.000, taxRate: 19 },
-  { id: '102', number: 'F-2024-002', type: 'invoice', clientId: '5', clientName: 'Poulina Group', salespersonName: 'Sarra Jlassi', date: getDate(-45), dueDate: getDate(-30), amount: 12500.000, status: 'paid', items: [{id: 'p3', description: 'Ecran 27"', quantity: 20, price: 450.000}], warehouseId: 'w1', fiscalStamp: 1.000, taxRate: 19 },
-  { id: '103', number: 'F-2024-003', type: 'invoice', clientId: '2', clientName: 'Société Nouvelle Maison de la Ville', salespersonName: 'Ali Ben Salah', date: getDate(-30), dueDate: getDate(-15), amount: 4200.000, status: 'paid', items: [{id: 'p2', description: 'Clavier Sans Fil', quantity: 50, price: 59.900}], warehouseId: 'w2', fiscalStamp: 1.000, taxRate: 19 },
-  { id: '104', number: 'F-2024-004', type: 'invoice', clientId: '4', clientName: 'PCT', salespersonName: 'Mourad Tounsi', date: getDate(-10), dueDate: getDate(5), amount: 8900.000, status: 'pending', items: [{id: 'p1', description: 'Chaise Bureau', quantity: 40, price: 199.000}], warehouseId: 'w1', fiscalStamp: 1.000, taxRate: 19 },
-  { id: '105', number: 'F-2024-005', type: 'invoice', clientId: '1', clientName: 'Tunisie Télécom', salespersonName: 'Ali Ben Salah', date: getDate(-2), dueDate: getDate(14), amount: 1200.000, status: 'pending', items: [{id: 'p4', description: 'Câble USB-C', quantity: 60, price: 19.900}], warehouseId: 'w1', fiscalStamp: 1.000, taxRate: 19 },
-  { id: '106', number: 'F-2024-006', type: 'invoice', clientId: '5', clientName: 'Poulina Group', salespersonName: 'Sarra Jlassi', date: getDate(-5), dueDate: getDate(10), amount: 15000.000, status: 'paid', items: [{id: 'p3', description: 'Ecran 27"', quantity: 30, price: 450.000}], warehouseId: 'w1', fiscalStamp: 1.000, taxRate: 19 },
-  { id: '201', number: 'BC-2024-001', type: 'order', clientId: '1', clientName: 'Tunisie Télécom', salespersonName: 'Ali Ben Salah', date: getDate(-1), dueDate: getDate(14), amount: 3200.000, status: 'pending', items: [], warehouseId: 'w1', taxRate: 19 },
-  { id: '301', number: 'D-2024-001', type: 'estimate', clientId: '2', clientName: 'Monoprix', salespersonName: 'Ali Ben Salah', date: getDate(0), dueDate: getDate(30), amount: 5000.000, status: 'draft', items: [], warehouseId: 'w1', taxRate: 19 },
-  { id: '401', number: 'BL-2024-001', type: 'delivery', clientId: '5', clientName: 'Poulina Group', salespersonName: 'Sarra Jlassi', date: getDate(-20), dueDate: getDate(-20), amount: 2200.000, status: 'completed', items: [], warehouseId: 'w1' },
-];
-
-// Mock Purchases
-export const mockPurchases: Purchase[] = [
-  { id: 'p101', number: 'BCF-2024-001', type: 'order', supplierId: 's1', supplierName: 'MyTek', date: getDate(-10), amount: 4500.000, status: 'completed', items: [], warehouseId: 'w1' },
-  { id: 'p102', number: 'BCF-2024-002', type: 'order', supplierId: 's3', supplierName: 'SOTUVER', date: getDate(-5), amount: 12000.000, status: 'pending', items: [], warehouseId: 'w1' },
-  { id: 'p201', number: 'BR-2024-001', type: 'delivery', supplierId: 's1', supplierName: 'MyTek', date: getDate(-15), amount: 4500.000, status: 'received', items: [], warehouseId: 'w1' },
-  { id: 'p301', number: 'FF-2024-001', type: 'invoice', supplierId: 's2', supplierName: 'Meublatex', date: getDate(-40), amount: 1500.000, status: 'completed', items: [], warehouseId: 'w1' },
-  { id: 'p302', number: 'FF-2024-002', type: 'invoice', supplierId: 's5', supplierName: 'STEG', date: getDate(-25), amount: 850.000, status: 'completed', items: [], warehouseId: 'w1' },
-  { id: 'p303', number: 'FF-2024-003', type: 'invoice', supplierId: 's3', supplierName: 'SOTUVER', date: getDate(-5), amount: 6500.000, status: 'pending', items: [], warehouseId: 'w1' }
-];
+import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
 
 export const mockInventory: Product[] = [
   { 
     id: 'p1', sku: 'CHA-001', name: 'Chaise de Bureau Ergonomique', category: 'Mobilier', 
+    image: 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=200',
     stock: 45, warehouseStock: { 'w1': 30, 'w2': 10, 'w3': 5 },
     price: 289.000, cost: 150.000, status: 'in_stock' 
   },
   { 
     id: 'p2', sku: 'TEC-002', name: 'Clavier Sans Fil Logitech', category: 'Informatique', 
+    image: 'https://images.unsplash.com/photo-1587829741301-dc798b91add1?auto=format&fit=crop&q=80&w=200',
     stock: 12, warehouseStock: { 'w1': 5, 'w2': 5, 'w3': 2 },
     price: 89.000, cost: 45.000, status: 'low_stock' 
   },
   { 
     id: 'p3', sku: 'TEC-003', name: 'Ecran Dell 27" 4K', category: 'Informatique', 
+    image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=200',
     stock: 8, warehouseStock: { 'w1': 8, 'w2': 0, 'w3': 0 },
     price: 1250.000, cost: 980.000, status: 'low_stock' 
   },
@@ -97,36 +32,86 @@ export const mockInventory: Product[] = [
   },
 ];
 
-// --- Banking Mock Data ---
+export const mockClients: Client[] = [
+  { id: 'c1', company: 'TechSolutions SARL', name: 'Ahmed Ben Ali', email: 'contact@techsolutions.tn', phone: '+216 20 123 456', status: 'active', category: 'Corporate', totalSpent: 15400.000, region: 'Tunis' },
+  { id: 'c2', company: 'Global Services', name: 'Sarah M.', email: 'sarah@global.com', phone: '+216 55 987 654', status: 'active', category: 'Retail', totalSpent: 2300.000, region: 'Sousse' },
+  { id: 'c3', company: 'StartUp Hub', name: 'Mehdi K.', email: 'mehdi@hub.tn', phone: '+216 98 111 222', status: 'inactive', category: 'Wholesale', totalSpent: 0, region: 'Sfax' },
+];
+
+export const mockSuppliers: Supplier[] = [
+  { id: 's1', company: 'MegaDistro', contactName: 'Jean Dupont', email: 'sales@megadistro.com', phone: '+33 1 23 45 67 89', category: 'Electronics', status: 'active', totalPurchased: 50000.000 },
+  { id: 's2', company: 'Office World', contactName: 'Alice Smith', email: 'alice@officeworld.com', phone: '+44 20 7123 4567', category: 'Furniture', status: 'active', totalPurchased: 12000.000 },
+];
+
+export const mockInvoices: Invoice[] = [
+  { 
+    id: 'inv1', number: 'F-2024-0001', type: 'invoice', clientId: 'c1', clientName: 'TechSolutions SARL', 
+    date: '2024-01-15', dueDate: '2024-02-15', amount: 4500.000, status: 'paid', 
+    items: [
+        { id: 'p3', description: 'Ecran Dell 27" 4K', quantity: 2, price: 1250.000 },
+        { id: 'p2', description: 'Clavier Sans Fil Logitech', quantity: 5, price: 89.000 }
+    ],
+    warehouseId: 'w1'
+  },
+  { 
+    id: 'inv2', number: 'F-2024-0002', type: 'invoice', clientId: 'c2', clientName: 'Global Services', 
+    date: '2024-01-20', dueDate: '2024-02-20', amount: 1250.000, status: 'pending',
+    items: [
+        { id: 'p3', description: 'Ecran Dell 27" 4K', quantity: 1, price: 1250.000 }
+    ],
+    warehouseId: 'w1'
+  },
+  { 
+    id: 'est1', number: 'D-2024-0001', type: 'estimate', clientId: 'c3', clientName: 'StartUp Hub', 
+    date: '2024-02-01', dueDate: '2024-02-15', amount: 8500.000, status: 'draft',
+    items: [
+        { id: 'p1', description: 'Chaise de Bureau Ergonomique', quantity: 10, price: 289.000 },
+        { id: 'p4', description: 'Câble HDMI 2m', quantity: 20, price: 25.000 }
+    ],
+    warehouseId: 'w1'
+  },
+];
+
+export const mockPurchases: Purchase[] = [
+  {
+    id: 'po1', number: 'BCF-2024-0001', type: 'order', supplierId: 's1', supplierName: 'MegaDistro',
+    date: '2024-01-10', amount: 15000.000, status: 'completed',
+    items: [{ id: 'p3', description: 'Ecran Dell 27" 4K', quantity: 10, price: 980.000 }],
+    warehouseId: 'w1'
+  },
+  {
+    id: 'po2', number: 'FF-2024-0001', type: 'invoice', supplierId: 's2', supplierName: 'Office World',
+    date: '2024-01-05', amount: 5000.000, status: 'completed',
+    items: [{ id: 'p1', description: 'Chaise de Bureau Ergonomique', quantity: 20, price: 150.000 }],
+    warehouseId: 'w1'
+  }
+];
+
 export const mockBankAccounts: BankAccount[] = [
-  { id: 'b1', name: 'Compte Courant Principal', bankName: 'BIAT', accountNumber: '08 000 123456789 11', balance: 24500.000, currency: 'TND', type: 'checking' },
-  { id: 'b2', name: 'Compte Épargne', bankName: 'Amen Bank', accountNumber: '07 111 987654321 22', balance: 8000.000, currency: 'TND', type: 'savings' },
-  { id: 'b3', name: 'Carte Affaires', bankName: 'Attijari', accountNumber: '04 222 555555555 33', balance: -1250.000, currency: 'TND', type: 'credit' }
+  { id: 'ba1', name: 'Main Business Account', bankName: 'BIAT', accountNumber: '12345678901234567890', currency: 'TND', type: 'checking', balance: 25400.000 },
+  { id: 'ba2', name: 'Savings Reserve', bankName: 'Amen Bank', accountNumber: '09876543210987654321', currency: 'TND', type: 'savings', balance: 10000.000 },
 ];
 
 export const mockBankTransactions: BankTransaction[] = [
-  { id: 't1', accountId: 'b1', date: getDate(0), description: 'Virement Client - Tunisie Télécom', amount: 3500.000, type: 'deposit', status: 'cleared', reference: 'F-2024-001' },
-  { id: 't2', accountId: 'b1', date: getDate(-1), description: 'Abonnement Internet', amount: -89.000, type: 'payment', status: 'cleared' },
-  { id: 't3', accountId: 'b1', date: getDate(-2), description: 'Virement vers Epargne', amount: -2000.000, type: 'transfer', status: 'cleared' },
-  { id: 't4', accountId: 'b2', date: getDate(-2), description: 'Virement depuis Courant', amount: 2000.000, type: 'transfer', status: 'cleared' },
-  { id: 't5', accountId: 'b3', date: getDate(-5), description: 'Déjeuner Client', amount: -125.500, type: 'payment', status: 'pending' },
+  { id: 'tx1', accountId: 'ba1', date: '2024-01-15', description: 'Payment from TechSolutions', amount: 4500.000, type: 'deposit', status: 'cleared' },
+  { id: 'tx2', accountId: 'ba1', date: '2024-01-10', description: 'Rent Payment', amount: -1200.000, type: 'payment', status: 'reconciled' },
 ];
 
-// --- Cash Register Mock Data ---
 export const mockCashSessions: CashSession[] = [
-  { id: 'cs1', openedBy: 'Ali Ben Salah', startTime: getDate(-1) + 'T08:00:00', endTime: getDate(-1) + 'T17:00:00', openingBalance: 200.000, closingBalance: 1250.000, expectedBalance: 1255.000, status: 'closed', notes: 'Manque 5 TND' }
+  { id: 'cs1', openedBy: 'Alex Morgan', startTime: '2024-02-01T08:00:00', openingBalance: 200.000, expectedBalance: 550.000, status: 'open' },
+  { id: 'cs2', openedBy: 'Alex Morgan', startTime: '2024-01-31T08:00:00', endTime: '2024-01-31T18:00:00', openingBalance: 200.000, closingBalance: 1250.000, expectedBalance: 1250.000, status: 'closed' },
 ];
 
 export const mockCashTransactions: CashTransaction[] = [
-  { id: 'ct1', sessionId: 'cs1', date: getDate(-1) + 'T09:30:00', type: 'sale', amount: 45.000, description: 'Vente Comptoir' },
-  { id: 'ct2', sessionId: 'cs1', date: getDate(-1) + 'T11:00:00', type: 'expense', amount: -15.000, description: 'Café & Eau' },
+  { id: 'ctx1', sessionId: 'cs1', date: '2024-02-01T10:30:00', type: 'sale', amount: 350.000, description: 'Walk-in Sale' },
 ];
 
-export const mockStats: DashboardStats = {
-  revenue: 0,
-  expenses: 0,
-  profit: 0,
-  pendingInvoices: 0,
-};
+export const mockWarehouses: Warehouse[] = [
+  { id: 'w1', name: 'Main Warehouse (Tunis)', location: 'Tunis', isDefault: true },
+  { id: 'w2', name: 'Sousse Depot', location: 'Sousse' },
+  { id: 'w3', name: 'Sfax Branch', location: 'Sfax' },
+];
 
-export const chartData = [];
+export const mockStockTransfers: StockTransfer[] = [];
+
+export const mockStockMovements: StockMovement[] = [];
