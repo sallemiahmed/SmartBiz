@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
 import { Product } from '../types';
@@ -95,13 +96,21 @@ const Inventory: React.FC = () => {
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const totalStock = Object.values(formData.warehouseStock || {}).reduce((a: number, b: any) => a + Number(b), 0);
+    const totalStock = (Object.values(formData.warehouseStock || {}) as any[]).reduce((a: number, b: any) => a + Number(b), 0);
+    
+    // Calculate margin
+    const price = formData.price || 0;
+    const cost = formData.cost || 0;
+    const margin = price - cost;
+    const marginPercent = price > 0 ? (margin / price) * 100 : 0;
+
     const newProduct: Product = {
       ...formData as Product,
       id: `p-${Date.now()}`,
       stock: totalStock,
       status: determineStatus(totalStock),
-      warehouseStock: formData.warehouseStock || {}
+      warehouseStock: formData.warehouseStock || {},
+      marginPercent: marginPercent
     };
     
     addProduct(newProduct);
@@ -136,7 +145,7 @@ const Inventory: React.FC = () => {
     if (!selectedProduct) return;
     
     const currentWhStock: Record<string, number> = { ...(formData.warehouseStock || {}) };
-    const totalStock = Object.values(currentWhStock).reduce((a: number, b: any) => a + (Number(b) || 0), 0);
+    const totalStock = (Object.values(currentWhStock) as any[]).reduce((a: number, b: any) => a + (Number(b) || 0), 0);
 
     // 1. Calculate Quantity Deltas for Stock Movements
     Object.entries(currentWhStock).forEach(([whId, newQty]) => {
@@ -182,12 +191,19 @@ const Inventory: React.FC = () => {
         });
     }
 
+    // Calculate margin
+    const price = formData.price !== undefined ? formData.price : selectedProduct.price;
+    const cost = formData.cost !== undefined ? formData.cost : selectedProduct.cost;
+    const margin = price - cost;
+    const marginPercent = price > 0 ? (margin / price) * 100 : 0;
+
     const updatedProduct = { 
       ...selectedProduct, 
       ...formData,
       stock: totalStock,
       warehouseStock: currentWhStock,
-      status: determineStatus(totalStock)
+      status: determineStatus(totalStock),
+      marginPercent: marginPercent
     } as Product;
 
     updateProduct(updatedProduct);

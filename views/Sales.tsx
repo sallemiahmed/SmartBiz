@@ -165,7 +165,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       cost: 0,
       status: 'in_stock',
       quantity: 1,
-      isCustom: true
+      isCustom: true,
+      marginPercent: 100 // Cost is 0, so margin is 100%
     };
     
     setCart(prev => [...prev, newItem]);

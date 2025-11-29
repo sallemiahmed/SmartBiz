@@ -204,7 +204,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       status: 'in_stock',
       quantity: 1,
       unitCost: cost,
-      isCustom: true
+      isCustom: true,
+      marginPercent: 0 // No margin for expensed items
     };
     
     setCart(prev => [...prev, newItem]);

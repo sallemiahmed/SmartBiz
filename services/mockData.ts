@@ -6,29 +6,29 @@ export const mockInventory: Product[] = [
     id: 'p1', sku: 'CHA-001', name: 'Chaise de Bureau Ergonomique', category: 'Mobilier', 
     image: 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=200',
     stock: 45, warehouseStock: { 'w1': 30, 'w2': 10, 'w3': 5 },
-    price: 289.000, cost: 150.000, status: 'in_stock' 
+    price: 289.000, cost: 150.000, status: 'in_stock', marginPercent: 48.1
   },
   { 
     id: 'p2', sku: 'TEC-002', name: 'Clavier Sans Fil Logitech', category: 'Informatique', 
     image: 'https://images.unsplash.com/photo-1587829741301-dc798b91add1?auto=format&fit=crop&q=80&w=200',
     stock: 12, warehouseStock: { 'w1': 5, 'w2': 5, 'w3': 2 },
-    price: 89.000, cost: 45.000, status: 'low_stock' 
+    price: 89.000, cost: 45.000, status: 'low_stock', marginPercent: 49.4
   },
   { 
     id: 'p3', sku: 'TEC-003', name: 'Ecran Dell 27" 4K', category: 'Informatique', 
     image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=200',
     stock: 8, warehouseStock: { 'w1': 8, 'w2': 0, 'w3': 0 },
-    price: 1250.000, cost: 980.000, status: 'low_stock' 
+    price: 1250.000, cost: 980.000, status: 'low_stock', marginPercent: 21.6
   },
   { 
     id: 'p4', sku: 'ACC-004', name: 'Câble HDMI 2m', category: 'Accessoires', 
     stock: 200, warehouseStock: { 'w1': 100, 'w2': 50, 'w3': 50 },
-    price: 25.000, cost: 8.500, status: 'in_stock' 
+    price: 25.000, cost: 8.500, status: 'in_stock', marginPercent: 66.0
   },
   { 
     id: 'p5', sku: 'ACC-005', name: 'Support PC Portable', category: 'Accessoires', 
     stock: 0, warehouseStock: { 'w1': 0, 'w2': 0, 'w3': 0 },
-    price: 75.000, cost: 35.000, status: 'out_of_stock' 
+    price: 75.000, cost: 35.000, status: 'out_of_stock', marginPercent: 53.3
   },
 ];
 

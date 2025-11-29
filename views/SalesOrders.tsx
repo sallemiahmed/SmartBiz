@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -80,6 +80,35 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
 
     setIsDeliveryModalOpen(false);
     setSelectedOrder(null);
+  };
+
+  const handleGenerateInvoice = () => {
+    if (!selectedOrder) return;
+
+    createSalesDocument('invoice', {
+      clientId: selectedOrder.clientId,
+      clientName: selectedOrder.clientName,
+      date: new Date().toISOString().split('T')[0],
+      dueDate: selectedOrder.dueDate,
+      amount: selectedOrder.amount,
+      currency: selectedOrder.currency,
+      exchangeRate: selectedOrder.exchangeRate,
+      status: 'pending',
+      warehouseId: selectedOrder.warehouseId,
+      paymentTerms: selectedOrder.paymentTerms,
+      paymentMethod: selectedOrder.paymentMethod,
+      notes: selectedOrder.notes,
+      taxRate: selectedOrder.taxRate,
+      subtotal: selectedOrder.subtotal,
+      discount: selectedOrder.discount,
+      discountValue: selectedOrder.discountValue,
+      discountType: selectedOrder.discountType,
+      fiscalStamp: selectedOrder.fiscalStamp,
+      linkedDocumentId: selectedOrder.id
+    }, selectedOrder.items);
+
+    setIsViewModalOpen(false);
+    alert(t('success'));
   };
 
   return (
@@ -246,7 +275,15 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-between gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3">
+              <button 
+                onClick={handleGenerateInvoice}
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Receipt className="w-4 h-4" />
+                {t('generate_invoice')}
+              </button>
+              
               {selectedOrder.status !== 'completed' && (
                 <button
                   onClick={handleOpenDeliveryModal}
