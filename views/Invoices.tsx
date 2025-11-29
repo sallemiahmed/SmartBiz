@@ -65,7 +65,7 @@ const Invoices: React.FC = () => {
     setEmailData({
       to: clientEmail,
       subject: `Invoice ${invoice.number} from ${settings.companyName}`,
-      message: `Dear ${invoice.clientName},\n\nPlease find attached invoice ${invoice.number} for ${formatCurrency(invoice.amount)}.\n\nThank you for your business.\n\nRegards,\n${settings.companyName}`
+      message: `Dear ${invoice.clientName},\n\nPlease find attached invoice ${invoice.number} for ${formatCurrency(invoice.amount, invoice.currency)}.\n\nThank you for your business.\n\nRegards,\n${settings.companyName}`
     });
     setIsEmailModalOpen(true);
   };
@@ -280,7 +280,7 @@ const Invoices: React.FC = () => {
                   <td className="px-6 py-4 text-gray-900 dark:text-white whitespace-nowrap">{inv.clientName}</td>
                   <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{inv.date}</td>
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                    {formatCurrency(inv.amount)}
+                    {formatCurrency(inv.amount, inv.currency)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${

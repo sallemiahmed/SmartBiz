@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, Plus, Trash2, User, CreditCard, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Send, Printer, Building, FilePenLine
+  X, Minus, Package, ChevronRight, CheckCircle, Printer, Building, FilePenLine, RefreshCcw
 } from 'lucide-react';
 import { Product, SalesDocumentType, Invoice } from '../types';
 import { useApp } from '../context/AppContext';
@@ -35,6 +35,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   const [discount, setDiscount] = useState<number>(0);
   
+  // Currency State
+  const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
+  const [exchangeRate, setExchangeRate] = useState(1);
+
   // New Fields
   const [paymentTerms, setPaymentTerms] = useState('Due on Receipt');
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
@@ -55,7 +59,9 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
     setNotes('');
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
-  }, [mode, defaultRate]);
+    setSelectedCurrency(settings.currency);
+    setExchangeRate(1);
+  }, [mode, defaultRate, settings.currency]);
 
   // UI Helpers
   const getPageTitle = () => {
@@ -122,7 +128,13 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             : item
         );
       }
-      return [...prev, { ...product, cartId: `${product.id}-${Date.now()}`, quantity: 1 }];
+      
+      // Auto-convert price if currency differs from base
+      const convertedPrice = selectedCurrency !== settings.currency 
+        ? product.price / exchangeRate // Base Price / Rate = Foreign Price
+        : product.price;
+
+      return [...prev, { ...product, cartId: `${product.id}-${Date.now()}`, quantity: 1, price: convertedPrice }];
     });
   };
 
@@ -209,6 +221,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       date: new Date().toISOString().split('T')[0],
       dueDate: dueDate.toISOString().split('T')[0],
       amount: total,
+      currency: selectedCurrency,
+      exchangeRate: exchangeRate,
       status: status,
       warehouseId: selectedWarehouse,
       paymentTerms,
@@ -238,6 +252,8 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
     setNotes('');
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
+    setSelectedCurrency(settings.currency);
+    setExchangeRate(1);
   };
 
   return (
@@ -287,6 +303,11 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map(product => {
               const stockInSelected = product.warehouseStock?.[selectedWarehouse] || 0;
+              // Calculate display price based on selected currency
+              const displayPrice = selectedCurrency !== settings.currency 
+                ? product.price / exchangeRate 
+                : product.price;
+
               return (
                 <div 
                   key={product.id}
@@ -307,7 +328,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   </div>
                   <div className="flex items-center justify-between mt-auto">
                     <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                      {formatCurrency(product.price)}
+                      {formatCurrency(displayPrice, selectedCurrency)}
                     </span>
                     <div className="text-xs text-gray-400">
                       Stock: {stockInSelected} 
@@ -371,6 +392,37 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             </select>
             <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
           </div>
+
+          {/* Currency Selection */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <RefreshCcw className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value)}
+                className="w-full pl-9 pr-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+              >
+                <option value="TND">TND</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="SAR">SAR</option>
+              </select>
+            </div>
+            {selectedCurrency !== settings.currency && (
+              <div className="relative flex-1 animate-in fade-in zoom-in duration-200">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">1 {selectedCurrency} =</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 1)}
+                  className="w-full pl-12 pr-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  placeholder="Rate"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Cart Items */}
@@ -388,7 +440,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">{item.name}</h4>
                     <span className="font-bold text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(item.price * item.quantity)}
+                      {formatCurrency(item.price * item.quantity, selectedCurrency)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
@@ -476,7 +528,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
               <span>{t('subtotal')}</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(subtotal, selectedCurrency)}</span>
             </div>
             
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
@@ -494,7 +546,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   <span className="text-xs px-1 text-gray-400">%</span>
                 </div>
               </span>
-              <span className="text-red-500">-{formatCurrency(discountAmount)}</span>
+              <span className="text-red-500">-{formatCurrency(discountAmount, selectedCurrency)}</span>
             </div>
 
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
@@ -517,20 +569,20 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                   </div>
                 </div>
               </span>
-              <span>{formatCurrency(taxAmount)}</span>
+              <span>{formatCurrency(taxAmount, selectedCurrency)}</span>
             </div>
 
             {/* Fiscal Stamp Display */}
             {mode === 'invoice' && settings.enableFiscalStamp && (
               <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Fiscal Stamp</span>
-                <span>{formatCurrency(fiscalStampAmount)}</span>
+                <span>{formatCurrency(fiscalStampAmount, selectedCurrency)}</span>
               </div>
             )}
             
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
               <span className="font-bold text-gray-900 dark:text-white">{t('total')}</span>
-              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(total)}</span>
+              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(total, selectedCurrency)}</span>
             </div>
           </div>
 
@@ -576,7 +628,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')} ($)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')} ({selectedCurrency})</label>
                 <input 
                   type="number" 
                   step="0.01"
@@ -623,14 +675,14 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                </div>
                <div className="flex justify-between text-sm font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
                  <span className="text-gray-900 dark:text-white">{t('total')}:</span>
-                 <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(total)}</span>
+                 <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(total, selectedCurrency)}</span>
                </div>
             </div>
 
             <div className="flex gap-3">
               <button 
                 onClick={resetSale}
-                className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" /> {t('new')} {mode === 'order' ? 'Order' : 'Sale'}
               </button>

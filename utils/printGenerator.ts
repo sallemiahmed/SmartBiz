@@ -3,10 +3,14 @@ import { Invoice, AppSettings, Purchase } from '../types';
 
 export const printInvoice = (document: Invoice | Purchase, settings: AppSettings) => {
   const isRTL = settings.language === 'ar';
+  
+  // Use Document Currency if available, otherwise default settings
+  const docCurrency = document.currency || settings.currency;
+  
   const currencyFormatter = new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-TN' : 'en-US'), {
     style: 'currency',
-    currency: settings.currency,
-    minimumFractionDigits: settings.currency === 'TND' ? 3 : 2
+    currency: docCurrency,
+    minimumFractionDigits: docCurrency === 'TND' ? 3 : 2
   });
 
   const getTypeLabel = (type: string) => {
@@ -119,6 +123,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
               <td>${document.date}</td>
             </tr>
             ${(document as Invoice).dueDate ? `<tr><td>Due Date:</td><td>${(document as Invoice).dueDate}</td></tr>` : ''}
+            ${document.currency ? `<tr><td>Currency:</td><td>${document.currency}</td></tr>` : ''}
           </table>
         </div>
       </div>

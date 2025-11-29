@@ -73,7 +73,9 @@ export interface Invoice {
   clientName: string;
   date: string; // ISO date
   dueDate: string; // ISO date
-  amount: number; // Total
+  amount: number; // Total in Transaction Currency
+  currency?: string; // Transaction Currency Code (e.g. USD)
+  exchangeRate?: number; // Rate to Base Currency (e.g. 3.1)
   status: 'draft' | 'pending' | 'paid' | 'overdue' | 'completed';
   items: InvoiceItem[];
   warehouseId?: string;
@@ -97,7 +99,9 @@ export interface Purchase {
   supplierId: string;
   supplierName: string;
   date: string;
-  amount: number;
+  amount: number; // Total in Transaction Currency
+  currency?: string; // Transaction Currency Code
+  exchangeRate?: number; // Rate to Base Currency
   additionalCosts?: number;
   status: 'pending' | 'completed' | 'received'; // received for GRN
   items: InvoiceItem[]; // Reusing InvoiceItem structure for simplicity

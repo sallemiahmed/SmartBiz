@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign, RefreshCcw
 } from 'lucide-react';
 import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
@@ -35,6 +35,10 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   
+  // Currency State
+  const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
+  const [exchangeRate, setExchangeRate] = useState(1);
+
   // New Fields
   const [paymentTerms, setPaymentTerms] = useState('Due on Receipt');
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
@@ -55,7 +59,9 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setAdditionalCosts(0);
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
-  }, [mode, defaultRate]);
+    setSelectedCurrency(settings.currency);
+    setExchangeRate(1);
+  }, [mode, defaultRate, settings.currency]);
 
   // Helpers
   const getPageTitle = () => {
@@ -113,11 +119,17 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             : item
         );
       }
+      
+      // Auto-convert cost if currency differs from base
+      const convertedCost = selectedCurrency !== settings.currency 
+        ? product.cost / exchangeRate // Base Cost / Rate = Foreign Cost
+        : product.cost;
+
       return [...prev, { 
         ...product, 
         cartId: `${product.id}-${Date.now()}`, 
         quantity: 1,
-        unitCost: product.cost // Default to the stored cost price
+        unitCost: convertedCost
       }];
     });
   };
@@ -196,6 +208,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       supplierName: supplierName,
       date: new Date().toISOString().split('T')[0],
       amount: total,
+      currency: selectedCurrency,
+      exchangeRate: exchangeRate,
       additionalCosts: additionalCosts,
       status: mode === 'order' ? 'pending' : 'completed',
       warehouseId: selectedWarehouse,
@@ -224,6 +238,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setAdditionalCosts(0);
     setLastCreatedDoc(null);
     setShowSuccessModal(false);
+    setSelectedCurrency(settings.currency);
+    setExchangeRate(1);
   };
 
   return (
@@ -270,44 +286,51 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
         {/* Product Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredProducts.map(product => (
-              <div 
-                key={product.id}
-                onClick={() => addToCart(product)}
-                className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
-                      {product.sku}
-                    </span>
-                    {product.stock <= 10 && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
-                         Low Stock
-                      </span>
-                    )}
+            {filteredProducts.map(product => {
+                // Calculate display cost
+                const displayCost = selectedCurrency !== settings.currency 
+                  ? product.cost / exchangeRate 
+                  : product.cost;
+
+                return (
+                  <div 
+                    key={product.id}
+                    onClick={() => addToCart(product)}
+                    className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                          {product.sku}
+                        </span>
+                        {product.stock <= 10 && (
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
+                            Low Stock
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
+                        {product.name}
+                      </h3>
+                      <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        <span>{product.category}</span>
+                        <span>Total Stock: {product.stock}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase">Est. Cost</span>
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {formatCurrency(displayCost, selectedCurrency)}
+                        </span>
+                      </div>
+                      <button className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
-                    {product.name}
-                  </h3>
-                  <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
-                    <span>{product.category}</span>
-                    <span>Total Stock: {product.stock}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-auto">
-                  <div className="flex flex-col">
-                     <span className="text-[10px] text-gray-400 uppercase">Est. Cost</span>
-                     <span className="font-bold text-gray-900 dark:text-white">
-                       {formatCurrency(product.cost)}
-                     </span>
-                  </div>
-                  <button className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+                );
+            })}
             
             {filteredProducts.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-400">
@@ -363,6 +386,37 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             </select>
             <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
           </div>
+
+          {/* Currency Selection */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <RefreshCcw className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value)}
+                className="w-full pl-9 pr-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+              >
+                <option value="TND">TND</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="SAR">SAR</option>
+              </select>
+            </div>
+            {selectedCurrency !== settings.currency && (
+              <div className="relative flex-1 animate-in fade-in zoom-in duration-200">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">1 {selectedCurrency} =</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 1)}
+                  className="w-full pl-12 pr-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                  placeholder="Rate"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* PO Items */}
@@ -380,7 +434,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">{item.name}</h4>
                     <span className="font-bold text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(item.unitCost * item.quantity)}
+                      {formatCurrency(item.unitCost * item.quantity, selectedCurrency)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
@@ -468,7 +522,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
               <span>Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(subtotal, selectedCurrency)}</span>
             </div>
             
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
@@ -483,7 +537,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                   className="w-20 px-1 py-0.5 ml-2 text-right text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white"
                 />
               </span>
-              <span>{formatCurrency(additionalCosts)}</span>
+              <span>{formatCurrency(additionalCosts, selectedCurrency)}</span>
             </div>
 
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
@@ -506,12 +560,12 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                   </div>
                 </div>
               </span>
-              <span>{formatCurrency(taxAmount)}</span>
+              <span>{formatCurrency(taxAmount, selectedCurrency)}</span>
             </div>
             
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
               <span className="font-bold text-gray-900 dark:text-white">Total Cost</span>
-              <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(total)}</span>
+              <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(total, selectedCurrency)}</span>
             </div>
           </div>
 
@@ -557,7 +611,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit Cost ($)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit Cost ({selectedCurrency})</label>
                 <input 
                   type="number" 
                   step="0.01"
@@ -605,12 +659,12 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                {additionalCosts > 0 && (
                  <div className="flex justify-between text-sm text-gray-500">
                    <span>Extra Costs:</span>
-                   <span>{formatCurrency(additionalCosts)}</span>
+                   <span>{formatCurrency(additionalCosts, selectedCurrency)}</span>
                  </div>
                )}
                <div className="flex justify-between text-sm font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
                  <span className="text-gray-900 dark:text-white">Total Amount:</span>
-                 <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(total)}</span>
+                 <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(total, selectedCurrency)}</span>
                </div>
             </div>
 

@@ -34,7 +34,7 @@ interface AppContextType {
   
   // Helper
   t: (key: string) => string;
-  formatCurrency: (amount: number) => string;
+  formatCurrency: (amount: number, currencyCode?: string) => string;
 
   // Actions
   addClient: (client: Client) => void;
@@ -148,22 +148,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // --- DERIVED STATE (STATS & CHARTS) ---
 
-  // Dynamic Stats Calculation
+  // Dynamic Stats Calculation (Normalized to Base Currency)
   const stats: DashboardStats = useMemo(() => {
     const revenue = invoices
       .filter(i => (i.type === 'invoice' && i.status !== 'draft')) 
-      .reduce((sum, i) => sum + i.amount, 0);
+      .reduce((sum, i) => sum + (i.amount * (i.exchangeRate || 1)), 0);
     
     // Subtract Credit Notes from Revenue
     const credits = invoices
       .filter(i => i.type === 'credit')
-      .reduce((sum, i) => sum + i.amount, 0);
+      .reduce((sum, i) => sum + (i.amount * (i.exchangeRate || 1)), 0);
 
     const netRevenue = revenue - credits;
 
     const expenses = purchases
       .filter(p => p.type === 'invoice') // Count all registered purchase invoices
-      .reduce((sum, p) => sum + p.amount, 0);
+      .reduce((sum, p) => sum + (p.amount * (p.exchangeRate || 1)), 0);
 
     const pendingInvoices = invoices.filter(i => i.type === 'invoice' && i.status === 'pending').length;
 
@@ -193,10 +193,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const date = new Date(inv.date);
         const key = date.toLocaleString('default', { month: 'short' });
         if (data[key]) {
+          const amountInBase = inv.amount * (inv.exchangeRate || 1);
           if (inv.type === 'credit') {
-            data[key].revenue -= inv.amount;
+            data[key].revenue -= amountInBase;
           } else {
-            data[key].revenue += inv.amount;
+            data[key].revenue += amountInBase;
           }
         }
       }
@@ -208,7 +209,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const date = new Date(pur.date);
         const key = date.toLocaleString('default', { month: 'short' });
         if (data[key]) {
-          data[key].expenses += pur.amount;
+          data[key].expenses += (pur.amount * (pur.exchangeRate || 1));
         }
       }
     });
@@ -221,11 +222,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return currentTranslations[key] || key;
   };
 
-  const formatCurrency = (amount: number): string => {
+  const formatCurrency = (amount: number, currencyCode?: string): string => {
     return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-TN' : 'en-TN'), {
       style: 'currency',
-      currency: settings.currency,
-      minimumFractionDigits: 3 // TND uses 3 decimals
+      currency: currencyCode || settings.currency,
+      minimumFractionDigits: (currencyCode || settings.currency) === 'TND' ? 3 : 2
     }).format(amount);
   };
 
@@ -456,7 +457,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       id: newId,
       number: newNumber,
       type,
-      items: itemsWithCostSnapshot
+      items: itemsWithCostSnapshot,
+      // Ensure currency fallback
+      currency: docData.currency || settings.currency,
+      exchangeRate: docData.exchangeRate || 1
     };
 
     // 1. Add Document Record
@@ -554,11 +558,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     }
 
-    // IMPACT: Client Total Spent
+    // IMPACT: Client Total Spent (Normalize to base currency)
+    const baseAmount = docData.amount * (docData.exchangeRate || 1);
     if (type === 'invoice') {
       setClients(prevClients => prevClients.map(client => {
         if (client.id === docData.clientId) {
-          return { ...client, totalSpent: client.totalSpent + docData.amount };
+          return { ...client, totalSpent: client.totalSpent + baseAmount };
         }
         return client;
       }));
@@ -568,7 +573,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (type === 'credit') {
       setClients(prevClients => prevClients.map(client => {
         if (client.id === docData.clientId) {
-          return { ...client, totalSpent: Math.max(0, client.totalSpent - docData.amount) };
+          return { ...client, totalSpent: Math.max(0, client.totalSpent - baseAmount) };
         }
         return client;
       }));
@@ -587,17 +592,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       id: newId,
       number: newNumber,
       type,
-      items
+      items,
+      // Ensure currency fallback
+      currency: docData.currency || settings.currency,
+      exchangeRate: docData.exchangeRate || 1
     };
 
     // 1. Record Document
     setPurchases(prev => [newDoc, ...prev]);
 
-    // Update Supplier Financials if Invoice
+    // Update Supplier Financials if Invoice (Normalize to base currency)
+    const baseAmount = docData.amount * (docData.exchangeRate || 1);
     if (type === 'invoice') {
         setSuppliers(prevSuppliers => prevSuppliers.map(s => {
           if (s.id === docData.supplierId) {
-            return { ...s, totalPurchased: s.totalPurchased + docData.amount };
+            return { ...s, totalPurchased: s.totalPurchased + baseAmount };
           }
           return s;
         }));
@@ -608,8 +617,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (type === 'delivery') {
       const warehouseId = docData.warehouseId;
       const warehouseName = warehouses.find(w => w.id === warehouseId)?.name || 'Unknown';
-      const additionalCosts = docData.additionalCosts || 0;
-      const docSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      // Convert costs to Base Currency for WAC calculation
+      const exchangeRate = docData.exchangeRate || 1;
+      const additionalCosts = (docData.additionalCosts || 0) * exchangeRate; // Convert to Base
+      
+      // Calculate Subtotal in Base Currency
+      const docSubtotal = items.reduce((sum, item) => sum + ((item.price * exchangeRate) * item.quantity), 0);
 
       if (warehouseId) {
         setProducts(prevProducts => prevProducts.map(prod => {
@@ -617,16 +631,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           
           if (purchasedItem) {
             const currentTotalStock = prod.stock;
-            const currentCost = prod.cost;
+            const currentCost = prod.cost; // Already in Base
             const currentTotalValue = currentTotalStock * currentCost;
 
-            // Calculate Allocated Cost for this item
-            const itemTotalValue = purchasedItem.price * purchasedItem.quantity;
+            // Calculate Allocated Cost for this item (All in Base Currency)
+            const itemPriceBase = purchasedItem.price * exchangeRate;
+            const itemTotalValue = itemPriceBase * purchasedItem.quantity;
+            
             const costAllocationRatio = docSubtotal > 0 ? (itemTotalValue / docSubtotal) : 0;
             const allocatedAdditionalCost = additionalCosts * costAllocationRatio;
             const totalIncomingCost = itemTotalValue + allocatedAdditionalCost;
             
-            // Effective unit cost of this incoming batch
+            // Effective unit cost of this incoming batch (Base Currency)
             const incomingUnitCost = purchasedItem.quantity > 0 ? totalIncomingCost / purchasedItem.quantity : 0;
 
             // New WAC Calculation
