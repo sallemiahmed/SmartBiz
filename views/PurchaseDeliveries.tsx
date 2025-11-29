@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, Truck } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, Truck, Link } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -20,6 +20,12 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
     return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
            doc.supplierName.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  const getLinkedOrderRef = (doc: Purchase) => {
+    if (!doc.linkedDocumentId) return null;
+    const linkedOrder = purchases.find(p => p.id === doc.linkedDocumentId);
+    return linkedOrder ? linkedOrder.number : doc.linkedDocumentId;
+  };
 
   return (
     <div className="p-6">
@@ -127,6 +133,17 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
                 <span className="text-gray-500">{t('date_received')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
+
+              {selectedDoc.linkedDocumentId && (
+                <div className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20 p-2 rounded-lg">
+                  <span className="text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-1">
+                    <Link className="w-3 h-3" /> Linked PO
+                  </span>
+                  <span className="font-medium text-emerald-700 dark:text-emerald-300 font-mono text-sm">
+                    {getLinkedOrderRef(selectedDoc)}
+                  </span>
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('received_items')}</h4>

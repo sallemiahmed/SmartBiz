@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer } from 'lucide-react';
-import { Purchase } from '../types';
+import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer, Truck, CheckCircle } from 'lucide-react';
+import { Purchase, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 
@@ -10,13 +9,17 @@ interface PurchaseOrdersProps {
 }
 
 const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, formatCurrency, settings, t } = useApp();
+  const { purchases, deletePurchase, createPurchaseDocument, updatePurchase, formatCurrency, settings, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Purchase | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  // Reception Modal State
+  const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
+  const [receiveQuantities, setReceiveQuantities] = useState<Record<string, number>>({});
 
   // Filter only purchase orders
   const purchaseOrders = purchases.filter(p => p.type === 'order');
@@ -41,6 +44,77 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
     if (selectedOrder) {
       printInvoice(selectedOrder, settings);
     }
+  };
+
+  const handleOpenReceiveModal = () => {
+    if (!selectedOrder) return;
+    
+    const initialQtys: Record<string, number> = {};
+    selectedOrder.items.forEach(item => {
+      const remaining = item.quantity - (item.fulfilledQuantity || 0);
+      initialQtys[item.id] = remaining > 0 ? remaining : 0;
+    });
+    
+    setReceiveQuantities(initialQtys);
+    setIsViewModalOpen(false);
+    setIsReceiveModalOpen(true);
+  };
+
+  const handleQtyChange = (itemId: string, val: string) => {
+    const qty = parseFloat(val) || 0;
+    const item = selectedOrder?.items.find(i => i.id === itemId);
+    if (!item) return;
+    
+    const remaining = item.quantity - (item.fulfilledQuantity || 0);
+    const validQty = Math.max(0, Math.min(qty, remaining));
+    
+    setReceiveQuantities(prev => ({ ...prev, [itemId]: validQty }));
+  };
+
+  const submitReception = () => {
+    if (!selectedOrder) return;
+
+    // Filter items with qty > 0
+    const itemsToReceive: InvoiceItem[] = selectedOrder.items
+      .filter(item => (receiveQuantities[item.id] || 0) > 0)
+      .map(item => ({
+        ...item,
+        quantity: receiveQuantities[item.id] || 0
+      }));
+
+    if (itemsToReceive.length === 0) {
+      alert("Please select at least one item to receive.");
+      return;
+    }
+
+    // 1. Create GRN (Purchase Delivery)
+    createPurchaseDocument('delivery', {
+      supplierId: selectedOrder.supplierId,
+      supplierName: selectedOrder.supplierName,
+      warehouseId: selectedOrder.warehouseId,
+      linkedDocumentId: selectedOrder.id,
+      notes: `Received from PO ${selectedOrder.number}`
+    }, itemsToReceive);
+
+    // 2. Update Source Order
+    const updatedItems = selectedOrder.items.map(item => {
+      const receivedNow = receiveQuantities[item.id] || 0;
+      return {
+        ...item,
+        fulfilledQuantity: (item.fulfilledQuantity || 0) + receivedNow
+      };
+    });
+
+    const isFullyReceived = updatedItems.every(item => (item.fulfilledQuantity || 0) >= item.quantity);
+
+    updatePurchase({
+      ...selectedOrder,
+      items: updatedItems,
+      status: isFullyReceived ? 'received' : 'pending' // 'received' implies fully completed for POs in this context
+    });
+
+    setIsReceiveModalOpen(false);
+    setSelectedOrder(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -213,12 +287,22 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {selectedOrder.items.length > 0 ? (
-                    selectedOrder.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
-                        <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
-                      </div>
-                    ))
+                    selectedOrder.items.map((item, idx) => {
+                      const fulfilled = item.fulfilledQuantity || 0;
+                      const isFullyReceived = fulfilled >= item.quantity;
+                      
+                      return (
+                        <div key={idx} className="flex justify-between items-center text-sm py-1">
+                          <div className="flex flex-col">
+                            <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
+                            <span className="text-xs text-gray-400">
+                              Received: <span className={isFullyReceived ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
+                            </span>
+                          </div>
+                          <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                      );
+                    })
                   ) : (
                     <p className="text-sm text-gray-400 italic">No items recorded</p>
                   )}
@@ -231,18 +315,101 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button 
                 onClick={handlePrint}
-                className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Printer className="w-4 h-4" /> Print Order
               </button>
+              
+              {selectedOrder.status !== 'received' && (
+                <button
+                  onClick={handleOpenReceiveModal}
+                  className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Truck className="w-4 h-4" />
+                  {t('receive_goods')}
+                </button>
+              )}
+              
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
                 {t('close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reception Modal */}
+      {isReceiveModalOpen && selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('receive_goods')}</h3>
+                <p className="text-xs text-gray-500">PO: {selectedOrder.number}</p>
+              </div>
+              <button onClick={() => setIsReceiveModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Item</th>
+                    <th className="px-3 py-2 text-center">Ordered</th>
+                    <th className="px-3 py-2 text-center">Received</th>
+                    <th className="px-3 py-2 text-right">Receive Now</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {selectedOrder.items.map((item) => {
+                    const fulfilled = item.fulfilledQuantity || 0;
+                    const remaining = item.quantity - fulfilled;
+                    const isFullyReceived = remaining <= 0;
+
+                    return (
+                      <tr key={item.id} className={isFullyReceived ? 'opacity-50' : ''}>
+                        <td className="px-3 py-3 text-gray-900 dark:text-white">
+                          <div className="font-medium">{item.description}</div>
+                        </td>
+                        <td className="px-3 py-3 text-center text-gray-500">{item.quantity}</td>
+                        <td className="px-3 py-3 text-center text-green-600">{fulfilled}</td>
+                        <td className="px-3 py-3 text-right">
+                          <input 
+                            type="number" 
+                            min="0"
+                            max={remaining}
+                            disabled={isFullyReceived}
+                            value={receiveQuantities[item.id] || 0}
+                            onChange={(e) => handleQtyChange(item.id, e.target.value)}
+                            className="w-20 px-2 py-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={() => setIsReceiveModalOpen(false)}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                {t('cancel')}
+              </button>
+              <button 
+                onClick={submitReception}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Confirm Receipt
               </button>
             </div>
           </div>

@@ -34,6 +34,7 @@ interface AppContextType {
   
   purchases: Purchase[];
   createPurchaseDocument: (type: PurchaseDocumentType, docData: Partial<Purchase>, items: InvoiceItem[]) => Purchase;
+  updatePurchase: (purchase: Purchase) => void;
   deletePurchase: (id: string) => void;
   
   warehouses: Warehouse[];
@@ -339,6 +340,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return newDoc;
   };
 
+  const updatePurchase = (updatedPurchase: Purchase) => {
+    setPurchases(prev => prev.map(p => p.id === updatedPurchase.id ? updatedPurchase : p));
+  };
+
   const deletePurchase = (id: string) => setPurchases(purchases.filter(p => p.id !== id));
 
   const addStockMovement = (movement: StockMovement) => setStockMovements([movement, ...stockMovements]);
@@ -419,7 +424,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       suppliers, addSupplier, updateSupplier, deleteSupplier,
       products, addProduct, updateProduct, deleteProduct,
       invoices, createSalesDocument, updateInvoice, deleteInvoice,
-      purchases, createPurchaseDocument, deletePurchase,
+      purchases, createPurchaseDocument, updatePurchase, deletePurchase,
       warehouses, addWarehouse, updateWarehouse, deleteWarehouse,
       stockMovements, addStockMovement,
       stockTransfers, transferStock,
