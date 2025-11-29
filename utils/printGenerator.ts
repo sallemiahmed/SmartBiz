@@ -25,6 +25,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       case 'credit': return 'CREDIT NOTE';
       // Purchase Specifics
       case 'rfq': return 'REQUEST FOR QUOTATION';
+      case 'pr': return 'INTERNAL PURCHASE REQUEST';
       case 'grn': return 'GOODS RECEIVED NOTE';
       default: return type.toUpperCase();
     }
@@ -35,6 +36,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
   const entityName = isPurchase ? (document as Purchase).supplierName : (document as Invoice).clientName;
   const isCredit = document.type === 'credit';
   const isRFQ = document.type === 'rfq';
+  const isPR = document.type === 'pr';
 
   const logoHtml = settings.companyLogo 
     ? `<img src="${settings.companyLogo}" style="max-width: 150px; max-height: 80px; margin-bottom: 10px; display: block;" alt="Company Logo" />` 
@@ -132,17 +134,34 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
         </div>
       </div>
 
+      ${isPR ? `
+      <div class="client-container">
+        <table style="width: 100%; margin-bottom: 20px;">
+            <tr>
+                <td style="width: 50%">
+                    <div class="bill-to">REQUESTER:</div>
+                    <div class="client-name">${(document as Purchase).requesterName}</div>
+                </td>
+                <td style="width: 50%">
+                    <div class="bill-to">DEPARTMENT:</div>
+                    <div class="client-name">${(document as Purchase).department}</div>
+                </td>
+            </tr>
+        </table>
+      </div>
+      ` : `
       <div class="client-container">
         <div class="bill-to">${isPurchase ? 'To Supplier:' : (isCredit ? 'Credit To:' : 'Bill To:')}</div>
         <div class="client-name">${entityName}</div>
       </div>
+      `}
 
       <table class="items-table">
         <thead>
           <tr>
             <th style="width: 40%">Description</th>
             <th class="text-center">Quantity</th>
-            ${!isRFQ ? `
+            ${!isRFQ && !isPR ? `
             <th class="text-right">Price</th>
             <th class="text-center" style="width: 15%">VAT %</th>
             <th class="text-right">Total</th>
@@ -154,7 +173,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
             <tr>
               <td>${item.description}</td>
               <td class="text-center">${item.quantity}</td>
-              ${!isRFQ ? `
+              ${!isRFQ && !isPR ? `
               <td class="text-right">${currencyFormatter.format(item.price)}</td>
               <td class="text-center">${taxRate}%</td>
               <td class="text-right">${currencyFormatter.format(item.price * item.quantity)}</td>
@@ -164,7 +183,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
         </tbody>
       </table>
 
-      ${!isRFQ ? `
+      ${!isRFQ && !isPR ? `
       <div class="totals-container">
         <table class="totals-table">
           <tr>
@@ -204,7 +223,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       ${(document.paymentTerms || document.paymentMethod || document.notes) ? `
       <div class="notes-section">
         <div class="notes-grid">
-          ${(document.paymentTerms || document.paymentMethod) && !isRFQ ? `
+          ${(document.paymentTerms || document.paymentMethod) && !isRFQ && !isPR ? `
           <div class="note-column">
             <h4>Payment Information</h4>
             ${document.paymentTerms ? `<p><strong>Terms:</strong> ${document.paymentTerms}</p>` : ''}

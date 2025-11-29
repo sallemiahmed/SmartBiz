@@ -393,5 +393,20 @@
     "accepted": "مقبول",
     "rejected": "مرفوض",
     "view_rfq": "عرض الطلب",
-    "delete_rfq_msg": "هل أنت متأكد من حذف طلب التسعير هذا؟"
+    "delete_rfq_msg": "هل أنت متأكد من حذف طلب التسعير هذا؟",
+    "internal_purchase_request": "طلب شراء داخلي",
+    "ipr_desc": "إدارة الطلبات الداخلية قبل الشراء.",
+    "new_request": "طلب جديد",
+    "search_requests": "بحث في الطلبات...",
+    "requester": "الطالب",
+    "department": "القسم",
+    "request_details": "تفاصيل الطلب",
+    "requested_items": "العناصر المطلوبة",
+    "save_request": "حفظ الطلب",
+    "requester_name": "اسم الطالب",
+    "select_supplier": "اختر المورد...",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "convert_to_rfq": "تحويل إلى طلب تسعير",
+    "approved": "موافق عليه"
 }

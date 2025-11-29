@@ -1,8 +1,10 @@
 
+// ... existing imports
 import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement } from '../types';
 
 const currentYear = new Date().getFullYear();
 
+// ... existing mock data (warehouses, inventory, clients, suppliers, invoices)
 export const mockWarehouses: Warehouse[] = [
   { id: 'w1', name: 'Dépôt Principal', location: 'Tunis Z.I.', isDefault: true },
   { id: 'w2', name: 'Showroom Sousse', location: 'Sousse Centre' },
@@ -174,9 +176,21 @@ export const mockPurchases: Purchase[] = [
     date: `${currentYear}-05-21`, deadline: `${currentYear}-05-28`, amount: 0, status: 'responded',
     items: [{ id: 'p6', description: 'Chaise Ergonomique Pro', quantity: 50, price: 195.000 }],
     warehouseId: 'w1', subtotal: 9750
+  },
+  // Internal Purchase Requests
+  {
+    id: 'pr1', number: 'DA-24-001', type: 'pr', supplierId: '', supplierName: '',
+    requesterName: 'Sami IT', department: 'Information Technology',
+    date: `${currentYear}-05-28`, amount: 0, status: 'pending',
+    items: [
+        { id: 'p5', description: 'Serveur Dell PowerEdge T40', quantity: 1, price: 0 },
+        { id: 'p2', description: 'Ecran Dell 27" 4K', quantity: 2, price: 0 }
+    ],
+    warehouseId: 'w1'
   }
 ];
 
+// ... existing code for stock movements, bank accounts, transactions etc.
 export const mockStockMovements: StockMovement[] = [
   { 
     id: 'sm1', productId: 'p1', productName: 'HP EliteBook 840 G8', warehouseId: 'w1', warehouseName: 'Dépôt Principal',

@@ -21,7 +21,8 @@ import SalesEstimates from './views/SalesEstimates';
 import SalesDeliveries from './views/SalesDeliveries';
 import SalesInvoices from './views/SalesInvoices';
 import SalesIssues from './views/SalesIssues';
-import RequestForQuotation from './views/RequestForQuotation'; // NEW
+import RequestForQuotation from './views/RequestForQuotation';
+import InternalPurchaseRequest from './views/InternalPurchaseRequest'; // NEW
 import Reports from './views/Reports';
 import Settings from './views/Settings';
 import BankManagement from './views/BankManagement'; 
@@ -117,6 +118,14 @@ function AppContent() {
     }
 
     // --- Purchases Routing ---
+
+    // 0. Internal Purchase Request (IPR) - NEW
+    if (currentView === 'purchases-pr') {
+        return <InternalPurchaseRequest onAddNew={() => handleNavigate('purchases-pr-create' as AppView)} />;
+    }
+    if (currentView === 'purchases-pr-create' as AppView) {
+        return <Purchases mode="pr" />;
+    }
 
     // 0. Request for Quotation (RFQ)
     if (currentView === 'purchases-rfq') {

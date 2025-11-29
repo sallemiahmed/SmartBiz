@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign, RefreshCcw, ArrowDownCircle
+  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign, RefreshCcw, ArrowDownCircle, User, Briefcase
 } from 'lucide-react';
 import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
@@ -37,6 +38,10 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
   const [linkedOrderId, setLinkedOrderId] = useState<string>('');
   
+  // PR Specific State
+  const [requesterName, setRequesterName] = useState('');
+  const [department, setDepartment] = useState('');
+
   // Currency State
   const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
   const [exchangeRate, setExchangeRate] = useState(1);
@@ -60,6 +65,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setPaymentMethod('Bank Transfer');
     setNotes('');
     setAdditionalCosts(0);
+    setRequesterName('');
+    setDepartment('');
     setShowSuccessModal(false);
     setLastCreatedDoc(null);
     setSelectedCurrency(settings.currency);
@@ -69,6 +76,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
   // Helpers
   const getPageTitle = () => {
     switch(mode) {
+      case 'pr': return t('internal_purchase_request');
       case 'order': return 'New Supplier Order';
       case 'delivery': return 'Receive Goods (GRN)';
       default: return 'Register Supplier Invoice';
@@ -77,6 +85,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
 
   const getButtonLabel = () => {
     switch(mode) {
+      case 'pr': return t('save_request');
       case 'order': return 'Create Order';
       case 'delivery': return 'Confirm Receipt';
       default: return 'Save Invoice';
@@ -85,6 +94,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
 
   const getButtonColor = () => {
     switch(mode) {
+      case 'pr': return 'bg-indigo-600 hover:bg-indigo-700';
       case 'order': return 'bg-orange-600 hover:bg-orange-700';
       case 'delivery': return 'bg-emerald-600 hover:bg-emerald-700';
       default: return 'bg-blue-600 hover:bg-blue-700';
@@ -239,10 +249,17 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
 
   const handleCreateDoc = () => {
     if (cart.length === 0) return;
-    if (!selectedSupplier) {
+    
+    if (mode !== 'pr' && !selectedSupplier) {
       alert("Please select a supplier.");
       return;
     }
+    
+    if (mode === 'pr' && !requesterName) {
+        alert("Please enter a requester name.");
+        return;
+    }
+
     if (!selectedWarehouse) {
       alert("Please select a destination warehouse.");
       return;
@@ -255,17 +272,19 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       price: item.unitCost
     }));
 
-    const supplierName = suppliers.find(s => s.id === selectedSupplier)?.company || 'Unknown Supplier';
+    const supplierName = mode === 'pr' ? '' : suppliers.find(s => s.id === selectedSupplier)?.company || 'Unknown Supplier';
 
     const createdDoc = createPurchaseDocument(mode, {
       supplierId: selectedSupplier,
       supplierName: supplierName,
+      requesterName: mode === 'pr' ? requesterName : undefined,
+      department: mode === 'pr' ? department : undefined,
       date: new Date().toISOString().split('T')[0],
       amount: total,
       currency: selectedCurrency,
       exchangeRate: exchangeRate,
       additionalCosts: additionalCosts,
-      status: mode === 'order' ? 'pending' : 'completed', // GRN and Invoice are completed immediately here
+      status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed', // GRN and Invoice are completed immediately here
       warehouseId: selectedWarehouse,
       paymentTerms,
       paymentMethod,
@@ -291,6 +310,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     setSelectedSupplier('');
     setLinkedOrderId('');
     setNotes('');
+    setRequesterName('');
+    setDepartment('');
     setAdditionalCosts(0);
     setLastCreatedDoc(null);
     setShowSuccessModal(false);
@@ -445,22 +466,47 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
           </div>
 
-          {/* Supplier Select */}
-          <div className="relative">
-            <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select
-              value={selectedSupplier}
-              onChange={(e) => setSelectedSupplier(e.target.value)}
-              disabled={!!linkedOrderId} // Disable if linked to an order to prevent mismatch
-              className={`w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border ${!selectedSupplier ? 'border-amber-300 dark:border-amber-700' : 'border-gray-200 dark:border-gray-700'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white appearance-none cursor-pointer disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed`}
-            >
-              <option value="">Select Supplier...</option>
-              {suppliers.map(s => (
-                <option key={s.id} value={s.id}>{s.company}</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
-          </div>
+          {/* Conditional Input: Supplier OR Requester (for PR) */}
+          {mode === 'pr' ? (
+            <div className="space-y-3">
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input 
+                        type="text"
+                        placeholder={t('requester_name')}
+                        value={requesterName}
+                        onChange={(e) => setRequesterName(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                    />
+                </div>
+                <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input 
+                        type="text"
+                        placeholder={t('department')}
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                    />
+                </div>
+            </div>
+          ) : (
+            <div className="relative">
+                <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <select
+                value={selectedSupplier}
+                onChange={(e) => setSelectedSupplier(e.target.value)}
+                disabled={!!linkedOrderId} // Disable if linked to an order to prevent mismatch
+                className={`w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border ${!selectedSupplier ? 'border-amber-300 dark:border-amber-700' : 'border-gray-200 dark:border-gray-700'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white appearance-none cursor-pointer disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed`}
+                >
+                <option value="">{t('select_supplier')}</option>
+                {suppliers.map(s => (
+                    <option key={s.id} value={s.id}>{s.company}</option>
+                ))}
+                </select>
+                <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none rotate-90" />
+            </div>
+          )}
 
           {/* Currency Selection */}
           <div className="flex gap-2">
@@ -495,7 +541,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
               <Truck className="w-12 h-12 opacity-20" />
               <p className="text-sm">Draft is empty</p>
-              <p className="text-xs text-center px-8">Add items to build a {mode === 'order' ? 'purchase order' : mode === 'delivery' ? 'receipt note' : 'invoice'}.</p>
+              <p className="text-xs text-center px-8">Add items to build a {mode === 'pr' ? 'request' : mode === 'order' ? 'purchase order' : mode === 'delivery' ? 'receipt note' : 'invoice'}.</p>
             </div>
           ) : (
             cart.map((item) => (
@@ -709,15 +755,23 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {mode === 'order' ? 'Supplier Order created.' : mode === 'delivery' ? 'Goods Received Note logged & Stock updated.' : 'Invoice logged & expenses updated.'}<br/>
+              {mode === 'order' ? 'Supplier Order created.' : mode === 'delivery' ? 'Goods Received Note logged & Stock updated.' : mode === 'pr' ? 'Internal Purchase Request created.' : 'Invoice logged & expenses updated.'}<br/>
               Ref <span className="font-mono font-medium text-gray-900 dark:text-white">{lastDocNumber}</span>
             </p>
             
             <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg mb-6 text-left space-y-2">
-               <div className="flex justify-between text-sm">
-                 <span className="text-gray-500">Supplier:</span>
-                 <span className="font-medium text-gray-900 dark:text-white">{selectedSupplierData?.company || 'General Purchase'}</span>
-               </div>
+               {mode !== 'pr' && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-gray-500">Supplier:</span>
+                   <span className="font-medium text-gray-900 dark:text-white">{selectedSupplierData?.company || 'General Purchase'}</span>
+                 </div>
+               )}
+               {mode === 'pr' && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-gray-500">Requester:</span>
+                   <span className="font-medium text-gray-900 dark:text-white">{requesterName}</span>
+                 </div>
+               )}
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">Warehouse:</span>
                  <span className="font-medium text-gray-900 dark:text-white">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span>
@@ -743,7 +797,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
                 onClick={resetForm}
                 className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
               >
-                New {mode}
+                New {mode.toUpperCase()}
               </button>
               <button 
                 onClick={handlePrint} 

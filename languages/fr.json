@@ -393,5 +393,20 @@
     "accepted": "Accepté",
     "rejected": "Rejeté",
     "view_rfq": "Voir RFQ",
-    "delete_rfq_msg": "Êtes-vous sûr de vouloir supprimer cette demande de cotation ?"
+    "delete_rfq_msg": "Êtes-vous sûr de vouloir supprimer cette demande de cotation ?",
+    "internal_purchase_request": "Demande d'Achat Interne",
+    "ipr_desc": "Gérer les demandes internes avant achat.",
+    "new_request": "Nouvelle Demande",
+    "search_requests": "Chercher demandes...",
+    "requester": "Demandeur",
+    "department": "Département",
+    "request_details": "Détails de la demande",
+    "requested_items": "Articles demandés",
+    "save_request": "Enregistrer Demande",
+    "requester_name": "Nom du demandeur",
+    "select_supplier": "Sélectionner Fournisseur...",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "convert_to_rfq": "Convertir en RFQ",
+    "approved": "Approuvé"
 }

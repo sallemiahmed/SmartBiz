@@ -393,5 +393,20 @@
     "accepted": "Accepted",
     "rejected": "Rejected",
     "view_rfq": "View RFQ",
-    "delete_rfq_msg": "Are you sure you want to delete this RFQ?"
+    "delete_rfq_msg": "Are you sure you want to delete this RFQ?",
+    "internal_purchase_request": "Internal Purchase Request",
+    "ipr_desc": "Manage internal requests for products or services before purchasing.",
+    "new_request": "New Request",
+    "search_requests": "Search requests...",
+    "requester": "Requester",
+    "department": "Department",
+    "request_details": "Request Details",
+    "requested_items": "Requested Items",
+    "save_request": "Save Request",
+    "requester_name": "Requester Name",
+    "select_supplier": "Select Supplier...",
+    "approve": "Approve",
+    "reject": "Reject",
+    "convert_to_rfq": "Convert to RFQ",
+    "approved": "Approved"
 }

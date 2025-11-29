@@ -110,6 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       icon: Receipt, 
       emoji: '🧾',
       subItems: [
+        { id: 'purchases-pr', labelKey: 'internal_purchase_request', hasAction: true },
         { id: 'purchases-rfq', labelKey: 'request_for_quotation', hasAction: true },
         { id: 'purchases-order', labelKey: 'supplier_order' },
         { id: 'purchases-delivery', labelKey: 'supplier_delivery', hasAction: true },
