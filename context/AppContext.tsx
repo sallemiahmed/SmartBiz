@@ -99,16 +99,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   
   const [settings, setSettings] = useState<AppSettings>({
     companyName: 'SmartBiz Demo',
-    companyEmail: 'admin@smartbiz.com',
-    companyPhone: '+1 234 567 890',
-    companyAddress: '123 Business St, Tech City',
+    companyEmail: 'contact@smartbiz.com',
+    companyPhone: '+216 71 123 456',
+    companyAddress: 'Les Berges du Lac 2, Tunis, Tunisie',
+    // Default logo for PDFs
+    companyLogo: 'https://placehold.co/300x100/4f46e5/ffffff?text=SmartBiz+Corp',
     currency: 'TND',
-    language: 'en',
+    language: 'fr', // Default language changed to French
     timezone: 'UTC+1',
     geminiApiKey: '',
     enableFiscalStamp: true,
     fiscalStampValue: 1.000,
-    taxRates: [{ id: 't1', name: 'VAT', rate: 19, isDefault: true }],
+    taxRates: [{ id: 't1', name: 'TVA', rate: 19, isDefault: true }, { id: 't2', name: 'TVA', rate: 7, isDefault: false }],
     customFields: { clients: [], suppliers: [] }
   });
 
@@ -120,14 +122,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const t = (key: string) => translations[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   const formatCurrency = (amount: number, currency: string = settings.currency) => {
-    return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : 'en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: currency === 'TND' ? 3 : 2
-    }).format(amount);
+    try {
+      return new Intl.NumberFormat(settings.language === 'ar' ? 'ar-TN' : (settings.language === 'fr' ? 'fr-TN' : 'en-US'), {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: currency === 'TND' ? 3 : 2
+      }).format(amount);
+    } catch (e) {
+      return `${amount} ${currency}`;
+    }
   };
 
-  // --- CRUD Operations ---
+  // --- CRUD Operations --- (unchanged logic)
 
   const addClient = (client: Client) => setClients([...clients, client]);
   const updateClient = (client: Client) => setClients(clients.map(c => c.id === client.id ? client : c));
@@ -160,7 +166,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setBankTransactions(prev => prev.filter(t => t.id !== id));
         setBankAccounts(prev => prev.map(acc => {
             if (acc.id === tx.accountId) {
-                return { ...acc, balance: acc.balance - tx.amount }; // Reverse amount
+                return { ...acc, balance: acc.balance - tx.amount }; 
             }
             return acc;
         }));
@@ -218,9 +224,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setInvoices([newDoc, ...invoices]);
 
-    // Stock & Client Logic
     if (type === 'invoice' || type === 'delivery') {
-       // Deduct Stock
        if (newDoc.warehouseId) {
          setProducts(prev => prev.map(p => {
            const item = items.find(i => i.id === p.id);
@@ -230,6 +234,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
              if (whStock[newDoc.warehouseId!]) {
                 whStock[newDoc.warehouseId!] -= item.quantity;
              }
+             // Log automated movement
+             addStockMovement({
+                id: `sm-out-${Date.now()}-${p.id}`,
+                productId: p.id,
+                productName: p.name,
+                warehouseId: newDoc.warehouseId!,
+                warehouseName: warehouses.find(w => w.id === newDoc.warehouseId)?.name || 'Unknown',
+                date: new Date().toISOString(),
+                quantity: -item.quantity,
+                type: 'sale',
+                reference: newDoc.number,
+                notes: `Auto-deduct via ${type}`,
+                unitCost: p.cost,
+                costBefore: p.cost,
+                costAfter: p.cost
+             });
              return { ...p, stock: newStock, warehouseStock: whStock };
            }
            return p;
@@ -238,7 +258,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     if (type === 'invoice') {
-        // Update Client Spent
         const client = clients.find(c => c.id === newDoc.clientId);
         if (client) {
             updateClient({ ...client, totalSpent: client.totalSpent + newDoc.amount });
@@ -254,7 +273,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const deleteInvoice = (id: string) => setInvoices(invoices.filter(i => i.id !== id));
 
-  // --- Purchase Logic ---
   const createPurchaseDocument = (type: PurchaseDocumentType, docData: Partial<Purchase>, items: InvoiceItem[]): Purchase => {
     const newDoc: Purchase = {
       ...docData,
@@ -269,7 +287,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       supplierName: docData.supplierName || ''
     } as Purchase;
 
-    // Update Supplier Stats
     if (type === 'invoice' || type === 'order') {
         const supplier = suppliers.find(s => s.id === newDoc.supplierId);
         if (supplier) {
@@ -277,7 +294,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     }
 
-    // Link Logic
     if (type === 'delivery' && docData.linkedDocumentId) {
       setPurchases(prev => {
         const updatedPurchases = prev.map(p => {
@@ -292,7 +308,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setPurchases(prev => [newDoc, ...prev]);
     }
 
-    // Stock Addition Logic (GRN)
     if (type === 'delivery') {
       const warehouseId = docData.warehouseId;
       if (warehouseId) {
@@ -303,7 +318,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const updatedWarehouseStock = { ...prod.warehouseStock };
             updatedWarehouseStock[warehouseId] = (updatedWarehouseStock[warehouseId] || 0) + purchasedItem.quantity;
             
-            // WAC Calculation
             const oldTotalValue = prod.stock * prod.cost;
             const newPurchaseValue = purchasedItem.quantity * purchasedItem.price;
             const newCost = newTotalStock > 0 ? (oldTotalValue + newPurchaseValue) / newTotalStock : prod.cost;
@@ -355,7 +369,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const currentTo = p.warehouseStock[transfer.toWarehouseId] || 0;
             
             if (currentFrom >= transfer.quantity) {
-                // Log movements
                 addStockMovement({
                     id: `sm-tr-out-${Date.now()}`,
                     productId: p.id,
@@ -408,15 +421,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const expenses = purchases.filter(p => p.type === 'invoice').reduce((acc, curr) => acc + curr.amount, 0);
   const profit = revenue - expenses;
 
-  // Chart Data (Mock)
-  const chartData = [
-    { name: 'Jan', revenue: 4000, expenses: 2400 },
-    { name: 'Feb', revenue: 3000, expenses: 1398 },
-    { name: 'Mar', revenue: 2000, expenses: 9800 },
-    { name: 'Apr', revenue: 2780, expenses: 3908 },
-    { name: 'May', revenue: 1890, expenses: 4800 },
-    { name: 'Jun', revenue: 2390, expenses: 3800 },
-  ];
+  // Chart Data generation based on invoice dates
+  const chartData = React.useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const currentYear = new Date().getFullYear();
+    
+    return months.map((month, index) => {
+        const monthNum = index; // 0-5
+        
+        // Calculate revenue for this month
+        const monthlyRevenue = invoices
+            .filter(i => {
+                const d = new Date(i.date);
+                return i.type === 'invoice' && i.status !== 'draft' && d.getMonth() === monthNum && d.getFullYear() === currentYear;
+            })
+            .reduce((sum, i) => sum + i.amount, 0);
+
+        // Calculate expenses for this month
+        const monthlyExpenses = purchases
+            .filter(p => {
+                const d = new Date(p.date);
+                return p.type === 'invoice' && d.getMonth() === monthNum && d.getFullYear() === currentYear;
+            })
+            .reduce((sum, p) => sum + p.amount, 0);
+
+        return {
+            name: month,
+            revenue: monthlyRevenue,
+            expenses: monthlyExpenses
+        };
+    });
+  }, [invoices, purchases]);
 
   return (
     <AppContext.Provider value={{
