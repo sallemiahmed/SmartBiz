@@ -6,6 +6,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { AppSettings, TaxRate, CustomFieldDefinition } from '../types';
 import { allCurrencies } from '../utils/currencyList';
+import SearchableSelect from '../components/SearchableSelect';
 
 type SettingsTab = 'general' | 'profile' | 'security' | 'billing' | 'notifications' | 'custom_fields';
 
@@ -332,18 +333,12 @@ const Settings: React.FC<SettingsProps> = ({ view }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('currency')}</label>
-                    <select
-                      name="currency"
+                    <SearchableSelect
                       value={formData.currency}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    >
-                      {allCurrencies.map((currency) => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.code} ({currency.symbol})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFormData(prev => ({ ...prev, currency: val }))}
+                      options={allCurrencies.map(c => ({ value: c.code, label: `${c.code} - ${c.name} (${c.symbol})` }))}
+                      className="w-full rounded-lg"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('timezone')}</label>

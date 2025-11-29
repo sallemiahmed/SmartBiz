@@ -7,6 +7,7 @@ import { useApp } from '../context/AppContext';
 import { BankAccount, BankTransaction } from '../types';
 import { BarChart, Bar, ResponsiveContainer } from 'recharts';
 import { allCurrencies } from '../utils/currencyList';
+import SearchableSelect from '../components/SearchableSelect';
 
 const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
   const { bankAccounts, bankTransactions, formatCurrency, addBankTransaction, addBankAccount, updateBankAccount, deleteBankAccount, deleteBankTransaction, t } = useApp();
@@ -25,6 +26,7 @@ const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
   // Account Modal State
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
+  const [accountFormCurrency, setAccountFormCurrency] = useState('USD');
   
   // Filtered Data
   const filteredTransactions = bankTransactions.filter(tx => {
@@ -66,7 +68,7 @@ const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
     const name = formData.get('name') as string;
     const bankName = formData.get('bankName') as string;
     const accountNumber = formData.get('accountNumber') as string;
-    const currency = formData.get('currency') as string;
+    const currency = accountFormCurrency;
     const type = formData.get('type') as any;
     const initialBalance = parseFloat(formData.get('balance') as string) || 0;
 
@@ -102,11 +104,13 @@ const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
 
   const openEditAccount = (acc: BankAccount) => {
     setEditingAccount(acc);
+    setAccountFormCurrency(acc.currency);
     setIsAccountModalOpen(true);
   };
 
   const openAddAccount = () => {
     setEditingAccount(null);
+    setAccountFormCurrency('USD');
     setIsAccountModalOpen(true);
   };
 
@@ -431,13 +435,13 @@ const BankManagement: React.FC<{ view?: string }> = ({ view = 'banking' }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('currency')}</label>
-                  <select name="currency" defaultValue={editingAccount?.currency || 'USD'} className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white">
-                    {allCurrencies.map((currency) => (
-                      <option key={currency.code} value={currency.code}>
-                        {currency.code}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    value={accountFormCurrency}
+                    onChange={(val) => setAccountFormCurrency(val)}
+                    options={allCurrencies.map(c => ({ value: c.code, label: `${c.code} - ${c.name} (${c.symbol})` }))}
+                    className="w-full rounded-lg"
+                    align="right"
+                  />
                 </div>
               </div>
               {!editingAccount && (

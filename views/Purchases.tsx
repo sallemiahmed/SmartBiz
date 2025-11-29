@@ -7,6 +7,7 @@ import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 import { allCurrencies } from '../utils/currencyList';
+import SearchableSelect from '../components/SearchableSelect';
 
 interface POItem extends Product {
   cartId: string;
@@ -464,18 +465,13 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
           {/* Currency Selection */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <RefreshCcw className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-              <select
+              <RefreshCcw className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 z-10 pointer-events-none" />
+              <SearchableSelect
                 value={selectedCurrency}
-                onChange={(e) => setSelectedCurrency(e.target.value)}
-                className="w-full pl-9 pr-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
-              >
-                {allCurrencies.map((currency) => (
-                  <option key={currency.code} value={currency.code}>
-                    {currency.code}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedCurrency(val)}
+                options={allCurrencies.map(c => ({ value: c.code, label: c.code }))}
+                className="w-full pl-7 py-1.5 text-xs rounded-lg"
+              />
             </div>
             {selectedCurrency !== settings.currency && (
               <div className="relative flex-1 animate-in fade-in zoom-in duration-200">
