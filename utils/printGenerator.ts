@@ -47,6 +47,8 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
   
   // Sales specific fields
   const discountAmount = (document as Invoice).discount || 0;
+  const discountValue = (document as Invoice).discountValue || 0;
+  const discountType = (document as Invoice).discountType || 'amount';
   const fiscalStamp = (document as Invoice).fiscalStamp || 0;
   
   // Purchase specific fields
@@ -164,7 +166,9 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
           </tr>
           ${discountAmount > 0 ? `
           <tr>
-            <td class="label" style="color: #c0392b;">Discount</td>
+            <td class="label" style="color: #c0392b;">
+              Discount ${discountType === 'percent' ? `(${discountValue}%)` : ''}
+            </td>
             <td class="value" style="color: #c0392b;">-${currencyFormatter.format(discountAmount)}</td>
           </tr>` : ''}
           ${additionalCosts > 0 ? `
