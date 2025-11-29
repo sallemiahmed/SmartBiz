@@ -1,12 +1,12 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw, ShoppingBag, CheckSquare, Truck } from 'lucide-react';
 import { Product } from '../types';
 import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
 
 const Inventory: React.FC = () => {
-  const { products, warehouses, stockMovements, addProduct, updateProduct, deleteProduct, addStockMovement, formatCurrency, t } = useApp();
+  const { products, warehouses, suppliers, stockMovements, addProduct, updateProduct, deleteProduct, createPurchaseDocument, addStockMovement, formatCurrency, t } = useApp();
   
   // State initialization
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +22,12 @@ const Inventory: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false); // New Modal State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Restock State
+  const [selectedRestockSupplier, setSelectedRestockSupplier] = useState<string>('');
+  const [restockSelection, setRestockSelection] = useState<Record<string, number>>({}); // productId -> qty
 
   // Form state
   const initialFormState: Partial<Product> = {
@@ -92,6 +97,87 @@ const Inventory: React.FC = () => {
     setCategoryFilter('all');
     setPriceRange({ min: '', max: '' });
     setCurrentPage(1);
+  };
+
+  // Restock Handlers
+  const openRestockModal = () => {
+    // Initialize restock selection with products needing restock
+    const needsRestock = products.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock');
+    const initialSelection: Record<string, number> = {};
+    needsRestock.forEach(p => {
+        // Default to ordering 10 units, or logic to reach safety stock of 20
+        const defaultOrderQty = Math.max(10, 20 - p.stock);
+        initialSelection[p.id] = defaultOrderQty;
+    });
+    setRestockSelection(initialSelection);
+    setSelectedRestockSupplier(suppliers[0]?.id || '');
+    setIsRestockModalOpen(true);
+  };
+
+  const handleRestockSelectionChange = (productId: string, qty: number) => {
+      setRestockSelection(prev => {
+          if (qty <= 0) {
+              const newState = { ...prev };
+              delete newState[productId];
+              return newState;
+          }
+          return { ...prev, [productId]: qty };
+      });
+  };
+
+  const toggleRestockItem = (productId: string) => {
+      setRestockSelection(prev => {
+          const newState = { ...prev };
+          if (newState[productId]) {
+              delete newState[productId];
+          } else {
+              // Add back with default qty
+              const prod = products.find(p => p.id === productId);
+              newState[productId] = prod ? Math.max(10, 20 - prod.stock) : 10;
+          }
+          return newState;
+      });
+  };
+
+  const handleRestockSubmit = () => {
+      if (!selectedRestockSupplier) {
+          alert('Please select a supplier');
+          return;
+      }
+
+      const selectedProductIds = Object.keys(restockSelection);
+      if (selectedProductIds.length === 0) {
+          alert('Please select products to restock');
+          return;
+      }
+
+      const orderItems = selectedProductIds.map(id => {
+          const prod = products.find(p => p.id === id);
+          return {
+              id: id,
+              description: prod?.name || 'Unknown',
+              quantity: restockSelection[id],
+              price: prod?.cost || 0
+          };
+      });
+
+      // Calculate approximate total
+      const amount = orderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const supplierName = suppliers.find(s => s.id === selectedRestockSupplier)?.company || 'Unknown';
+
+      // Create PO
+      createPurchaseDocument('order', {
+          supplierId: selectedRestockSupplier,
+          supplierName: supplierName,
+          date: new Date().toISOString().split('T')[0],
+          amount: amount,
+          status: 'pending',
+          warehouseId: warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id, // Default WH
+          notes: 'Generated via Restock Wizard'
+      }, orderItems);
+
+      setIsRestockModalOpen(false);
+      alert(t('success'));
   };
 
   const handleAddSubmit = (e: React.FormEvent) => {
@@ -373,6 +459,12 @@ const Inventory: React.FC = () => {
         </div>
         <div className="flex gap-2">
            <button 
+             onClick={openRestockModal}
+             className="px-4 py-2 bg-orange-600 text-white rounded-lg flex items-center gap-2 hover:bg-orange-700 transition-colors"
+           >
+             <ShoppingBag className="w-4 h-4" /> {t('restock')}
+           </button>
+           <button 
              onClick={() => setIsAddModalOpen(true)}
              className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
            >
@@ -606,6 +698,113 @@ const Inventory: React.FC = () => {
 
       {/* --- MODALS --- */}
       
+      {/* Restock Modal */}
+      {isRestockModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-orange-50 dark:bg-orange-900/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-lg text-orange-600 dark:text-orange-400">
+                    <ShoppingBag className="w-6 h-6" />
+                </div>
+                <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('restock_low_stock')}</h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('select_products_restock')}</p>
+                </div>
+              </div>
+              <button onClick={() => setIsRestockModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 flex-1 overflow-y-auto">
+                {/* Supplier Selection */}
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('supplier_management')}</label>
+                    <div className="relative">
+                        <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <select 
+                            value={selectedRestockSupplier}
+                            onChange={(e) => setSelectedRestockSupplier(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                        >
+                            <option value="">{t('select_supplier')}</option>
+                            {suppliers.map(s => <option key={s.id} value={s.id}>{s.company}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Product List */}
+                <div className="space-y-2">
+                    <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pb-2 border-b border-gray-200 dark:border-gray-700">
+                        <div className="col-span-1 text-center"></div>
+                        <div className="col-span-5">{t('product')}</div>
+                        <div className="col-span-3 text-center">Current Stock</div>
+                        <div className="col-span-3 text-right">{t('order_qty')}</div>
+                    </div>
+                    {products.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock').length === 0 ? (
+                        <p className="text-center text-gray-500 py-4 italic">No items currently need restocking.</p>
+                    ) : (
+                        products
+                        .filter(p => p.status === 'low_stock' || p.status === 'out_of_stock')
+                        .map(p => (
+                            <div key={p.id} className={`grid grid-cols-12 gap-4 items-center p-3 rounded-lg border transition-colors ${restockSelection[p.id] !== undefined ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}>
+                                <div className="col-span-1 text-center">
+                                    <button 
+                                        onClick={() => toggleRestockItem(p.id)}
+                                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${restockSelection[p.id] !== undefined ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-400 hover:border-indigo-500'}`}
+                                    >
+                                        {restockSelection[p.id] !== undefined && <CheckSquare className="w-3.5 h-3.5" />}
+                                    </button>
+                                </div>
+                                <div className="col-span-5">
+                                    <div className="font-medium text-sm text-gray-900 dark:text-white">{p.name}</div>
+                                    <div className="text-xs text-gray-500">{p.sku}</div>
+                                </div>
+                                <div className="col-span-3 text-center">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${getStatusColor(p.status)}`}>
+                                        {p.stock}
+                                    </span>
+                                </div>
+                                <div className="col-span-3 text-right">
+                                    {restockSelection[p.id] !== undefined ? (
+                                        <input 
+                                            type="number" 
+                                            min="1"
+                                            value={restockSelection[p.id]}
+                                            onChange={(e) => handleRestockSelectionChange(p.id, parseInt(e.target.value) || 0)}
+                                            className="w-20 px-2 py-1 text-sm text-right bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-indigo-500 outline-none dark:text-white"
+                                        />
+                                    ) : (
+                                        <span className="text-gray-400 text-sm">-</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-3">
+                <button 
+                  onClick={() => setIsRestockModalOpen(false)}
+                  className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  {t('cancel')}
+                </button>
+                <button 
+                  onClick={handleRestockSubmit}
+                  disabled={!selectedRestockSupplier || Object.keys(restockSelection).length === 0}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  {t('generate_order')}
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ADD Product Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

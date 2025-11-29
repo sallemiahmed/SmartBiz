@@ -408,5 +408,10 @@
     "approve": "Approve",
     "reject": "Reject",
     "convert_to_rfq": "Convert to RFQ",
-    "approved": "Approved"
+    "approved": "Approved",
+    "restock": "Restock",
+    "restock_low_stock": "Restock Low/Out of Stock",
+    "generate_order": "Generate Order",
+    "select_products_restock": "Select Products to Restock",
+    "order_qty": "Order Qty"
 }

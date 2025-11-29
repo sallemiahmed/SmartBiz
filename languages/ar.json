@@ -408,5 +408,10 @@
     "approve": "موافقة",
     "reject": "رفض",
     "convert_to_rfq": "تحويل إلى طلب تسعير",
-    "approved": "موافق عليه"
+    "approved": "موافق عليه",
+    "restock": "إعادة التخزين",
+    "restock_low_stock": "إعادة تخزين المخزون المنخفض",
+    "generate_order": "إنشاء طلب",
+    "select_products_restock": "اختر المنتجات لإعادة التخزين",
+    "order_qty": "كمية الطلب"
 }

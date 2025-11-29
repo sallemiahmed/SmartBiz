@@ -408,5 +408,10 @@
     "approve": "Approuver",
     "reject": "Rejeter",
     "convert_to_rfq": "Convertir en RFQ",
-    "approved": "Approuvé"
+    "approved": "Approuvé",
+    "restock": "Réapprovisionner",
+    "restock_low_stock": "Réapp. Stock Faible/Rupture",
+    "generate_order": "Générer Commande",
+    "select_products_restock": "Produits à réapprovisionner",
+    "order_qty": "Qté Cmd"
 }
