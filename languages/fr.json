@@ -436,5 +436,7 @@
     "amount_paid": "Montant Payé",
     "remaining": "Restant",
     "mark_accepted": "Accepter",
-    "mark_rejected": "Refuser"
+    "mark_rejected": "Refuser",
+    "pay_supplier": "Payer Fournisseur",
+    "record_payment": "Enregistrer Paiement"
 }

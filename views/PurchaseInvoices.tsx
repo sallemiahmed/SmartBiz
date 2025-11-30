@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Filter, CreditCard, Printer, CheckCircle, Landmark, Wallet } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Eye, Trash2, X, FileText, Filter, CreditCard, Printer, CheckCircle, Landmark, Wallet, AlertCircle } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -21,6 +21,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<'bank' | 'cash'>('bank');
   const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
   // Filter only purchase invoices
   const purchaseInvoices = purchases.filter(p => p.type === 'invoice');
@@ -32,6 +33,14 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
     return matchesSearch && matchesStatus;
   });
 
+  // Reset payment amount when modal opens
+  useEffect(() => {
+    if (selectedDoc && isPaymentModalOpen) {
+      const remaining = selectedDoc.amount - (selectedDoc.amountPaid || 0);
+      setPaymentAmount(remaining);
+    }
+  }, [selectedDoc, isPaymentModalOpen]);
+
   const handlePrint = () => {
     if (selectedDoc) {
       printInvoice(selectedDoc, settings);
@@ -41,7 +50,8 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-      case 'pending': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'partial': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
     }
   };
@@ -54,6 +64,12 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
           return;
       }
       
+      const remaining = selectedDoc.amount - (selectedDoc.amountPaid || 0);
+      if (paymentAmount <= 0 || paymentAmount > remaining + 0.01) {
+          alert("Invalid payment amount.");
+          return;
+      }
+      
       if (paymentMethod === 'cash') {
           const activeSession = cashSessions.find(s => s.status === 'open');
           if (!activeSession) {
@@ -62,9 +78,10 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
           }
       }
 
-      recordDocPayment('purchase', selectedDoc.id, selectedDoc.amount, selectedAccountId, paymentMethod);
+      recordDocPayment('purchase', selectedDoc.id, paymentAmount, selectedAccountId, paymentMethod);
       setIsPaymentModalOpen(false);
       setIsViewModalOpen(false);
+      // Optional: Force refresh or update local state if needed, context usually handles it
       alert(t('success'));
   };
 
@@ -106,6 +123,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
             >
               <option value="all">{t('all_status')}</option>
               <option value="pending">{t('pending')}</option>
+              <option value="partial">{t('partial')}</option>
               <option value="completed">{t('completed')}</option>
             </select>
           </div>
@@ -125,16 +143,29 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredDocs.map((doc) => (
+              {filteredDocs.map((doc) => {
+                const paid = doc.amountPaid || 0;
+                const percentPaid = Math.min(100, (paid / doc.amount) * 100);
+
+                return (
                 <tr 
                   key={doc.id} 
-                  onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group cursor-pointer"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
                 >
                   <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.supplierName}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</div>
+                    {paid > 0 && paid < doc.amount && (
+                        <div className="text-xs text-gray-500 mt-1">
+                            {t('paid')}: {formatCurrency(paid)}
+                            <div className="w-full h-1 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                                <div className="h-full bg-green-500" style={{ width: `${percentPaid}%` }}></div>
+                            </div>
+                        </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
                       {t(doc.status)}
@@ -143,14 +174,25 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setIsViewModalOpen(true); }}
+                        onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
                         title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
+                      
+                      {doc.status !== 'completed' && (
+                          <button 
+                            onClick={() => { setSelectedDoc(doc); setIsPaymentModalOpen(true); }}
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
+                            title={t('pay_supplier')}
+                          >
+                            <CreditCard className="w-4 h-4" />
+                          </button>
+                      )}
+
                       <button 
-                        onClick={(e) => { e.stopPropagation(); deletePurchase(doc.id); }}
+                        onClick={() => { deletePurchase(doc.id); }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                         title={t('delete')}
                       >
@@ -159,7 +201,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
           {filteredDocs.length === 0 && (
@@ -213,9 +255,23 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                 </div>
               </div>
 
-              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
-                <span className="text-gray-900 dark:text-white">{t('total')}</span>
-                <span className="text-blue-600 dark:text-blue-400">{formatCurrency(selectedDoc.amount)}</span>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                  <div className="flex justify-between font-bold text-lg">
+                    <span className="text-gray-900 dark:text-white">{t('total')}</span>
+                    <span className="text-blue-600 dark:text-blue-400">{formatCurrency(selectedDoc.amount)}</span>
+                  </div>
+                  {(selectedDoc.amountPaid || 0) > 0 && (
+                      <div className="flex justify-between text-sm text-green-600 mt-1">
+                          <span>{t('amount_paid')}</span>
+                          <span>{formatCurrency(selectedDoc.amountPaid || 0)}</span>
+                      </div>
+                  )}
+                  {selectedDoc.amount - (selectedDoc.amountPaid || 0) > 0.01 && (
+                      <div className="flex justify-between text-sm text-red-500 mt-1">
+                          <span>{t('remaining')}</span>
+                          <span>{formatCurrency(selectedDoc.amount - (selectedDoc.amountPaid || 0))}</span>
+                      </div>
+                  )}
               </div>
             </div>
 
@@ -224,21 +280,21 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                 onClick={handlePrint}
                 className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
-                <Printer className="w-4 h-4" /> Print Invoice
+                <Printer className="w-4 h-4" /> {t('print')}
               </button>
               {selectedDoc.status !== 'completed' && (
                   <button 
-                    onClick={() => setIsPaymentModalOpen(true)}
+                    onClick={() => { setIsViewModalOpen(false); setIsPaymentModalOpen(true); }}
                     className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                   >
-                    <CheckCircle className="w-4 h-4" /> Pay Supplier
+                    <CreditCard className="w-4 h-4" /> {t('pay_supplier')}
                   </button>
               )}
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                {t('cancel')}
+                {t('close')}
               </button>
             </div>
           </div>
@@ -249,10 +305,10 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
       {isPaymentModalOpen && selectedDoc && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Record Supplier Payment</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t('record_payment')}</h3>
                 <form onSubmit={handlePaymentSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source of Funds</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('payment_method')}</label>
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 type="button"
@@ -260,7 +316,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                                 className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-colors ${paymentMethod === 'bank' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
                             >
                                 <Landmark className="w-5 h-5" />
-                                <span className="text-sm">Bank</span>
+                                <span className="text-sm">{t('bank_transfer')}</span>
                             </button>
                             <button
                                 type="button"
@@ -268,7 +324,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                                 className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-colors ${paymentMethod === 'cash' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
                             >
                                 <Wallet className="w-5 h-5" />
-                                <span className="text-sm">Cash</span>
+                                <span className="text-sm">{t('cash')}</span>
                             </button>
                         </div>
                     </div>
@@ -291,14 +347,32 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                     )}
 
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex justify-between mb-4 text-sm">
-                            <span className="text-gray-500">Amount to Pay:</span>
-                            <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(selectedDoc.amount)}</span>
+                        <div className="mb-4">
+                            <div className="flex justify-between text-sm mb-2 text-gray-500">
+                                <span>{t('total')}:</span>
+                                <span>{formatCurrency(selectedDoc.amount)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm mb-4 text-orange-600 font-medium">
+                                <span>{t('remaining')}:</span>
+                                <span>{formatCurrency(selectedDoc.amount - (selectedDoc.amountPaid || 0))}</span>
+                            </div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('amount')}</label>
+                            <input 
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                max={selectedDoc.amount - (selectedDoc.amountPaid || 0) + 0.01}
+                                value={paymentAmount}
+                                onChange={(e) => setPaymentAmount(parseFloat(e.target.value))}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white text-lg font-bold"
+                            />
                         </div>
                         <button type="submit" className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
                             <CheckCircle className="w-4 h-4" /> Confirm Payment
                         </button>
-                        <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="w-full mt-2 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                        <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="w-full mt-2 py-2 text-gray-500 hover:text-gray-700">
+                            {t('cancel')}
+                        </button>
                     </div>
                 </form>
             </div>

@@ -388,5 +388,7 @@
     "amount_paid": "المبلغ المدفوع",
     "remaining": "المتبقي",
     "mark_accepted": "قبول",
-    "mark_rejected": "رفض"
+    "mark_rejected": "رفض",
+    "pay_supplier": "دفع للمورد",
+    "record_payment": "تسجيل الدفع"
 }

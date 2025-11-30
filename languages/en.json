@@ -439,5 +439,7 @@
     "amount_paid": "Amount Paid",
     "remaining": "Remaining",
     "mark_accepted": "Mark Accepted",
-    "mark_rejected": "Mark Rejected"
+    "mark_rejected": "Mark Rejected",
+    "pay_supplier": "Pay Supplier",
+    "record_payment": "Record Payment"
 }
