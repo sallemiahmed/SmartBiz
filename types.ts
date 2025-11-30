@@ -76,7 +76,7 @@ export interface Invoice {
   dueDate?: string;
   amount: number;
   amountPaid?: number; // Track partial payments
-  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'sent' | 'partial';
+  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'sent' | 'partial' | 'accepted' | 'rejected';
   items: InvoiceItem[];
   warehouseId?: string;
   currency?: string;

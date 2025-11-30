@@ -434,5 +434,7 @@
     "rep_prod_perf": "Performance Produits",
     "partial": "Partiel",
     "amount_paid": "Montant Payé",
-    "remaining": "Restant"
+    "remaining": "Restant",
+    "mark_accepted": "Accepter",
+    "mark_rejected": "Refuser"
 }

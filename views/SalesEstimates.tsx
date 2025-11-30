@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle } from 'lucide-react';
 import { Invoice } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -10,7 +10,7 @@ interface SalesEstimatesProps {
 }
 
 const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, t, formatCurrency, settings } = useApp();
+  const { invoices, deleteInvoice, updateInvoice, createSalesDocument, t, formatCurrency, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -27,6 +27,55 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     if (selectedDoc) {
       printInvoice(selectedDoc, settings);
     }
+  };
+
+  const updateStatus = (status: 'accepted' | 'rejected') => {
+    if (!selectedDoc) return;
+    const updatedDoc = { ...selectedDoc, status };
+    updateInvoice(updatedDoc);
+    setSelectedDoc(updatedDoc);
+  };
+
+  const handleConvertToOrder = () => {
+    if (!selectedDoc) return;
+    
+    // Create new Order
+    const newOrder = createSalesDocument('order', {
+        clientId: selectedDoc.clientId,
+        clientName: selectedDoc.clientName,
+        date: new Date().toISOString().split('T')[0],
+        dueDate: selectedDoc.dueDate,
+        amount: selectedDoc.amount,
+        currency: selectedDoc.currency,
+        exchangeRate: selectedDoc.exchangeRate,
+        status: 'pending',
+        warehouseId: selectedDoc.warehouseId,
+        paymentTerms: selectedDoc.paymentTerms,
+        paymentMethod: selectedDoc.paymentMethod,
+        notes: `Converted from Estimate ${selectedDoc.number}. \n${selectedDoc.notes || ''}`,
+        taxRate: selectedDoc.taxRate,
+        subtotal: selectedDoc.subtotal,
+        discount: selectedDoc.discount,
+        discountValue: selectedDoc.discountValue,
+        discountType: selectedDoc.discountType,
+        fiscalStamp: selectedDoc.fiscalStamp,
+        linkedDocumentId: selectedDoc.id
+    }, selectedDoc.items);
+
+    // Update Estimate Status to indicate it's processed (optional, or keep as accepted)
+    // Here we just close the modal and notify
+    setIsViewModalOpen(false);
+    alert(`${t('success')} Order ${newOrder.number} created.`);
+  };
+
+  const getStatusColor = (status: string) => {
+      switch(status) {
+          case 'accepted': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+          case 'rejected': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+          case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+          case 'sent': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+          default: return 'bg-gray-100 text-gray-700';
+      }
   };
 
   return (
@@ -79,7 +128,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
-                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
                        {t(doc.status)}
                      </span>
                   </td>
@@ -126,6 +175,12 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
             </div>
             
             <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">{t('status')}</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedDoc.status)}`}>
+                    {t(selectedDoc.status)}
+                </span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('client')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.clientName}</span>
@@ -181,18 +236,49 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 border-t border-gray-200 dark:border-gray-700 pt-4">
               <button 
                 onClick={handlePrint}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Printer className="w-4 h-4" /> {t('print')}
               </button>
+
+              {/* Status Actions */}
+              {selectedDoc.status !== 'accepted' && selectedDoc.status !== 'rejected' && selectedDoc.status !== 'completed' && (
+                  <>
+                    <button 
+                        onClick={() => updateStatus('accepted')}
+                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 transition-colors"
+                        title={t('mark_accepted')}
+                    >
+                        <CheckCircle className="w-4 h-4" /> Accept
+                    </button>
+                    <button 
+                        onClick={() => updateStatus('rejected')}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 transition-colors"
+                        title={t('mark_rejected')}
+                    >
+                        <XCircle className="w-4 h-4" /> Reject
+                    </button>
+                  </>
+              )}
+
+              {/* Convert Action - Only if Accepted */}
+              {selectedDoc.status === 'accepted' && (
+                  <button 
+                    onClick={handleConvertToOrder}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <ArrowRightCircle className="w-4 h-4" /> {t('convert_to_order')}
+                  </button>
+              )}
+              
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                {t('cancel')}
+                {t('close')}
               </button>
             </div>
           </div>

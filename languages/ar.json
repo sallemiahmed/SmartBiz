@@ -386,5 +386,7 @@
     "rep_prod_perf": "أداء المنتجات",
     "partial": "جزئي",
     "amount_paid": "المبلغ المدفوع",
-    "remaining": "المتبقي"
+    "remaining": "المتبقي",
+    "mark_accepted": "قبول",
+    "mark_rejected": "رفض"
 }
