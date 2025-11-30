@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Wrench, Clock, CheckCircle, Users, TrendingUp, DollarSign, Activity, Briefcase, Star } from 'lucide-react';
+import { Wrench, Clock, CheckCircle, Users, TrendingUp, DollarSign, Activity, Briefcase, Star, Timer } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -36,15 +36,22 @@ const ServiceDashboard: React.FC = () => {
       const active = techJobs.filter(j => j.status === 'in_progress' || j.status === 'pending').length;
       const revenue = techSales.reduce((acc, s) => acc + s.total, 0);
       
-      // Mock Satisfaction Score (randomized for demo feel, between 4.0 and 5.0)
-      const rating = 4 + (active + completed) % 10 / 10; 
+      // Calculate derived metrics deterministically based on tech ID to ensure stability
+      const idSum = tech.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      
+      // Mock Satisfaction Score (CSAT) between 4.0 and 5.0
+      const rating = 4.0 + (idSum % 11) / 10; 
+
+      // Mock Avg Resolution Time (hours) between 24h and 48h
+      const avgResolutionTime = (24 + (idSum % 25)).toFixed(1);
 
       return {
         ...tech,
         completed,
         active,
         revenue,
-        rating: Math.min(5, rating)
+        rating: Math.min(5, rating),
+        avgResolutionTime
       };
     }).sort((a, b) => b.revenue - a.revenue); // Sort by top earner
   }, [technicians, serviceJobs, serviceSales]);
@@ -194,9 +201,10 @@ const ServiceDashboard: React.FC = () => {
                         <th className="px-6 py-4">Technician</th>
                         <th className="px-6 py-4 text-center">Status</th>
                         <th className="px-6 py-4 text-center">Active Jobs</th>
-                        <th className="px-6 py-4 text-center">Completed Jobs</th>
-                        <th className="px-6 py-4 text-right">Revenue Generated</th>
-                        <th className="px-6 py-4 text-right">Rating</th>
+                        <th className="px-6 py-4 text-center">Completed</th>
+                        <th className="px-6 py-4 text-center">Avg. Resolution</th>
+                        <th className="px-6 py-4 text-right">Revenue</th>
+                        <th className="px-6 py-4 text-right">CSAT</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -228,6 +236,12 @@ const ServiceDashboard: React.FC = () => {
                             <td className="px-6 py-4 text-center font-mono font-bold text-gray-900 dark:text-white">
                                 {tech.completed}
                             </td>
+                            <td className="px-6 py-4 text-center">
+                                <div className="flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400">
+                                    <Timer className="w-3.5 h-3.5" />
+                                    <span>{tech.avgResolutionTime}h</span>
+                                </div>
+                            </td>
                             <td className="px-6 py-4 text-right font-bold text-indigo-600 dark:text-indigo-400">
                                 {formatCurrency(tech.revenue)}
                             </td>
@@ -240,7 +254,7 @@ const ServiceDashboard: React.FC = () => {
                         </tr>
                     ))}
                     {technicianStats.length === 0 && (
-                        <tr><td colSpan={6} className="p-8 text-center text-gray-500">No technician data available.</td></tr>
+                        <tr><td colSpan={7} className="p-8 text-center text-gray-500">No technician data available.</td></tr>
                     )}
                 </tbody>
             </table>
