@@ -193,6 +193,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                 <th className="px-6 py-4">{t('ref_num')}</th>
                 <th className="px-6 py-4">{t('client')}</th>
                 <th className="px-6 py-4">{t('date')}</th>
+                <th className="px-6 py-4">{t('subtotal')}</th>
                 <th className="px-6 py-4">{t('amount')}</th>
                 <th className="px-6 py-4">{t('status')}</th>
                 <th className="px-6 py-4 text-right">{t('actions')}</th>
@@ -204,6 +205,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-white">{formatCurrency(doc.subtotal || 0)}</td>
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
