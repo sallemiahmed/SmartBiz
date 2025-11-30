@@ -1,16 +1,17 @@
 
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer, RotateCcw, Pencil, Save } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
+import SearchableSelect from '../components/SearchableSelect';
 
 interface SalesOrdersProps {
   onAddNew: () => void;
 }
 
 const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, t, formatCurrency, createSalesDocument, updateInvoice, settings } = useApp();
+  const { invoices, deleteInvoice, t, formatCurrency, createSalesDocument, updateInvoice, settings, products } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Invoice | null>(null);
@@ -21,12 +22,90 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   // Bulk Actions State
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
 
+  // Edit Mode State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDoc, setEditedDoc] = useState<Invoice | null>(null);
+  const [selectedAddProductId, setSelectedAddProductId] = useState('');
+
   const orders = invoices.filter(inv => inv.type === 'order');
 
   const filteredOrders = orders.filter(doc => {
     return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
            doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Reset edit state when opening a modal
+  useEffect(() => {
+    if (isViewModalOpen && selectedOrder) {
+        setIsEditing(false);
+        setEditedDoc(JSON.parse(JSON.stringify(selectedOrder))); // Deep copy
+    }
+  }, [isViewModalOpen, selectedOrder]);
+
+  // --- Edit Logic ---
+
+  const handleEditItem = (index: number, field: keyof InvoiceItem, value: any) => {
+    if (!editedDoc) return;
+    const newItems = [...editedDoc.items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    
+    recalculateTotals({ ...editedDoc, items: newItems });
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (!editedDoc) return;
+    const newItems = [...editedDoc.items];
+    newItems.splice(index, 1);
+    recalculateTotals({ ...editedDoc, items: newItems });
+  };
+
+  const handleAddItem = () => {
+    if (!editedDoc || !selectedAddProductId) return;
+    const product = products.find(p => p.id === selectedAddProductId);
+    if (!product) return;
+
+    const newItem: InvoiceItem = {
+        id: product.id,
+        description: product.name,
+        quantity: 1,
+        price: product.price
+    };
+
+    const newItems = [...editedDoc.items, newItem];
+    recalculateTotals({ ...editedDoc, items: newItems });
+    setSelectedAddProductId('');
+  };
+
+  const recalculateTotals = (doc: Invoice) => {
+      const subtotal = doc.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      let discountAmount = 0;
+      if (doc.discountType === 'percent') {
+          discountAmount = subtotal * ((doc.discountValue || 0) / 100);
+      } else {
+          discountAmount = doc.discountValue || 0;
+      }
+
+      const taxableAmount = Math.max(0, subtotal - discountAmount);
+      const taxAmount = taxableAmount * ((doc.taxRate || 0) / 100);
+      const total = taxableAmount + taxAmount + (doc.fiscalStamp || 0);
+
+      setEditedDoc({
+          ...doc,
+          subtotal,
+          discount: discountAmount,
+          amount: total
+      });
+  };
+
+  const saveEdits = () => {
+      if (editedDoc) {
+          updateInvoice(editedDoc);
+          setSelectedOrder(editedDoc);
+          setIsEditing(false);
+          alert(t('settings_saved'));
+      }
+  };
 
   // --- Bulk Selection Handlers ---
 
@@ -47,37 +126,31 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   const handleBulkInvoice = () => {
     if (selectedOrderIds.length === 0) return;
 
-    // Get full order objects
     const selectedOrdersList = orders.filter(o => selectedOrderIds.includes(o.id));
     
     if (selectedOrdersList.length === 0) return;
 
-    // Validation 1: Same Client
     const firstClient = selectedOrdersList[0].clientId;
     if (selectedOrdersList.some(o => o.clientId !== firstClient)) {
         alert(t('error_mixed_clients'));
         return;
     }
 
-    // Validation 2: Same Currency
     const firstCurrency = selectedOrdersList[0].currency;
     if (selectedOrdersList.some(o => o.currency !== firstCurrency)) {
         alert(t('error_mixed_currencies'));
         return;
     }
 
-    // Aggregate Items
     let aggregatedItems: InvoiceItem[] = [];
     selectedOrdersList.forEach(order => {
         aggregatedItems = [...aggregatedItems, ...order.items];
     });
 
-    // Calculate Totals (simplified, usually recalculate tax per item line or total)
     const totalAmount = selectedOrdersList.reduce((sum, o) => sum + o.amount, 0);
     const subtotal = selectedOrdersList.reduce((sum, o) => sum + (o.subtotal || 0), 0);
     const discount = selectedOrdersList.reduce((sum, o) => sum + (o.discount || 0), 0);
     
-    // Create Invoice
     const baseOrder = selectedOrdersList[0];
     const orderNumbers = selectedOrdersList.map(o => o.number).join(', ');
 
@@ -85,27 +158,24 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
         clientId: baseOrder.clientId,
         clientName: baseOrder.clientName,
         date: new Date().toISOString().split('T')[0],
-        dueDate: baseOrder.dueDate, // Use first order due date or default
+        dueDate: baseOrder.dueDate, 
         amount: totalAmount,
         currency: baseOrder.currency,
         exchangeRate: baseOrder.exchangeRate,
         status: 'pending',
-        warehouseId: baseOrder.warehouseId, // Assume primary warehouse or logic needs refinement
+        warehouseId: baseOrder.warehouseId,
         paymentTerms: baseOrder.paymentTerms,
         paymentMethod: baseOrder.paymentMethod,
         notes: `Consolidated Invoice for Orders: ${orderNumbers}. \n${baseOrder.notes || ''}`,
-        taxRate: baseOrder.taxRate, // Assuming consistent tax rate
+        taxRate: baseOrder.taxRate,
         subtotal: subtotal,
         discount: discount,
-        // fiscalStamp: ... (handled in context/logic usually)
     }, aggregatedItems);
 
-    // Update Status of Orders to 'Completed' (assuming fully invoiced)
     selectedOrdersList.forEach(order => {
         updateInvoice({
             ...order,
             status: 'completed',
-            // Update fulfilled quantity for traceability if needed, simplified here:
             items: order.items.map(i => ({ ...i, fulfilledQuantity: i.quantity })) 
         });
     });
@@ -119,7 +189,6 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   const handleOpenDeliveryModal = () => {
     if (!selectedOrder) return;
     
-    // Initialize quantities with remaining amount
     const initialQuantities: Record<string, number> = {};
     selectedOrder.items.forEach(item => {
       const remaining = item.quantity - (item.fulfilledQuantity || 0);
@@ -137,7 +206,6 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     if (!item) return;
 
     const remaining = item.quantity - (item.fulfilledQuantity || 0);
-    // Clamp between 0 and remaining
     const validQty = Math.max(0, Math.min(qty, remaining));
     
     setDeliveryQuantities(prev => ({
@@ -149,7 +217,6 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   const submitDelivery = () => {
     if (!selectedOrder) return;
 
-    // Filter items that have quantity > 0
     const itemsToDeliver: InvoiceItem[] = selectedOrder.items
       .filter(item => (deliveryQuantities[item.id] || 0) > 0)
       .map(item => ({
@@ -162,16 +229,14 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       return;
     }
 
-    // 1. Create the Delivery Document
     createSalesDocument('delivery', {
       clientId: selectedOrder.clientId,
       clientName: selectedOrder.clientName,
       warehouseId: selectedOrder.warehouseId,
-      linkedDocumentId: selectedOrder.id, // Ensure link
+      linkedDocumentId: selectedOrder.id, 
       notes: `Delivery for Order ${selectedOrder.number}`
     }, itemsToDeliver);
 
-    // 2. Update the Source Order (Traceability & Fulfillment)
     const updatedItems = selectedOrder.items.map(item => {
       const deliveredNow = deliveryQuantities[item.id] || 0;
       return {
@@ -180,7 +245,6 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       };
     });
 
-    // Check if order is fully completed
     const isFullyCompleted = updatedItems.every(item => (item.fulfilledQuantity || 0) >= item.quantity);
 
     updateInvoice({
@@ -215,7 +279,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       discountValue: selectedOrder.discountValue,
       discountType: selectedOrder.discountType,
       fiscalStamp: selectedOrder.fiscalStamp,
-      linkedDocumentId: selectedOrder.id // Ensure link
+      linkedDocumentId: selectedOrder.id
     }, selectedOrder.items);
 
     setIsViewModalOpen(false);
@@ -351,142 +415,317 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
         </div>
       </div>
 
-      {isViewModalOpen && selectedOrder && (
+      {isViewModalOpen && selectedOrder && editedDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto flex flex-col">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('order_details')}</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {isEditing ? t('edit') : t('order_details')}
+                </h3>
                 <span className="text-sm text-orange-600 dark:text-orange-400 font-mono">{selectedOrder.number}</span>
               </div>
               <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1">
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('client')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.clientName}</span>
               </div>
-              <div className="flex justify-between">
+              
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">{t('date')}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.date}</span>
+                {isEditing ? (
+                    <input 
+                        type="date" 
+                        value={editedDoc.date}
+                        onChange={(e) => setEditedDoc({...editedDoc, date: e.target.value})}
+                        className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white"
+                    />
+                ) : (
+                    <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.date}</span>
+                )}
               </div>
+
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('status')}</span>
                 <span className="font-medium text-gray-900 dark:text-white uppercase text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{t(selectedOrder.status)}</span>
               </div>
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {selectedOrder.items.length > 0 ? (
-                    selectedOrder.items.map((item, idx) => {
-                      const fulfilled = item.fulfilledQuantity || 0;
-                      const isComplete = fulfilled >= item.quantity;
-                      const remaining = Math.max(0, item.quantity - fulfilled);
-                      
-                      return (
-                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                          <div className="flex flex-col">
-                            <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
-                            <span className="text-xs text-gray-400">
-                              {t('delivered')}: <span className={isComplete ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
-                            </span>
-                            {remaining > 0 && (
-                              <span className="text-xs text-gray-500">
-                                {t('remaining_qty')}: <span className="font-bold text-red-500">{remaining}</span>
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Items</h4>
+                    {isEditing && (
+                        <div className="flex gap-2 w-1/2">
+                            <SearchableSelect 
+                                options={products.map(p => ({ value: p.id, label: `${p.name} (${formatCurrency(p.price)})` }))}
+                                value={selectedAddProductId}
+                                onChange={setSelectedAddProductId}
+                                placeholder="Add product..."
+                                className="w-full rounded text-xs"
+                            />
+                            <button 
+                                onClick={handleAddItem}
+                                disabled={!selectedAddProductId}
+                                className="p-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
                         </div>
-                      );
-                    })
+                    )}
+                </div>
+
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {isEditing ? (
+                      // EDIT MODE ITEMS
+                      editedDoc.items.map((item, idx) => (
+                        <div key={idx} className="flex gap-2 items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded">
+                            <div className="flex-1">
+                                <span className="text-sm font-medium dark:text-white block line-clamp-1">{item.description}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <input 
+                                    type="number" 
+                                    min="1"
+                                    value={item.quantity}
+                                    onChange={(e) => handleEditItem(idx, 'quantity', parseInt(e.target.value) || 0)}
+                                    className="w-12 px-1 py-1 text-center text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                />
+                                <span className="text-xs text-gray-500">x</span>
+                                <input 
+                                    type="number" 
+                                    min="0"
+                                    step="0.01"
+                                    value={item.price}
+                                    onChange={(e) => handleEditItem(idx, 'price', parseFloat(e.target.value) || 0)}
+                                    className="w-20 px-1 py-1 text-right text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                />
+                            </div>
+                            <div className="text-right w-20 text-sm font-bold dark:text-white">
+                                {formatCurrency(item.quantity * item.price)}
+                            </div>
+                            <button onClick={() => handleRemoveItem(idx)} className="text-red-500 hover:text-red-700">
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                      ))
                   ) : (
-                    <p className="text-sm text-gray-400 italic">No items recorded</p>
+                      // VIEW MODE
+                      selectedOrder.items.length > 0 ? (
+                        selectedOrder.items.map((item, idx) => {
+                        const fulfilled = item.fulfilledQuantity || 0;
+                        const isComplete = fulfilled >= item.quantity;
+                        const remaining = Math.max(0, item.quantity - fulfilled);
+                        
+                        return (
+                            <div key={idx} className="flex justify-between items-center text-sm py-1">
+                            <div className="flex flex-col">
+                                <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
+                                <span className="text-xs text-gray-400">
+                                {t('delivered')}: <span className={isComplete ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
+                                </span>
+                                {remaining > 0 && (
+                                <span className="text-xs text-gray-500">
+                                    {t('remaining_qty')}: <span className="font-bold text-red-500">{remaining}</span>
+                                </span>
+                                )}
+                            </div>
+                            <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                            </div>
+                        );
+                        })
+                    ) : (
+                        <p className="text-sm text-gray-400 italic">No items recorded</p>
+                    )
                   )}
                 </div>
               </div>
 
-              {selectedOrder.subtotal !== undefined && (
+              {/* PAYMENT TERMS & NOTES (Editable) */}
+              {isEditing && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
+                      <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('payment_terms')}</label>
+                          <input 
+                              type="text" 
+                              value={editedDoc.paymentTerms || ''}
+                              onChange={(e) => setEditedDoc({...editedDoc, paymentTerms: e.target.value})}
+                              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">{t('notes_conditions')}</label>
+                          <textarea 
+                              value={editedDoc.notes || ''}
+                              onChange={(e) => setEditedDoc({...editedDoc, notes: e.target.value})}
+                              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white resize-none"
+                              rows={2}
+                          />
+                      </div>
+                  </div>
+              )}
+
+              {(isEditing ? editedDoc.subtotal : selectedOrder.subtotal) !== undefined && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-1">
                   <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                     <span>{t('subtotal')}</span>
-                    <span>{formatCurrency(selectedOrder.subtotal)}</span>
+                    <span>{formatCurrency(isEditing ? editedDoc.subtotal : selectedOrder.subtotal)}</span>
                   </div>
-                  {selectedOrder.discount && selectedOrder.discount > 0 && (
-                    <div className="flex justify-between text-sm text-red-500">
-                      <span>
-                        {t('discount')} 
-                        {selectedOrder.discountType === 'percent' ? ` (${selectedOrder.discountValue}%)` : ''}
-                      </span>
-                      <span>-{formatCurrency(selectedOrder.discount)}</span>
-                    </div>
-                  )}
-                  {selectedOrder.amount - (selectedOrder.subtotal - (selectedOrder.discount || 0)) > 0 && (
-                     <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                  
+                  {/* Discount */}
+                  <div className="flex justify-between text-sm text-red-500 items-center">
+                      <span>{t('discount')}</span>
+                      {isEditing ? (
+                          <div className="flex items-center gap-1">
+                              <select 
+                                  value={editedDoc.discountType}
+                                  onChange={(e) => {
+                                      const type = e.target.value as 'percent' | 'amount';
+                                      const val = editedDoc.discountValue || 0;
+                                      const newDoc = { ...editedDoc, discountType: type };
+                                      const discountAmount = type === 'percent' ? newDoc.subtotal * (val/100) : val;
+                                      setEditedDoc({ ...newDoc, discount: discountAmount, amount: newDoc.subtotal - discountAmount + (newDoc.amount - newDoc.subtotal + (newDoc.discount||0)) }); 
+                                  }}
+                                  className="text-xs bg-gray-50 dark:bg-gray-900 border rounded"
+                              >
+                                  <option value="percent">%</option>
+                                  <option value="amount">$</option>
+                              </select>
+                              <input 
+                                  type="number" 
+                                  value={editedDoc.discountValue || 0}
+                                  onChange={(e) => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      const type = editedDoc.discountType;
+                                      const discountAmount = type === 'percent' ? editedDoc.subtotal * (val/100) : val;
+                                      const taxable = Math.max(0, editedDoc.subtotal - discountAmount);
+                                      const tax = taxable * ((editedDoc.taxRate||0)/100);
+                                      const total = taxable + tax + (editedDoc.fiscalStamp||0);
+                                      setEditedDoc({...editedDoc, discountValue: val, discount: discountAmount, amount: total});
+                                  }}
+                                  className="w-16 px-1 py-0.5 text-right text-xs bg-gray-50 dark:bg-gray-900 border rounded dark:text-white"
+                              />
+                          </div>
+                      ) : (
+                          <span>-{formatCurrency(selectedOrder.discount || 0)}</span>
+                      )}
+                  </div>
+
+                  {/* Tax */}
+                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 items-center">
                         <span>{t('tax')}</span>
-                        <span>{formatCurrency(selectedOrder.amount - (selectedOrder.subtotal - (selectedOrder.discount || 0)))}</span>
-                     </div>
-                  )}
+                        {isEditing ? (
+                            <div className="flex items-center gap-1">
+                                <span className="text-xs">Rate %</span>
+                                <input 
+                                    type="number"
+                                    value={editedDoc.taxRate || 0}
+                                    onChange={(e) => {
+                                        const rate = parseFloat(e.target.value) || 0;
+                                        const taxable = Math.max(0, editedDoc.subtotal - (editedDoc.discount || 0));
+                                        const tax = taxable * (rate/100);
+                                        const total = taxable + tax + (editedDoc.fiscalStamp||0);
+                                        setEditedDoc({...editedDoc, taxRate: rate, amount: total});
+                                    }}
+                                    className="w-12 px-1 py-0.5 text-right text-xs bg-gray-50 dark:bg-gray-900 border rounded dark:text-white"
+                                />
+                            </div>
+                        ) : (
+                            <span>{formatCurrency(selectedOrder.amount - (selectedOrder.subtotal - (selectedOrder.discount || 0)))}</span>
+                        )}
+                  </div>
                 </div>
               )}
 
               <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2 font-bold text-lg">
                 <span className="text-gray-900 dark:text-white">{t('total')}</span>
-                <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedOrder.amount)}</span>
+                <span className="text-indigo-600 dark:text-indigo-400">
+                    {formatCurrency(isEditing ? editedDoc.amount : selectedOrder.amount)}
+                </span>
               </div>
             </div>
 
             <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3 flex-wrap">
-              <button 
-                onClick={handlePrint}
-                className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer className="w-4 h-4" />
-                {t('print')}
-              </button>
               
-              {selectedOrder.status === 'draft' && (
-                <button
-                    onClick={() => updateStatus('pending')}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                >
-                    <CheckCircle className="w-4 h-4" /> {t('confirm_order')}
-                </button>
-              )}
-
-              {selectedOrder.status === 'pending' && (
-                <>
-                    <button
-                        onClick={() => updateStatus('draft')}
-                        className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+              {!isEditing ? (
+                  <>
+                    <button 
+                        onClick={handlePrint}
+                        className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
                     >
-                        <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
+                        <Printer className="w-4 h-4" />
+                        {t('print')}
+                    </button>
+                    
+                    {/* EDIT Button - Only if Draft */}
+                    {selectedOrder.status === 'draft' && (
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Pencil className="w-4 h-4" /> {t('edit')}
+                        </button>
+                    )}
+
+                    {selectedOrder.status === 'draft' && (
+                        <button
+                            onClick={() => updateStatus('pending')}
+                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <CheckCircle className="w-4 h-4" /> {t('confirm_order')}
+                        </button>
+                    )}
+
+                    {selectedOrder.status === 'pending' && (
+                        <>
+                            <button
+                                onClick={() => updateStatus('draft')}
+                                className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
+                            </button>
+                            <button 
+                                onClick={handleGenerateInvoice}
+                                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Receipt className="w-4 h-4" />
+                                {t('generate_invoice')}
+                            </button>
+                            <button
+                                onClick={handleOpenDeliveryModal}
+                                className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Truck className="w-4 h-4" />
+                                {t('create_delivery')}
+                            </button>
+                        </>
+                    )}
+                    
+                    <button 
+                        onClick={() => setIsViewModalOpen(false)}
+                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                    >
+                        {t('close')}
+                    </button>
+                  </>
+              ) : (
+                  // EDIT MODE ACTIONS
+                  <>
+                    <button 
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                        {t('cancel')}
                     </button>
                     <button 
-                        onClick={handleGenerateInvoice}
-                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                        onClick={saveEdits}
+                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors"
                     >
-                        <Receipt className="w-4 h-4" />
-                        {t('generate_invoice')}
+                        <Save className="w-4 h-4" /> {t('save_changes')}
                     </button>
-                    <button
-                        onClick={handleOpenDeliveryModal}
-                        className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <Truck className="w-4 h-4" />
-                        {t('create_delivery')}
-                    </button>
-                </>
+                  </>
               )}
-              
-              <button 
-                onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
-              >
-                {t('close')}
-              </button>
             </div>
           </div>
         </div>
