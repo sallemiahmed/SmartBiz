@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle, RotateCcw, Pencil, Save, RefreshCw, Calendar, Filter, User } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle, RotateCcw, Pencil, Save, RefreshCw, Calendar, Filter, User, PackagePlus } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -26,6 +26,10 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDoc, setEditedDoc] = useState<Invoice | null>(null);
   const [selectedAddProductId, setSelectedAddProductId] = useState('');
+  
+  // Custom Item State
+  const [customItem, setCustomItem] = useState({ description: '', price: 0, quantity: 1 });
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
 
   const estimates = invoices.filter(inv => inv.type === 'estimate');
 
@@ -69,6 +73,8 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     if (isViewModalOpen && selectedDoc) {
         setIsEditing(false);
         setEditedDoc(JSON.parse(JSON.stringify(selectedDoc))); // Deep copy
+        setCustomItem({ description: '', price: 0, quantity: 1 });
+        setIsAddingCustom(false);
     }
   }, [isViewModalOpen, selectedDoc]);
 
@@ -132,7 +138,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     recalculateTotals({ ...editedDoc, items: newItems });
   };
 
-  const handleAddItem = () => {
+  const handleAddProduct = () => {
     if (!editedDoc || !selectedAddProductId) return;
     const product = products.find(p => p.id === selectedAddProductId);
     if (!product) return;
@@ -147,6 +153,22 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     const newItems = [...editedDoc.items, newItem];
     recalculateTotals({ ...editedDoc, items: newItems });
     setSelectedAddProductId('');
+  };
+
+  const handleAddCustomItem = () => {
+    if (!editedDoc || !customItem.description) return;
+
+    const newItem: InvoiceItem = {
+        id: `custom-${Date.now()}`,
+        description: customItem.description,
+        quantity: customItem.quantity,
+        price: customItem.price
+    };
+
+    const newItems = [...editedDoc.items, newItem];
+    recalculateTotals({ ...editedDoc, items: newItems });
+    setCustomItem({ description: '', price: 0, quantity: 1 });
+    setIsAddingCustom(false);
   };
 
   const recalculateTotals = (doc: Invoice) => {
@@ -177,7 +199,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
           updateInvoice(editedDoc);
           setSelectedDoc(editedDoc);
           setIsEditing(false);
-          alert(t('settings_saved')); // Reusing 'Settings Saved' or could use 'success'
+          alert(t('settings_saved'));
       }
   };
 
@@ -401,31 +423,89 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <div className="flex justify-between items-center mb-2">
                     <h4 className="font-medium text-gray-900 dark:text-white">Items</h4>
-                    {isEditing && (
-                        <div className="flex gap-2 w-1/2">
-                            <SearchableSelect 
-                                options={products.map(p => ({ value: p.id, label: `${p.name} (${formatCurrency(p.price)})` }))}
-                                value={selectedAddProductId}
-                                onChange={setSelectedAddProductId}
-                                placeholder="Add product..."
-                                className="w-full rounded text-xs"
-                            />
+                </div>
+
+                {isEditing && (
+                    <div className="mb-4 space-y-3 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                        {/* 1. Add Existing Product */}
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <SearchableSelect 
+                                    options={products.map(p => ({ value: p.id, label: `${p.name} (${formatCurrency(p.price)})` }))}
+                                    value={selectedAddProductId}
+                                    onChange={setSelectedAddProductId}
+                                    placeholder="Search Existing Product..."
+                                    className="w-full rounded text-xs"
+                                />
+                            </div>
                             <button 
-                                onClick={handleAddItem}
+                                onClick={handleAddProduct}
                                 disabled={!selectedAddProductId}
-                                className="p-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-xs font-medium"
                             >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-3 h-3 inline mr-1" /> Add
                             </button>
                         </div>
-                    )}
-                </div>
+
+                        {/* 2. Custom Item Button/Form */}
+                        {!isAddingCustom ? (
+                            <button 
+                                onClick={() => setIsAddingCustom(true)}
+                                className="w-full py-1.5 border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 rounded text-xs flex items-center justify-center gap-1"
+                            >
+                                <PackagePlus className="w-3 h-3" /> Add Custom Item (Manual)
+                            </button>
+                        ) : (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                                <input 
+                                    type="text"
+                                    placeholder="Description"
+                                    value={customItem.description}
+                                    onChange={(e) => setCustomItem({...customItem, description: e.target.value})}
+                                    className="w-full px-2 py-1 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    autoFocus
+                                />
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number"
+                                        placeholder="Price"
+                                        min="0"
+                                        step="0.01"
+                                        value={customItem.price}
+                                        onChange={(e) => setCustomItem({...customItem, price: parseFloat(e.target.value) || 0})}
+                                        className="flex-1 px-2 py-1 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    />
+                                    <input 
+                                        type="number"
+                                        placeholder="Qty"
+                                        min="1"
+                                        value={customItem.quantity}
+                                        onChange={(e) => setCustomItem({...customItem, quantity: parseInt(e.target.value) || 1})}
+                                        className="w-16 px-2 py-1 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    />
+                                    <button 
+                                        onClick={handleAddCustomItem}
+                                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs"
+                                    >
+                                        Add
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsAddingCustom(false)}
+                                        className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-300 text-xs"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {isEditing ? (
                       // EDIT MODE ITEMS
                       editedDoc.items.map((item, idx) => (
-                        <div key={idx} className="flex gap-2 items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded">
+                        <div key={idx} className="flex gap-2 items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                             <div className="flex-1">
                                 <span className="text-sm font-medium dark:text-white block line-clamp-1">{item.description}</span>
                             </div>
@@ -481,6 +561,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                               value={editedDoc.paymentTerms || ''}
                               onChange={(e) => setEditedDoc({...editedDoc, paymentTerms: e.target.value})}
                               className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm dark:text-white"
+                              placeholder="e.g. Net 30, Due on Receipt"
                           />
                       </div>
                       <div>
@@ -513,10 +594,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                                   onChange={(e) => {
                                       const type = e.target.value as 'percent' | 'amount';
                                       const val = editedDoc.discountValue || 0;
-                                      // Re-run recalc manually or just update state and let handleEditItem trigger it? 
-                                      // Better to update state then trigger recalc logic.
                                       const newDoc = { ...editedDoc, discountType: type };
-                                      // Simple inline calc for UI update
                                       const discountAmount = type === 'percent' ? newDoc.subtotal * (val/100) : val;
                                       setEditedDoc({ ...newDoc, discount: discountAmount, amount: newDoc.subtotal - discountAmount + (newDoc.amount - newDoc.subtotal + (newDoc.discount||0)) }); 
                                   }}
