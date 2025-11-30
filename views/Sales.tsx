@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Package, Search, Plus, ShoppingCart, Building, User, ChevronRight, RefreshCcw, 
-  Trash2, Minus, FilePenLine, CreditCard, Printer, CheckCircle, X
+  Trash2, Minus, FilePenLine, CreditCard, Printer, CheckCircle, X, Tag, Wrench
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Product, InvoiceItem, SalesDocumentType } from '../types';
+import { Product, InvoiceItem, SalesDocumentType, ServiceItem } from '../types';
 import { printInvoice } from '../utils/printGenerator';
 import { allCurrencies } from '../utils/currencyList';
 import SearchableSelect from '../components/SearchableSelect';
@@ -13,6 +14,7 @@ interface CartItem extends Product {
   cartId: string;
   quantity: number;
   isCustom?: boolean;
+  isService?: boolean;
 }
 
 interface SalesProps {
@@ -20,11 +22,12 @@ interface SalesProps {
 }
 
 const Sales: React.FC<SalesProps> = ({ mode }) => {
-  const { products, clients, warehouses, createSalesDocument, formatCurrency, settings, t } = useApp();
+  const { products, clients, warehouses, serviceCatalog, createSalesDocument, formatCurrency, settings, t } = useApp();
   
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [catalogType, setCatalogType] = useState<'products' | 'services'>('products');
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastDocNumber, setLastDocNumber] = useState('');
@@ -110,6 +113,11 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
     return matchesSearch && matchesCategory;
   });
 
+  const filteredServices = serviceCatalog.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const selectedClientData = clients.find(c => c.id === selectedClient);
 
   // Calculations
@@ -145,7 +153,44 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
         ? product.price / exchangeRate // Base Price / Rate = Foreign Price
         : product.price;
 
-      return [...prev, { ...product, cartId: `${product.id}-${Date.now()}`, quantity: 1, price: convertedPrice }];
+      return [...prev, { ...product, cartId: `${product.id}-${Date.now()}`, quantity: 1, price: convertedPrice, isService: false }];
+    });
+  };
+
+  const addServiceToCart = (service: ServiceItem) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === service.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === service.id
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        );
+      }
+
+      const convertedPrice = selectedCurrency !== settings.currency 
+        ? service.basePrice / exchangeRate 
+        : service.basePrice;
+
+      // Mocking Product fields for Service items to fit CartItem interface
+      const serviceAsProduct: CartItem = {
+        id: service.id,
+        cartId: `${service.id}-${Date.now()}`,
+        name: service.name,
+        sku: 'SRV',
+        category: 'Service',
+        price: convertedPrice,
+        cost: 0,
+        stock: 9999, // Infinite stock for services
+        warehouseStock: {},
+        status: 'in_stock',
+        marginPercent: 100,
+        quantity: 1,
+        isCustom: false,
+        isService: true
+      };
+
+      return [...prev, serviceAsProduct];
     });
   };
 
@@ -204,8 +249,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       alert("Please select a customer first.");
       return;
     }
-    if (!selectedWarehouse) {
-      alert("Please select a source warehouse.");
+    // Only check warehouse if there are physical products
+    const hasPhysicalProducts = cart.some(item => !item.isService && !item.isCustom);
+    if (hasPhysicalProducts && !selectedWarehouse) {
+      alert("Please select a source warehouse for physical products.");
       return;
     }
 
@@ -236,7 +283,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
       currency: selectedCurrency,
       exchangeRate: exchangeRate,
       status: status,
-      warehouseId: selectedWarehouse,
+      warehouseId: selectedWarehouse || undefined, // Optional if only services
       paymentTerms,
       paymentMethod,
       notes,
@@ -273,7 +320,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 overflow-hidden">
       
-      {/* LEFT COLUMN: PRODUCT CATALOG */}
+      {/* LEFT COLUMN: PRODUCT/SERVICE CATALOG */}
       <div className="flex-1 flex flex-col h-full overflow-hidden border-r border-gray-200 dark:border-gray-700">
         <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 space-y-4">
           <div className="flex justify-between items-center">
@@ -289,70 +336,126 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
             </button>
           </div>
           
+          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg self-start">
+             <button 
+                onClick={() => setCatalogType('products')}
+                className={`flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${catalogType === 'products' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+             >
+                {t('products')}
+             </button>
+             <button 
+                onClick={() => setCatalogType('services')}
+                className={`flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${catalogType === 'services' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+             >
+                {t('services')}
+             </button>
+          </div>
+
           <div className="flex gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
                 type="text" 
-                placeholder={t('search_products')}
+                placeholder={catalogType === 'products' ? t('search_products') : t('search_services')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
               />
             </div>
-            <select 
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white min-w-[120px]"
-            >
-              <option value="All">{t('all_categories')}</option>
-              {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            {catalogType === 'products' && (
+                <select 
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white min-w-[120px]"
+                >
+                <option value="All">{t('all_categories')}</option>
+                {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+            )}
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredProducts.map(product => {
-              const stockInSelected = product.warehouseStock?.[selectedWarehouse] || 0;
-              const displayPrice = selectedCurrency !== settings.currency 
-                ? product.price / exchangeRate 
-                : product.price;
+            {catalogType === 'products' ? (
+                // PRODUCTS GRID
+                filteredProducts.map(product => {
+                const stockInSelected = product.warehouseStock?.[selectedWarehouse] || 0;
+                const displayPrice = selectedCurrency !== settings.currency 
+                    ? product.price / exchangeRate 
+                    : product.price;
 
-              return (
-                <div 
-                  key={product.id}
-                  onClick={() => addToCart(product)}
-                  className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
-                        {product.sku}
-                      </span>
-                      <div className={`w-2 h-2 rounded-full ${stockInSelected > 10 ? 'bg-green-500' : stockInSelected > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
+                return (
+                    <div 
+                    key={product.id}
+                    onClick={() => addToCart(product)}
+                    className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
+                    >
+                    <div>
+                        <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                            {product.sku}
+                        </span>
+                        <div className={`w-2 h-2 rounded-full ${stockInSelected > 10 ? 'bg-green-500' : stockInSelected > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
+                        </div>
+                        <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
+                        {product.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{product.category}</p>
                     </div>
-                    <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{product.category}</p>
-                  </div>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                      {formatCurrency(displayPrice, selectedCurrency)}
-                    </span>
-                    <div className="text-xs text-gray-400">
-                      Stock: {stockInSelected} 
+                    <div className="flex items-center justify-between mt-auto">
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                        {formatCurrency(displayPrice, selectedCurrency)}
+                        </span>
+                        <div className="text-xs text-gray-400">
+                        Stock: {stockInSelected} 
+                        </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                );
+                })
+            ) : (
+                // SERVICES GRID
+                filteredServices.map(service => {
+                    const displayPrice = selectedCurrency !== settings.currency 
+                        ? service.basePrice / exchangeRate 
+                        : service.basePrice;
+                    return (
+                        <div 
+                            key={service.id}
+                            onClick={() => addServiceToCart(service)}
+                            className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
+                        >
+                            <div>
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                        <Wrench className="w-3 h-3" /> Service
+                                    </span>
+                                </div>
+                                <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
+                                    {service.name}
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2" title={service.description}>
+                                    {service.description}
+                                </p>
+                            </div>
+                            <div className="flex items-center justify-between mt-auto border-t border-gray-100 dark:border-gray-700 pt-2">
+                                <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                                    {formatCurrency(displayPrice, selectedCurrency)}
+                                </span>
+                                <div className="text-xs text-gray-400">
+                                    ~{service.durationMinutes} min
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })
+            )}
             
-            {filteredProducts.length === 0 && (
+            {((catalogType === 'products' && filteredProducts.length === 0) || (catalogType === 'services' && filteredServices.length === 0)) && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-400">
                 <Package className="w-12 h-12 mb-2 opacity-50" />
-                <p>{t('no_products')}</p>
+                <p>{catalogType === 'products' ? t('no_products') : 'No services found'}</p>
               </div>
             )}
           </div>
@@ -439,7 +542,10 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
               <div key={item.cartId} className="flex gap-3 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg group">
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
-                    <h4 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">{item.name}</h4>
+                    <h4 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">
+                        {item.isService && <Wrench className="w-3 h-3 inline mr-1 text-gray-400" />}
+                        {item.name}
+                    </h4>
                     <span className="font-bold text-sm text-gray-900 dark:text-white">
                       {formatCurrency(item.price * item.quantity, selectedCurrency)}
                     </span>
@@ -668,7 +774,7 @@ const Sales: React.FC<SalesProps> = ({ mode }) => {
                </div>
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">Warehouse:</span>
-                 <span className="font-medium text-gray-900 dark:text-white">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span>
+                 <span className="font-medium text-gray-900 dark:text-white">{warehouses.find(w => w.id === selectedWarehouse)?.name || 'N/A (Service)'}</span>
                </div>
                <div className="flex justify-between text-sm">
                  <span className="text-gray-500">Items:</span>
