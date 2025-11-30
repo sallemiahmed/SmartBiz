@@ -1,14 +1,16 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, Truck, Link } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, Truck, Link, Printer } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
+import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseDeliveriesProps {
   onAddNew: () => void;
 }
 
 const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, t } = useApp();
+  const { purchases, deletePurchase, t, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Purchase | null>(null);
@@ -25,6 +27,12 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
     if (!doc.linkedDocumentId) return null;
     const linkedOrder = purchases.find(p => p.id === doc.linkedDocumentId);
     return linkedOrder ? linkedOrder.number : doc.linkedDocumentId;
+  };
+
+  const handlePrint = () => {
+    if (selectedDoc) {
+      printInvoice(selectedDoc, settings);
+    }
   };
 
   return (
@@ -162,7 +170,13 @@ const PurchaseDeliveries: React.FC<PurchaseDeliveriesProps> = ({ onAddNew }) => 
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-end gap-3">
+              <button 
+                onClick={handlePrint}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 transition-colors"
+              >
+                <Printer className="w-4 h-4" /> {t('print')}
+              </button>
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"

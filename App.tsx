@@ -63,9 +63,9 @@ function AppContent() {
   }, [isDark]);
 
   useEffect(() => {
-    if (settings.language === 'ar') {
+    if (settings.language === 'ar' || settings.language === 'he') {
       document.documentElement.dir = 'rtl';
-      document.documentElement.lang = 'ar';
+      document.documentElement.lang = settings.language;
     } else {
       document.documentElement.dir = 'ltr';
       document.documentElement.lang = settings.language;

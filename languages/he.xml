@@ -1,0 +1,432 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- Sidebar -->
+    <string name="dashboard">לוח מחוונים</string>
+    <string name="clients">לקוחות</string>
+    <string name="suppliers">ספקים</string>
+    <string name="sales">מכירות</string>
+    <string name="purchases">רכש</string>
+    <string name="inventory">מלאי</string>
+    <string name="documents">מסמכים</string>
+    <string name="reports">דוחות</string>
+    <string name="settings">הגדרות</string>
+    <string name="banking">בנקאות</string>
+    <string name="cash_register">קופה רושמת</string>
+
+    <!-- Submenus -->
+    <string name="estimate">הצעת מחיר</string>
+    <string name="client_order">הזמנת לקוח</string>
+    <string name="delivery_note">תעודת משלוח</string>
+    <string name="invoice">חשבונית</string>
+    <string name="issue_note">תעודת ניפוק</string>
+    <string name="supplier_order">הזמנת רכש</string>
+    <string name="supplier_delivery">תעודת קבלה</string>
+    <string name="supplier_invoice">חשבונית ספק</string>
+
+    <!-- Inventory Submenus -->
+    <string name="products">מוצרים</string>
+    <string name="warehouses">מחסנים</string>
+    <string name="stock_transfers">העברות מלאי</string>
+
+    <!-- Banking Submenus -->
+    <string name="overview">סקירה כללית</string>
+    <string name="accounts">חשבונות</string>
+    <string name="transactions">תנועות</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_overview">סקירת לוח מחוונים</string>
+    <string name="welcome_message">ברוך שובך! הנה מה שקורה היום.</string>
+    <string name="export_report">ייצוא דוח</string>
+    <string name="new_invoice">חשבונית חדשה</string>
+    <string name="revenue_vs_expenses">הכנסות מול הוצאות</string>
+    <string name="monthly_sales">מכירות חודשיות</string>
+    <string name="total_revenue">סה"כ הכנסות</string>
+    <string name="total_expenses">סה"כ הוצאות</string>
+    <string name="net_profit">רווח נקי</string>
+    <string name="active_clients">לקוחות פעילים</string>
+
+    <!-- Clients -->
+    <string name="client_management">ניהול לקוחות</string>
+    <string name="client_desc">נהל את קשרי הלקוחות שלך.</string>
+    <string name="add_client">הוסף לקוח</string>
+    <string name="search_clients">חפש לפי חברה, שם או אימייל...</string>
+    <string name="contact_details">פרטי קשר</string>
+    <string name="total_spent">סה"כ הוצאות</string>
+    <string name="no_clients">לא נמצאו לקוחות.</string>
+    <string name="company_contact">חברה / איש קשר</string>
+    <string name="edit_client">ערוך לקוח</string>
+    <string name="client_details">פרטי לקוח</string>
+
+    <!-- Suppliers -->
+    <string name="supplier_management">ניהול ספקים</string>
+    <string name="supplier_desc">נהל את קשרי הספקים והרכש שלך.</string>
+    <string name="add_supplier">הוסף ספק</string>
+    <string name="add_new_supplier">הוסף ספק חדש</string>
+    <string name="search_suppliers">חפש לפי חברה או איש קשר...</string>
+    <string name="total_purchased">סה"כ רכישות</string>
+    <string name="no_suppliers">לא נמצאו ספקים.</string>
+    <string name="contact_name">שם איש קשר</string>
+    <string name="delete_supplier_title">למחוק ספק?</string>
+    <string name="delete_supplier_msg">האם אתה בטוח שברצונך למחוק ספק זה? לא ניתן לבטל פעולה זו.</string>
+
+    <!-- Inventory -->
+    <string name="inventory_management">ניהול מלאי</string>
+    <string name="inventory_desc">עקוב אחר רמות מלאי, ערך ופרטי מוצרים.</string>
+    <string name="add_product">הוסף מוצר</string>
+    <string name="total_products">סה"כ מוצרים</string>
+    <string name="needs_attention">דורש תשומת לב</string>
+    <string name="total_value">ערך מלאי כולל</string>
+    <string name="search_products">חפש לפי שם, מק"ט או קטגוריה...</string>
+    <string name="product_name">שם מוצר</string>
+    <string name="sku">מק"ט</string>
+    <string name="category">קטגוריה</string>
+    <string name="stock_level">רמת מלאי</string>
+    <string name="price">מחיר</string>
+    <string name="cost">עלות</string>
+    <string name="stock_qty">כמות במלאי</string>
+    <string name="no_products">לא נמצאו מוצרים.</string>
+    <string name="edit_product">ערוך מוצר</string>
+
+    <!-- Documents -->
+    <string name="documents_history">היסטוריית מסמכים</string>
+    <string name="documents_desc">צפה ונהל את כל מסמכי המכירה.</string>
+    <string name="search_documents">חפש לפי מספר או לקוח...</string>
+    <string name="ref_num">מספר אסמכתא</string>
+    <string name="type">סוג</string>
+    <string name="client">לקוח</string>
+    <string name="date">תאריך</string>
+    <string name="due_date">תאריך יעד</string>
+    <string name="amount">סכום</string>
+    <string name="no_documents">לא נמצאו מסמכים.</string>
+
+    <!-- Sales Pages -->
+    <string name="catalog">קטלוג</string>
+    <string name="cart">מכירה נוכחית</string>
+    <string name="select_customer">בחר לקוח...</string>
+    <string name="subtotal">סכום ביניים</string>
+    <string name="discount">הנחה</string>
+    <string name="tax">מס</string>
+    <string name="clear">נקה</string>
+    <string name="success">בוצע בהצלחה!</string>
+    <string name="print">הדפס</string>
+    <string name="custom_item">פריט מותאם</string>
+    <string name="add_custom_item">הוסף פריט</string>
+    <string name="item_name">שם פריט</string>
+    <string name="save_estimate">שמור הצעת מחיר</string>
+    <string name="confirm_order">אשר הזמנה</string>
+    <string name="create_delivery">צור תעודת משלוח</string>
+    <string name="charge_create">חייב וצור חשבונית</string>
+    <string name="payment_terms">תנאי תשלום</string>
+    <string name="payment_method">אמצעי תשלום</string>
+    <string name="notes_conditions">הערות / תנאים</string>
+    <string name="due_on_receipt">לתשלום עם הקבלה</string>
+    <string name="bank_transfer">העברה בנקאית</string>
+    <string name="cash">מזומן</string>
+    <string name="check">המחאה</string>
+
+    <string name="estimates_quotes">הצעות מחיר</string>
+    <string name="estimates_desc">נהל הצעות מחיר ללקוחות.</string>
+    <string name="new_estimate">הצעה חדשה</string>
+    <string name="search_estimates">חפש הצעות...</string>
+    <string name="estimate_details">פרטי הצעה</string>
+    <string name="issued_date">תאריך הנפקה</string>
+    <string name="valid_until">בתוקף עד</string>
+    <string name="convert_to_order">המר להזמנה</string>
+    <string name="convert_to_invoice">המר לחשבונית</string>
+
+    <string name="sales_orders">הזמנות לקוח</string>
+    <string name="sales_orders_desc">נהל הזמנות לקוח.</string>
+    <string name="new_order">הזמנה חדשה</string>
+    <string name="search_orders">חפש לפי מספר הזמנה או לקוח...</string>
+    <string name="order_details">פרטי הזמנה</string>
+    <string name="generate_invoice">הפק חשבונית</string>
+
+    <string name="delivery_notes">תעודות משלוח</string>
+    <string name="delivery_notes_desc">עקוב אחר משלוחים וסטטוס מסירה.</string>
+    <string name="new_delivery">תעודת משלוח חדשה</string>
+    <string name="search_deliveries">חפש תעודות משלוח...</string>
+    <string name="delivery_details">פרטי משלוח</string>
+    <string name="shipped_date">תאריך משלוח</string>
+    <string name="shipped_items">פריטים שנשלחו</string>
+
+    <string name="sales_invoices">חשבוניות מכירה</string>
+    <string name="sales_invoices_desc">נהל חשבוניות ותשלומים.</string>
+    <string name="new_invoice_btn">חשבונית חדשה</string>
+    <string name="search_invoices">חפש חשבוניות...</string>
+    <string name="invoice_details">פרטי חשבונית</string>
+    <string name="mark_paid">סמן כשולם</string>
+    <string name="print_invoice">הדפס חשבונית</string>
+
+    <string name="issue_notes">תעודות ניפוק</string>
+    <string name="issue_notes_desc">נהל ניפוקי מלאי ידניים.</string>
+    <string name="new_issue_note">תעודת ניפוק חדשה</string>
+    <string name="search_issue_notes">חפש תעודות ניפוק...</string>
+    <string name="issue_note_details">פרטי תעודת ניפוק</string>
+    <string name="recipient">מקבל</string>
+    <string name="issued_items">פריטים שנופקו</string>
+
+    <!-- Purchase Pages -->
+    <string name="purchase_orders">הזמנות רכש</string>
+    <string name="purchase_orders_desc">נהל הזמנות מספקים.</string>
+    <string name="new_po">הזמנת רכש חדשה</string>
+    <string name="search_pos">חפש לפי מספר הזמנה או ספק...</string>
+    <string name="po_details">פרטי הזמנת רכש</string>
+
+    <string name="goods_received_grn">קבלת סחורה (GRN)</string>
+    <string name="goods_received_desc">עקוב אחר קבלת מלאי מספקים.</string>
+    <string name="receive_goods">קבל סחורה</string>
+    <string name="search_grns">חפש תעודות קבלה...</string>
+    <string name="date_received">תאריך קבלה</string>
+    <string name="received_items">פריטים שהתקבלו</string>
+
+    <string name="purchase_invoices">חשבוניות רכש</string>
+    <string name="purchase_invoices_desc">נהל חשבוניות ספקים והוצאות.</string>
+    <string name="register_invoice">רשום חשבונית</string>
+    <string name="search_purchase_invoices">חפש לפי מספר חשבונית או ספק...</string>
+
+    <!-- Reports -->
+    <string name="reports_analytics">דוחות וניתוחים</string>
+    <string name="reports_desc">בחר קטגוריה לצפייה בנתונים מפורטים.</string>
+    <string name="sales_report">דוח מכירות</string>
+    <string name="purchase_report">דוח רכש</string>
+    <string name="inventory_stock_report">מלאי ומחסנים</string>
+    <string name="financials_report">כספים</string>
+    <string name="rep_sales_customer">מכירות לפי לקוח</string>
+    <string name="rep_sales_vat">מע"מ עסקאות</string>
+    <string name="rep_cust_trans">תנועות לקוחות</string>
+    <string name="rep_supp_purch">רכישות לפי ספק</string>
+    <string name="rep_purch_vat">מע"מ תשומות</string>
+    <string name="rep_stock_mov">תנועות מלאי</string>
+    <string name="rep_prod_perf">ביצועי מוצרים</string>
+    <string name="rep_monthly_profit">רווח חודשי</string>
+    <string name="rep_aging_receivables">גיל חייבים</string>
+
+    <!-- Settings -->
+    <string name="general">כללי</string>
+    <string name="profile">פרופיל</string>
+    <string name="security">אבטחה</string>
+    <string name="billing">חיוב</string>
+    <string name="notifications">התראות</string>
+    <string name="company_details">פרטי חברה</string>
+    <string name="company_name">שם החברה</string>
+    <string name="company_email">אימייל חברה</string>
+    <string name="company_phone">טלפון חברה</string>
+    <string name="company_vat_id">מספר עוסק / ח.פ.</string>
+    <string name="address">כתובת</string>
+    <string name="localization">אזור והעדפות</string>
+    <string name="language">שפה</string>
+    <string name="currency">מטבע</string>
+    <string name="timezone">אזור זמן</string>
+    <string name="tax_configuration">הגדרות מס</string>
+    <string name="tax_rates_list">שיעורי מס מוגדרים</string>
+    <string name="rate_name">שם (לדוגמה: מע"מ)</string>
+    <string name="rate_value">שיעור (%)</string>
+    <string name="add_rate">הוסף שיעור</string>
+    <string name="save_changes">שמור שינויים</string>
+    <string name="settings_saved">הגדרות נשמרו בהצלחה</string>
+    <string name="manage_preferences">נהל את ההעדפות ופרטי החברה שלך.</string>
+    <string name="password_auth">סיסמה ואימות</string>
+    <string name="current_password">סיסמה נוכחית</string>
+    <string name="new_password">סיסמה חדשה</string>
+    <string name="confirm_password">אשר סיסמה חדשה</string>
+    <string name="two_factor_auth">אימות דו-שלבי</string>
+    <string name="secure_account">אבטח את החשבון שלך</string>
+    <string name="secure_account_desc">הוסף שכבת אבטחה נוספת לחשבון שלך.</string>
+    <string name="enable_2fa">הפעל 2FA</string>
+    <string name="disable_2fa">השבת 2FA</string>
+    <string name="personal_information">מידע אישי</string>
+    <string name="email_notifications">התראות אימייל</string>
+    <string name="change_avatar">שנה תמונה</string>
+    <string name="full_name">שם מלא</string>
+    <string name="email_address">כתובת אימייל</string>
+    <string name="role">תפקיד</string>
+    <string name="ai_integration">אינטגרציית AI</string>
+    <string name="gemini_api_key">מפתח Google Gemini API</string>
+
+    <!-- Banking -->
+    <string name="bank_management">ניהול בנקאות</string>
+    <string name="bank_desc">עקוב אחר חשבונות בנק, תנועות וביצוע התאמות.</string>
+    <string name="add_account">הוסף חשבון</string>
+    <string name="total_liquidity">נזילות כוללת</string>
+    <string name="account_name">שם חשבון</string>
+    <string name="bank_name">שם בנק</string>
+    <string name="account_number">מספר חשבון</string>
+    <string name="balance">יתרה</string>
+    <string name="add_transaction">הוסף תנועה</string>
+    <string name="transaction_history">היסטוריית תנועות</string>
+    <string name="reconcile">בצע התאמה</string>
+    <string name="description">תיאור</string>
+    <string name="deposit">הפקדה</string>
+    <string name="withdrawal">משיכה</string>
+    <string name="transfer">העברה</string>
+    <string name="fee">עמלה</string>
+    <string name="payment">תשלום</string>
+    <string name="cleared">בוצע</string>
+    <string name="reconciled">הותאם</string>
+    <string name="new_account">חשבון חדש</string>
+    <string name="edit_account">ערוך חשבון</string>
+    <string name="delete_account_confirm_msg">האם אתה בטוח שברצונך למחוק חשבון זה? היסטוריית התנועות תישמר, אך הדבר עשוי להשפיע על דוחות.</string>
+    <string name="account_type">סוג חשבון</string>
+    <string name="checking">עובר ושב</string>
+    <string name="savings">חיסכון</string>
+    <string name="credit">אשראי</string>
+    <string name="investment">השקעות</string>
+    <string name="initial_balance">יתרה התחלתית</string>
+    <string name="no_transactions">לא נמצאו תנועות.</string>
+    <string name="no_accounts">לא נמצאו חשבונות.</string>
+
+    <!-- Cash Register -->
+    <string name="cash_register_management">קופה רושמת</string>
+    <string name="cash_desc">נהל משמרות קופה, מכירות והוצאות קופה קטנה.</string>
+    <string name="open_register">פתח קופה</string>
+    <string name="close_register">סגור קופה</string>
+    <string name="current_session">משמרת נוכחית</string>
+    <string name="register_closed">קופה סגורה</string>
+    <string name="opening_amount">סכום פתיחה</string>
+    <string name="expected_cash">מזומן צפוי</string>
+    <string name="closing_amount">סכום ספירה</string>
+    <string name="difference">הפרש</string>
+    <string name="add_cash">הכנסת מזומן</string>
+    <string name="remove_cash">הוצאת מזומן</string>
+    <string name="session_history">היסטוריית משמרות</string>
+    <string name="opened_at">נפתח ב</string>
+    <string name="closed_at">נסגר ב</string>
+    <string name="movement_log">יומן תנועות</string>
+    <string name="reason">סיבה</string>
+
+    <!-- Common / Status -->
+    <string name="search">חפש...</string>
+    <string name="new">חדש</string>
+    <string name="view_details">צפה בפרטים</string>
+    <string name="delete">מחק</string>
+    <string name="edit">ערוך</string>
+    <string name="status">סטטוס</string>
+    <string name="actions">פעולות</string>
+    <string name="total">סה"כ</string>
+    <string name="cancel">ביטול</string>
+    <string name="save">שמור</string>
+    <string name="ask_ai">שאל את AI</string>
+    <string name="ai_greeting">שלום! אני עוזר ה-AI של SmartBiz. יש לי גישה לנתוני לוח המחוונים שלך. כיצד אוכל לעזור לך היום?</string>
+    <string name="ai_placeholder">שאל שאלות עסקיות מורכבות...</string>
+    <string name="ai_error_generic">אני נתקל בבעיה בחיבור לשירות ה-AI כרגע.</string>
+    <string name="ai_error_config">אנא הגדר את מפתח Google Gemini API בהגדרות > כללי.</string>
+
+    <string name="all_status">כל הסטטוסים</string>
+    <string name="all_categories">כל הקטגוריות</string>
+    <string name="all_types">כל הסוגים</string>
+
+    <string name="active">פעיל</string>
+    <string name="inactive">לא פעיל</string>
+    <string name="paid">שולם</string>
+    <string name="pending">ממתין</string>
+    <string name="overdue">באיחור</string>
+    <string name="draft">טיוטה</string>
+    <string name="completed">הושלם</string>
+    <string name="received">התקבל</string>
+    <string name="in_stock">במלאי</string>
+    <string name="low_stock">מלאי נמוך</string>
+    <string name="out_of_stock">אזל מהמלאי</string>
+    <string name="in_progress">בטיפול</string>
+    
+    <string name="delete_confirm_title">למחוק פריט?</string>
+    <string name="delete_confirm_msg">האם אתה בטוח שברצונך למחוק פריט זה? לא ניתן לבטל פעולה זו.</string>
+    <string name="yes_delete">כן, מחק</string>
+
+    <!-- Warehouses -->
+    <string name="warehouse_management">ניהול מחסנים</string>
+    <string name="warehouses">מחסנים</string>
+    <string name="warehouse">מחסן</string>
+    <string name="warehouse_name">שם מחסן</string>
+    <string name="add_warehouse">הוסף מחסן</string>
+    <string name="edit_warehouse">ערוך מחסן</string>
+    <string name="warehouse_locations">מיקומי מחסן</string>
+    <string name="location">מיקום</string>
+    <string name="default_warehouse">ברירת מחדל</string>
+    <string name="transfer_stock">העבר מלאי</string>
+    <string name="stock_transfer">העברת מלאי</string>
+    <string name="stock_transfers">העברות מלאי</string>
+    <string name="source_warehouse">מחסן מקור</string>
+    <string name="destination_warehouse">מחסן יעד</string>
+    <string name="from">מ</string>
+    <string name="to">ל</string>
+    <string name="products_list">רשימת מוצרים</string>
+    <string name="product">מוצר</string>
+    <string name="quantity">כמות</string>
+    <string name="notes">הערות</string>
+    <string name="transfer_reason">סיבת העברה</string>
+    <string name="confirm_transfer">אשר העברה</string>
+    <string name="added_to_default_warehouse">נוסף למחסן ברירת מחדל</string>
+    <string name="stock_edit_warning">לא ניתן לערוך כמות מלאי כאן ישירות לשמירה על תקינות נתונים. השתמש ב"העבר מלאי" או צור הזמנות רכש לעדכון כמויות.</string>
+
+    <!-- Custom Fields -->
+    <string name="custom_fields">שדות מותאמים אישית</string>
+    <string name="field_label">תווית</string>
+    <string name="field_type">סוג</string>
+    <string name="text">טקסט</string>
+    <string name="number">מספר</string>
+    <string name="date_type">תאריך</string>
+    <string name="boolean">כן/לא</string>
+    <string name="yes">כן</string>
+    <string name="no">לא</string>
+    <string name="add">הוסף</string>
+    <string name="client_fields">שדות לקוח</string>
+    <string name="supplier_fields">שדות ספק</string>
+    <string name="no_custom_fields">לא הוגדרו שדות מותאמים אישית.</string>
+    <string name="unit_cost">עלות ליחידה</string>
+    <string name="min">מינימום</string>
+    <string name="max">מקסימום</string>
+    <string name="email_invoice">שלח חשבונית באימייל</string>
+    <string name="recipient_email">אימייל מקבל</string>
+    <string name="subject">נושא</string>
+    <string name="message">הודעה</string>
+    <string name="send_email">שלח אימייל</string>
+    <string name="sending">שולח...</string>
+    <string name="email_sent_success">אימייל נשלח בהצלחה!</string>
+    <string name="attach_pdf">קובץ PDF מצורף</string>
+    <string name="remaining_qty">כמות נותרת</string>
+    <string name="create_invoice_from_selected">צור חשבונית מהנבחרים</string>
+    <string name="error_mixed_clients">לא ניתן למזג הזמנות מלקוחות שונים.</string>
+    <string name="error_mixed_currencies">לא ניתן למזג הזמנות במטבעות שונים.</string>
+    <string name="rfq">בקשה להצעת מחיר</string>
+    <string name="request_for_quotation">בקשה להצעת מחיר</string>
+    <string name="rfq_desc">נהל בקשות מחיר מספקים.</string>
+    <string name="new_rfq">בקשה חדשה</string>
+    <string name="search_rfqs">חפש בקשות...</string>
+    <string name="deadline">מועד אחרון</string>
+    <string name="rfq_details">פרטי הבקשה</string>
+    <string name="enter_prices">הכנס מחירים</string>
+    <string name="convert_to_po">המר להזמנת רכש</string>
+    <string name="price_input">הזנת מחיר</string>
+    <string name="sent">נשלח</string>
+    <string name="responded">נענה</string>
+    <string name="accepted">התקבל</string>
+    <string name="rejected">נדחה</string>
+    <string name="view_rfq">צפה בבקשה</string>
+    <string name="delete_rfq_msg">האם אתה בטוח שברצונך למחוק בקשה זו?</string>
+    <string name="internal_purchase_request">בקשת רכש פנימית</string>
+    <string name="ipr_desc">נהל בקשות פנימיות למוצרים או שירותים לפני רכישה.</string>
+    <string name="new_request">בקשה חדשה</string>
+    <string name="search_requests">חפש בקשות...</string>
+    <string name="requester">מבקש</string>
+    <string name="department">מחלקה</string>
+    <string name="request_details">פרטי בקשה</string>
+    <string name="requested_items">פריטים מבוקשים</string>
+    <string name="save_request">שמור בקשה</string>
+    <string name="requester_name">שם המבקש</string>
+    <string name="select_supplier">בחר ספק...</string>
+    <string name="approve">אשר</string>
+    <string name="reject">דחה</string>
+    <string name="convert_to_rfq">המר לבקשת הצעת מחיר</string>
+    <string name="approved">אושר</string>
+    <string name="restock">מילוי מלאי</string>
+    <string name="restock_low_stock">מילוי מלאי נמוך/חסר</string>
+    <string name="generate_order">צור הזמנה</string>
+    <string name="select_products_restock">בחר מוצרים למילוי</string>
+    <string name="order_qty">כמות להזמנה</string>
+    <string name="fiscal_stamp_settings">בול הכנסה</string>
+    <string name="enable_fiscal_stamp">הפעל בול הכנסה</string>
+    <string name="fiscal_stamp_value">ערך</string>
+    <string name="import_csv">ייבוא CSV</string>
+    <string name="download_template">הורד תבנית</string>
+</resources>

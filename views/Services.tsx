@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ServiceJob } from '../types';
-import { ArrowLeft, Save, User, Wrench } from 'lucide-react';
+import { ArrowLeft, Save, User, Wrench, Package, Plus, Trash2 } from 'lucide-react';
+import SearchableSelect from '../components/SearchableSelect';
 
 interface ServicesProps {
   mode?: string;
@@ -10,13 +11,47 @@ interface ServicesProps {
 }
 
 const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }) => {
-    const { addServiceJob, clients, technicians, t } = useApp();
+    const { addServiceJob, clients, technicians, products, formatCurrency, t } = useApp();
     const [formData, setFormData] = useState<Partial<ServiceJob>>({
         status: 'pending',
         priority: 'medium',
         services: [],
         usedParts: []
     });
+
+    // Local state for the part adder inputs
+    const [selectedPartId, setSelectedPartId] = useState('');
+    const [selectedPartQty, setSelectedPartQty] = useState(1);
+
+    const handleAddPart = () => {
+        if (!selectedPartId) return;
+        const product = products.find(p => p.id === selectedPartId);
+        if (!product) return;
+
+        const newPart = {
+            productId: product.id,
+            name: product.name,
+            quantity: selectedPartQty,
+            price: product.price
+        };
+
+        setFormData(prev => ({
+            ...prev,
+            usedParts: [...(prev.usedParts || []), newPart]
+        }));
+
+        // Reset inputs
+        setSelectedPartId('');
+        setSelectedPartQty(1);
+    };
+
+    const handleRemovePart = (index: number) => {
+        setFormData(prev => {
+            const newParts = [...(prev.usedParts || [])];
+            newParts.splice(index, 1);
+            return { ...prev, usedParts: newParts };
+        });
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,9 +69,9 @@ const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }
             technicianName: technicians.find(t => t.id === formData.technicianId)?.name,
             deviceInfo: formData.deviceInfo || '',
             problemDescription: formData.problemDescription || '',
-            estimatedCost: 0,
+            estimatedCost: (formData.usedParts || []).reduce((acc, part) => acc + (part.price * part.quantity), 0),
             services: [],
-            usedParts: []
+            usedParts: formData.usedParts || []
         };
         addServiceJob(newJob);
         onCancel();
@@ -128,6 +163,64 @@ const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }
                             placeholder="Describe the issue in detail..."
                             onChange={e => setFormData({...formData, problemDescription: e.target.value})}
                         />
+                    </div>
+
+                    {/* Initial Parts Section */}
+                    <div className="space-y-3 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
+                        <div className="flex items-center gap-2 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                            <Package className="w-4 h-4" />
+                            Initial Parts Required (Optional)
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row gap-3">
+                             <div className="flex-1">
+                                <SearchableSelect 
+                                    options={products.map(p => ({ value: p.id, label: `${p.name} (${formatCurrency(p.price)})` }))}
+                                    value={selectedPartId}
+                                    onChange={setSelectedPartId}
+                                    placeholder="Search product inventory..."
+                                    className="w-full rounded-lg bg-white"
+                                />
+                             </div>
+                             <div className="flex gap-2">
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    value={selectedPartQty}
+                                    onChange={(e) => setSelectedPartQty(parseInt(e.target.value) || 1)}
+                                    className="w-20 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Qty"
+                                />
+                                <button 
+                                    type="button"
+                                    onClick={handleAddPart}
+                                    disabled={!selectedPartId}
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                                >
+                                    <Plus className="w-4 h-4" /> Add
+                                </button>
+                             </div>
+                        </div>
+
+                        {/* List of added parts */}
+                        {formData.usedParts && formData.usedParts.length > 0 && (
+                            <div className="space-y-2 mt-2">
+                                {formData.usedParts.map((part, idx) => (
+                                    <div key={idx} className="flex justify-between items-center p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm">
+                                        <div className="flex gap-2">
+                                            <span className="font-medium text-gray-900 dark:text-white">{part.name}</span>
+                                            <span className="text-gray-500">x{part.quantity}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-gray-900 dark:text-white">{formatCurrency(part.price * part.quantity)}</span>
+                                            <button type="button" onClick={() => handleRemovePart(idx)} className="text-red-500 hover:text-red-700">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">

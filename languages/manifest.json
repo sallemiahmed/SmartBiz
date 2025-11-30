@@ -3,6 +3,9 @@
   "available": [
     { "code": "en", "name": "English", "file": "en.json", "dir": "ltr" },
     { "code": "fr", "name": "Français", "file": "fr.json", "dir": "ltr" },
-    { "code": "ar", "name": "العربية", "file": "ar.json", "dir": "rtl" }
+    { "code": "ar", "name": "العربية", "file": "ar.json", "dir": "rtl" },
+    { "code": "zh", "name": "中文", "file": "zh.json", "dir": "ltr" },
+    { "code": "ja", "name": "日本語", "file": "ja.json", "dir": "ltr" },
+    { "code": "he", "name": "עברית", "file": "he.json", "dir": "rtl" }
   ]
 }

@@ -1,14 +1,16 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
+import { printInvoice } from '../utils/printGenerator';
 
 interface SalesOrdersProps {
   onAddNew: () => void;
 }
 
 const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, t, formatCurrency, createSalesDocument, updateInvoice } = useApp();
+  const { invoices, deleteInvoice, t, formatCurrency, createSalesDocument, updateInvoice, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Invoice | null>(null);
@@ -220,6 +222,12 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     alert(t('success'));
   };
 
+  const handlePrint = () => {
+    if (selectedOrder) {
+      printInvoice(selectedOrder, settings);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -418,6 +426,14 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
             </div>
 
             <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3">
+              <button 
+                onClick={handlePrint}
+                className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Printer className="w-4 h-4" />
+                {t('print')}
+              </button>
+              
               <button 
                 onClick={handleGenerateInvoice}
                 className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"

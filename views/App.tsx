@@ -1,41 +1,40 @@
-
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopBar from './components/TopBar';
-import AIAssistant from './components/AIAssistant';
-import ProgressBar from './components/ProgressBar'; // Import ProgressBar
-import Dashboard from './views/Dashboard';
-import Clients from './views/Clients';
-import Inventory from './views/Inventory';
-import InventoryWarehouses from './views/InventoryWarehouses';
-import InventoryTransfers from './views/InventoryTransfers';
-import Invoices from './views/Invoices';
-import Suppliers from './views/Suppliers';
-import Sales from './views/Sales';
-import Purchases from './views/Purchases';
-import SalesOrders from './views/SalesOrders';
-import PurchaseOrders from './views/PurchaseOrders';
-import PurchaseDeliveries from './views/PurchaseDeliveries';
-import PurchaseInvoices from './views/PurchaseInvoices';
-import SalesEstimates from './views/SalesEstimates';
-import SalesDeliveries from './views/SalesDeliveries';
-import SalesInvoices from './views/SalesInvoices';
-import SalesIssues from './views/SalesIssues';
-import RequestForQuotation from './views/RequestForQuotation';
-import InternalPurchaseRequest from './views/InternalPurchaseRequest';
-import Services from './views/Services';
-import ServiceJobs from './views/ServiceJobs';
-import ServiceDashboard from './views/ServiceDashboard'; 
-import ServiceCatalog from './views/ServiceCatalog'; 
-import ServiceSales from './views/ServiceSales'; // Import new component
-import Technicians from './views/Technicians'; 
-import Reports from './views/Reports';
-import Settings from './views/Settings';
-import BankManagement from './views/BankManagement'; 
-import CashRegister from './views/CashRegister'; 
-import CostAnalysis from './views/CostAnalysis';
-import { AppView } from './types';
-import { AppProvider, useApp } from './context/AppContext';
+import Sidebar from '../components/Sidebar';
+import TopBar from '../components/TopBar';
+import AIAssistant from '../components/AIAssistant';
+import ProgressBar from '../components/ProgressBar';
+import Dashboard from './Dashboard';
+import Clients from './Clients';
+import Inventory from './Inventory';
+import InventoryWarehouses from './InventoryWarehouses';
+import InventoryTransfers from './InventoryTransfers';
+import Invoices from './Invoices';
+import Suppliers from './Suppliers';
+import Sales from './Sales';
+import Purchases from './Purchases';
+import SalesOrders from './SalesOrders';
+import PurchaseOrders from './PurchaseOrders';
+import PurchaseDeliveries from './PurchaseDeliveries';
+import PurchaseInvoices from './PurchaseInvoices';
+import SalesEstimates from './SalesEstimates';
+import SalesDeliveries from './SalesDeliveries';
+import SalesInvoices from './SalesInvoices';
+import SalesIssues from './SalesIssues';
+import RequestForQuotation from './RequestForQuotation';
+import InternalPurchaseRequest from './InternalPurchaseRequest';
+import Services from './Services';
+import ServiceJobs from './ServiceJobs';
+import ServiceDashboard from './ServiceDashboard'; 
+import ServiceCatalog from './ServiceCatalog'; 
+import ServiceSales from './ServiceSales';
+import Technicians from './Technicians'; 
+import Reports from './Reports';
+import Settings from './Settings';
+import BankManagement from './BankManagement'; 
+import CashRegister from './CashRegister'; 
+import CostAnalysis from './CostAnalysis';
+import { AppView } from '../types';
+import { AppProvider, useApp } from '../context/AppContext';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<AppView>('dashboard');
@@ -64,9 +63,9 @@ function AppContent() {
   }, [isDark]);
 
   useEffect(() => {
-    if (settings.language === 'ar') {
+    if (settings.language === 'ar' || settings.language === 'he') {
       document.documentElement.dir = 'rtl';
-      document.documentElement.lang = 'ar';
+      document.documentElement.lang = settings.language;
     } else {
       document.documentElement.dir = 'ltr';
       document.documentElement.lang = settings.language;
@@ -177,7 +176,7 @@ function AppContent() {
     }
 
     if (currentView.startsWith('inventory')) {
-        if (currentView === 'inventory') return <Inventory />; // Default
+        if (currentView === 'inventory') return <Inventory />;
         const mode = currentView.replace('inventory-', '');
         if (mode === 'products') return <Inventory />;
         if (mode === 'warehouses') return <InventoryWarehouses />;
