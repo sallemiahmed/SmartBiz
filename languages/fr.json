@@ -1,3 +1,4 @@
+
 {
     "dashboard": "Tableau de bord",
     "clients": "Clients",
@@ -430,5 +431,8 @@
     "download_template": "Télécharger Modèle",
     "rep_sales_customer_detailed": "Analyse Détaillée Clients",
     "rep_sales_product_detailed": "Analyse Détaillée Produits",
-    "rep_prod_perf": "Performance Produits"
+    "rep_prod_perf": "Performance Produits",
+    "partial": "Partiel",
+    "amount_paid": "Montant Payé",
+    "remaining": "Restant"
 }

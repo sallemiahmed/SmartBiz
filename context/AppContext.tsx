@@ -192,6 +192,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       clientName: data.clientName || 'Unknown',
       date: data.date || new Date().toISOString().split('T')[0],
       amount: data.amount || 0,
+      amountPaid: 0,
       status: data.status || 'draft',
       ...data
     } as Invoice;
@@ -204,12 +205,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const recordDocPayment = (type: 'invoice' | 'purchase', id: string, amount: number, accountId?: string, method?: 'bank' | 'cash') => {
     if (type === 'invoice') {
-        setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: 'paid' } : i));
+        setInvoices(prev => prev.map(i => {
+            if (i.id === id) {
+                const currentPaid = i.amountPaid || 0;
+                const newPaid = currentPaid + amount;
+                // Epsilon check for floating point precision
+                const isFullyPaid = newPaid >= i.amount - 0.01;
+                
+                return { 
+                    ...i, 
+                    amountPaid: newPaid,
+                    status: isFullyPaid ? 'paid' : 'partial' 
+                };
+            }
+            return i;
+        }));
+
         // Add transaction
+        const refNum = invoices.find(i => i.id === id)?.number || 'REF';
         if (method === 'bank' && accountId) {
             addBankTransaction({
                 id: `tx-${Date.now()}`, accountId, date: new Date().toISOString().split('T')[0],
-                description: `Payment for Invoice`, amount, type: 'deposit', status: 'cleared'
+                description: `Payment for Invoice ${refNum}`, amount, type: 'deposit', status: 'cleared'
             });
             // Update balance
             setBankAccounts(prev => prev.map(a => a.id === accountId ? { ...a, balance: a.balance + amount } : a));
@@ -218,20 +235,44 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             if (activeSession) {
                 addCashTransaction({
                     id: `ctx-${Date.now()}`, sessionId: activeSession.id, date: new Date().toISOString(),
-                    type: 'sale', amount, description: `Payment for Invoice`
+                    type: 'sale', amount, description: `Payment for Invoice ${refNum}`
                 });
             }
         }
     } else {
-        setPurchases(prev => prev.map(p => p.id === id ? { ...p, status: 'completed' } : p));
+        setPurchases(prev => prev.map(p => {
+            if (p.id === id) {
+                const currentPaid = p.amountPaid || 0;
+                const newPaid = currentPaid + amount;
+                const isFullyPaid = newPaid >= p.amount - 0.01;
+
+                return { 
+                    ...p, 
+                    amountPaid: newPaid,
+                    status: isFullyPaid ? 'completed' : 'partial' 
+                };
+            }
+            return p;
+        }));
+
         // Add transaction (Payment out)
+        const refNum = purchases.find(p => p.id === id)?.number || 'REF';
         if (method === 'bank' && accountId) {
             addBankTransaction({
                 id: `tx-${Date.now()}`, accountId, date: new Date().toISOString().split('T')[0],
-                description: `Payment for Purchase`, amount: -amount, type: 'payment', status: 'cleared'
+                description: `Payment for Purchase ${refNum}`, amount: -amount, type: 'payment', status: 'cleared'
             });
             // Update balance
             setBankAccounts(prev => prev.map(a => a.id === accountId ? { ...a, balance: a.balance - amount } : a));
+        } else if (method === 'cash') {
+             // Optional: Handle cash expense for purchase
+             const activeSession = cashSessions.find(s => s.status === 'open');
+             if (activeSession) {
+                 addCashTransaction({
+                     id: `ctx-${Date.now()}`, sessionId: activeSession.id, date: new Date().toISOString(),
+                     type: 'expense', amount: -amount, description: `Payment for Purchase ${refNum}`
+                 });
+             }
         }
     }
   };
@@ -246,6 +287,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       supplierName: data.supplierName || 'Unknown',
       date: data.date || new Date().toISOString().split('T')[0],
       amount: data.amount || 0,
+      amountPaid: 0,
       status: data.status || 'pending',
       ...data
     } as Purchase;

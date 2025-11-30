@@ -1,3 +1,4 @@
+
 {
     "dashboard": "Dashboard",
     "clients": "Clients",
@@ -433,5 +434,8 @@
     "additional_expenses": "Additional Expenses (Freight/Tax)",
     "rep_sales_customer_detailed": "Detailed Customer Analysis",
     "rep_sales_product_detailed": "Detailed Product Analysis",
-    "rep_prod_perf": "Product Performance"
+    "rep_prod_perf": "Product Performance",
+    "partial": "Partial",
+    "amount_paid": "Amount Paid",
+    "remaining": "Remaining"
 }

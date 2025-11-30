@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, CheckCircle, CreditCard, Landmark, Wallet } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Eye, Trash2, X, FileText, CheckCircle, CreditCard, Landmark, Wallet, AlertCircle } from 'lucide-react';
 import { Invoice } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -19,6 +19,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<'bank' | 'cash'>('bank');
   const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
   const salesInvoices = invoices.filter(inv => inv.type === 'invoice');
 
@@ -27,11 +28,26 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
            doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  // Reset payment amount when modal opens
+  useEffect(() => {
+    if (selectedDoc && isPaymentModalOpen) {
+      const remaining = selectedDoc.amount - (selectedDoc.amountPaid || 0);
+      setPaymentAmount(remaining);
+    }
+  }, [selectedDoc, isPaymentModalOpen]);
+
   const handlePaymentSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       if (!selectedDoc) return;
       if (paymentMethod === 'bank' && !selectedAccountId) {
           alert("Please select a bank account.");
+          return;
+      }
+      
+      // Validation
+      const remaining = selectedDoc.amount - (selectedDoc.amountPaid || 0);
+      if (paymentAmount <= 0 || paymentAmount > remaining + 0.01) { // small epsilon for float issues
+          alert("Invalid payment amount.");
           return;
       }
       
@@ -44,7 +60,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
           }
       }
 
-      recordDocPayment('invoice', selectedDoc.id, selectedDoc.amount, selectedAccountId, paymentMethod);
+      recordDocPayment('invoice', selectedDoc.id, paymentAmount, selectedAccountId, paymentMethod);
       setIsPaymentModalOpen(false);
       setIsViewModalOpen(false);
       alert(t('success'));
@@ -93,15 +109,31 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredDocs.map((doc) => (
+              {filteredDocs.map((doc) => {
+                const paid = doc.amountPaid || 0;
+                const percentPaid = Math.min(100, (paid / doc.amount) * 100);
+                
+                return (
                 <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                   <td className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</div>
+                    {paid > 0 && paid < doc.amount && (
+                        <div className="text-xs text-gray-500 mt-1">
+                            {t('paid')}: {formatCurrency(paid)}
+                            <div className="w-full h-1 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                                <div className="h-full bg-green-500" style={{ width: `${percentPaid}%` }}></div>
+                            </div>
+                        </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        doc.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        doc.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 
+                        doc.status === 'partial' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                      }`}>
                        {t(doc.status)}
                      </span>
@@ -125,7 +157,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
           {filteredDocs.length === 0 && (
@@ -149,7 +181,6 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
             </div>
             
             <div className="space-y-4">
-              {/* ... (Existing Details View Code remains same) ... */}
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('client')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.clientName}</span>
@@ -171,9 +202,23 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                 </div>
               </div>
 
-              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2 font-bold text-lg">
-                <span className="text-gray-900 dark:text-white">{t('total')}</span>
-                <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedDoc.amount)}</span>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                  <div className="flex justify-between font-bold text-lg">
+                    <span className="text-gray-900 dark:text-white">{t('total')}</span>
+                    <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedDoc.amount)}</span>
+                  </div>
+                  {(selectedDoc.amountPaid || 0) > 0 && (
+                      <div className="flex justify-between text-sm text-green-600 mt-1">
+                          <span>{t('amount_paid')}</span>
+                          <span>{formatCurrency(selectedDoc.amountPaid || 0)}</span>
+                      </div>
+                  )}
+                  {selectedDoc.amount - (selectedDoc.amountPaid || 0) > 0.01 && (
+                      <div className="flex justify-between text-sm text-red-500 mt-1">
+                          <span>{t('remaining')}</span>
+                          <span>{formatCurrency(selectedDoc.amount - (selectedDoc.amountPaid || 0))}</span>
+                      </div>
+                  )}
               </div>
             </div>
 
@@ -244,9 +289,25 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                     )}
 
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex justify-between mb-4 text-sm">
-                            <span className="text-gray-500">Amount to Receive:</span>
-                            <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(selectedDoc.amount)}</span>
+                        <div className="mb-4">
+                            <div className="flex justify-between text-sm mb-2 text-gray-500">
+                                <span>Total Amount:</span>
+                                <span>{formatCurrency(selectedDoc.amount)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm mb-4 text-orange-600 font-medium">
+                                <span>Remaining Balance:</span>
+                                <span>{formatCurrency(selectedDoc.amount - (selectedDoc.amountPaid || 0))}</span>
+                            </div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Amount</label>
+                            <input 
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                max={selectedDoc.amount - (selectedDoc.amountPaid || 0) + 0.01}
+                                value={paymentAmount}
+                                onChange={(e) => setPaymentAmount(parseFloat(e.target.value))}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white text-lg font-bold"
+                            />
                         </div>
                         <button type="submit" className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
                             <CheckCircle className="w-4 h-4" /> Confirm Payment

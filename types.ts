@@ -75,7 +75,8 @@ export interface Invoice {
   date: string;
   dueDate?: string;
   amount: number;
-  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'sent';
+  amountPaid?: number; // Track partial payments
+  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'sent' | 'partial';
   items: InvoiceItem[];
   warehouseId?: string;
   currency?: string;
@@ -104,10 +105,11 @@ export interface Purchase {
   requesterName?: string; // Specific for PR
   department?: string; // Specific for PR
   amount: number;
+  amountPaid?: number; // Track partial payments
   currency?: string;
   exchangeRate?: number;
   additionalCosts?: number;
-  status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'approved';
+  status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'approved' | 'partial';
   items: InvoiceItem[];
   warehouseId?: string;
   paymentTerms?: string;
