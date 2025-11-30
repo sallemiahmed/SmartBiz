@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle, RotateCcw } from 'lucide-react';
 import { Invoice } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -29,7 +29,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     }
   };
 
-  const updateStatus = (status: 'accepted' | 'rejected') => {
+  const updateStatus = (status: 'accepted' | 'rejected' | 'draft') => {
     if (!selectedDoc) return;
     const updatedDoc = { ...selectedDoc, status };
     updateInvoice(updatedDoc);
@@ -264,14 +264,23 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                   </>
               )}
 
-              {/* Convert Action - Only if Accepted */}
+              {/* Convert/Revert Actions - Only if Accepted */}
               {selectedDoc.status === 'accepted' && (
-                  <button 
-                    onClick={handleConvertToOrder}
-                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <ArrowRightCircle className="w-4 h-4" /> {t('convert_to_order')}
-                  </button>
+                  <>
+                    <button
+                        onClick={() => updateStatus('draft')}
+                        className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center justify-center gap-2 transition-colors"
+                        title="Revert to Draft"
+                    >
+                        <RotateCcw className="w-4 h-4" /> {t('draft')}
+                    </button>
+                    <button 
+                        onClick={handleConvertToOrder}
+                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors"
+                    >
+                        <ArrowRightCircle className="w-4 h-4" /> {t('convert_to_order')}
+                    </button>
+                  </>
               )}
               
               <button 
