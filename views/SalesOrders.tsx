@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer, RotateCcw, Pencil, Save, Calendar, Filter, User } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer, RotateCcw, Pencil, Save, Calendar, Filter, User, PackagePlus } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -31,6 +31,10 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDoc, setEditedDoc] = useState<Invoice | null>(null);
   const [selectedAddProductId, setSelectedAddProductId] = useState('');
+  
+  // Custom Item State
+  const [customItem, setCustomItem] = useState({ description: '', price: 0, quantity: 1 });
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
 
   const orders = invoices.filter(inv => inv.type === 'order');
 
@@ -74,6 +78,8 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     if (isViewModalOpen && selectedOrder) {
         setIsEditing(false);
         setEditedDoc(JSON.parse(JSON.stringify(selectedOrder))); // Deep copy
+        setCustomItem({ description: '', price: 0, quantity: 1 });
+        setIsAddingCustom(false);
     }
   }, [isViewModalOpen, selectedOrder]);
 
@@ -109,6 +115,22 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     const newItems = [...editedDoc.items, newItem];
     recalculateTotals({ ...editedDoc, items: newItems });
     setSelectedAddProductId('');
+  };
+
+  const handleAddCustomItem = () => {
+    if (!editedDoc || !customItem.description) return;
+
+    const newItem: InvoiceItem = {
+        id: `custom-${Date.now()}`,
+        description: customItem.description,
+        quantity: customItem.quantity,
+        price: customItem.price
+    };
+
+    const newItems = [...editedDoc.items, newItem];
+    recalculateTotals({ ...editedDoc, items: newItems });
+    setCustomItem({ description: '', price: 0, quantity: 1 });
+    setIsAddingCustom(false);
   };
 
   const recalculateTotals = (doc: Invoice) => {
@@ -574,6 +596,61 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                         </div>
                     )}
                 </div>
+
+                {isEditing && (
+                    <div className="mb-4">
+                        {!isAddingCustom ? (
+                            <button 
+                                onClick={() => setIsAddingCustom(true)}
+                                className="w-full py-1.5 border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 rounded text-xs flex items-center justify-center gap-1"
+                            >
+                                <PackagePlus className="w-3 h-3" /> Add Custom Item (Manual)
+                            </button>
+                        ) : (
+                            <div className="space-y-2 bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-700">
+                                <input 
+                                    type="text"
+                                    placeholder="Description"
+                                    value={customItem.description}
+                                    onChange={(e) => setCustomItem({...customItem, description: e.target.value})}
+                                    className="w-full px-2 py-1 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    autoFocus
+                                />
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number"
+                                        placeholder="Price"
+                                        min="0"
+                                        step="0.01"
+                                        value={customItem.price}
+                                        onChange={(e) => setCustomItem({...customItem, price: parseFloat(e.target.value) || 0})}
+                                        className="flex-1 px-2 py-1 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    />
+                                    <input 
+                                        type="number"
+                                        placeholder="Qty"
+                                        min="1"
+                                        value={customItem.quantity}
+                                        onChange={(e) => setCustomItem({...customItem, quantity: parseInt(e.target.value) || 1})}
+                                        className="w-16 px-2 py-1 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    />
+                                    <button 
+                                        onClick={handleAddCustomItem}
+                                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs"
+                                    >
+                                        Add
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsAddingCustom(false)}
+                                        className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-300 text-xs"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {isEditing ? (
