@@ -462,7 +462,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                         onClick={() => updateStatus('draft')}
                         className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
                     >
-                        <RotateCcw className="w-4 h-4" /> {t('draft')}
+                        <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
                     </button>
                     <button 
                         onClick={handleGenerateInvoice}
