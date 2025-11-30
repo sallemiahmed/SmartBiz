@@ -58,6 +58,10 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
     return matchesSearch && matchesStatus && matchesClient && matchesDate;
   });
 
+  const totalFilteredAmount = useMemo(() => {
+    return filteredDocs.reduce((sum, doc) => sum + doc.amount, 0);
+  }, [filteredDocs]);
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setDateRange({ start: '', end: '' });
@@ -208,6 +212,12 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Total Summary Bar */}
+        <div className="px-6 py-3 bg-indigo-50/50 dark:bg-indigo-900/10 border-b border-gray-200 dark:border-gray-700 flex justify-end items-center gap-2">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('total')}:</span>
+            <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(totalFilteredAmount)}</span>
         </div>
 
         <div className="overflow-x-auto">
