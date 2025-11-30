@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ArrowLeft, Plus, Trash2, Save, User, Calendar, 
   ShoppingCart, DollarSign, FileText, ChevronRight, Calculator,
-  Search, X 
+  Search, X, Package, Wrench
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { InvoiceItem, Product, SalesDocumentType } from '../types';
@@ -16,7 +16,7 @@ interface SalesProps {
 }
 
 const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
-  const { clients, products, warehouses, createSalesDocument, formatCurrency, settings, t } = useApp();
+  const { clients, products, serviceCatalog, warehouses, createSalesDocument, formatCurrency, settings, t } = useApp();
   
   // Form State
   const [clientId, setClientId] = useState('');
@@ -29,6 +29,10 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([]);
   
+  // Catalog Filter State
+  const [catalogFilter, setCatalogFilter] = useState<'all' | 'product' | 'service'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Tax & Discounts
   const [taxRate, setTaxRate] = useState(settings.taxRates.find(r => r.isDefault)?.rate || 0);
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
@@ -41,16 +45,16 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
   };
 
   // Item Management
-  const addItem = (product: Product) => {
-    const existing = items.find(i => i.id === product.id);
+  const addItem = (item: any) => {
+    const existing = items.find(i => i.id === item.id);
     if (existing) {
-      setItems(items.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
+      setItems(items.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
     } else {
       setItems([...items, { 
-        id: product.id, 
-        description: product.name, 
+        id: item.id, 
+        description: item.name, 
         quantity: 1, 
-        price: product.price 
+        price: item.price // mapped from either product.price or service.basePrice
       }]);
     }
   };
@@ -100,53 +104,120 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
     handleBack();
   };
 
+  // --- Unified Catalog Logic ---
+  const unifiedCatalog = useMemo(() => {
+    const prodItems = products.map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        category: p.category,
+        price: p.price,
+        stock: p.stock,
+        type: 'product'
+    }));
+
+    const servItems = serviceCatalog.map(s => ({
+        id: s.id,
+        name: s.name,
+        sku: 'SRV',
+        category: 'Service',
+        price: s.basePrice,
+        stock: null, // Services have no stock
+        type: 'service'
+    }));
+
+    return [...prodItems, ...servItems];
+  }, [products, serviceCatalog]);
+
+  const filteredCatalog = unifiedCatalog.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = catalogFilter === 'all' || item.type === catalogFilter;
+      return matchesSearch && matchesType;
+  });
+
   return (
     <div className="flex h-full flex-col lg:flex-row overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* LEFT: Product Catalog */}
+      {/* LEFT: Product/Service Catalog */}
       <div className="flex-1 flex flex-col h-full border-r border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 space-y-3">
+          <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <ShoppingCart className="w-5 h-5 text-indigo-600" />
-              {t('product_catalog')}
+              {t('catalog')}
             </h2>
             <button onClick={handleBack} className="text-gray-500 hover:text-gray-700 lg:hidden">
               <ArrowLeft className="w-6 h-6" />
             </button>
           </div>
+          
+          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+             <button 
+                onClick={() => setCatalogFilter('all')}
+                className={`flex-1 py-1 text-xs font-medium rounded-md transition-colors ${catalogFilter === 'all' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+             >
+                 All
+             </button>
+             <button 
+                onClick={() => setCatalogFilter('product')}
+                className={`flex-1 py-1 text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1 ${catalogFilter === 'product' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+             >
+                 <Package className="w-3 h-3" /> {t('products')}
+             </button>
+             <button 
+                onClick={() => setCatalogFilter('service')}
+                className={`flex-1 py-1 text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1 ${catalogFilter === 'service' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+             >
+                 <Wrench className="w-3 h-3" /> {t('services')}
+             </button>
+          </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder={t('search_products')}
+              placeholder={t('search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
             />
           </div>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 align-content-start">
-          {products.map(product => (
+          {filteredCatalog.map(item => (
             <button 
-              key={product.id}
-              onClick={() => addItem(product)}
-              className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left flex flex-col h-full"
+              key={item.id}
+              onClick={() => addItem(item)}
+              className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left flex flex-col h-full group"
             >
               <div className="flex justify-between items-start w-full mb-2">
-                <span className="text-xs font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded truncate max-w-[80px]">
-                  {product.sku}
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded truncate max-w-[80px] ${item.type === 'service' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+                  {item.sku}
                 </span>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {product.stock}
-                </span>
+                
+                {item.type === 'product' ? (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.stock! > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {item.stock}
+                    </span>
+                ) : (
+                    <Wrench className="w-4 h-4 text-purple-500" />
+                )}
               </div>
-              <h4 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-auto">
-                {product.name}
+              <h4 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-auto group-hover:text-indigo-600 transition-colors">
+                {item.name}
               </h4>
               <div className="mt-3 font-bold text-indigo-600 dark:text-indigo-400">
-                {formatCurrency(product.price)}
+                {formatCurrency(item.price)}
               </div>
             </button>
           ))}
+          {filteredCatalog.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center text-gray-400 py-10">
+                  <Package className="w-12 h-12 mb-2 opacity-20" />
+                  <p className="text-sm">No items found</p>
+              </div>
+          )}
         </div>
       </div>
 
@@ -263,7 +334,7 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
               ))}
               {items.length === 0 && (
                 <div className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                  Select products from the left to add items
+                  Select products or services from the left to add items
                 </div>
               )}
             </div>
