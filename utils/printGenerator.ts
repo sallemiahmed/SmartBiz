@@ -150,30 +150,35 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
 };
 
 export const printJobCard = (job: ServiceJob, settings: AppSettings) => {
+    const isRTL = settings.language === 'ar';
     // Basic Job Card Print Logic
     const html = `
       <!DOCTYPE html>
-      <html>
+      <html dir="${isRTL ? 'rtl' : 'ltr'}">
       <head>
         <title>Job Card ${job.ticketNumber}</title>
         <style>
-          body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
-          .header { border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; }
+          body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; direction: ${isRTL ? 'rtl' : 'ltr'}; }
+          .header { border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
           .section { margin-bottom: 20px; }
-          h1 { margin: 0; }
+          h1 { margin: 0; font-size: 24px; }
+          .logo { max-height: 60px; margin-bottom: 10px; display: block; }
           .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
           .box { border: 1px solid #ccc; padding: 10px; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: ${isRTL ? 'right' : 'left'}; }
         </style>
       </head>
       <body>
         <div class="header">
           <div>
+            ${settings.companyLogo ? `<img src="${settings.companyLogo}" class="logo" />` : ''}
             <h1>JOB CARD</h1>
             <h3>${settings.companyName}</h3>
+            <p>${settings.companyAddress}</p>
+            <p>${settings.companyPhone}</p>
           </div>
-          <div style="text-align: right;">
+          <div style="text-align: ${isRTL ? 'left' : 'right'};">
             <h2>#${job.ticketNumber}</h2>
             <p>Date: ${job.date}</p>
           </div>

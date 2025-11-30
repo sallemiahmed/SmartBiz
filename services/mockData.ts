@@ -140,27 +140,27 @@ export const mockInvoices: Invoice[] = [
     id: 'est1', number: 'DEV-24-101', type: 'estimate', clientId: 'c3', clientName: 'StartUp Factory', 
     date: getDate(-1), dueDate: getDate(14), amount: 28000.00, status: 'draft',
     items: [ { id: 'p1', description: 'HP EliteBook', quantity: 8, price: 3200 }, { id: 'p2', description: 'Ecran', quantity: 6, price: 400 } ],
-    warehouseId: 'w1'
+    warehouseId: 'w1', subtotal: 28000
   },
   { 
     id: 'est2', number: 'DEV-24-102', type: 'estimate', clientId: 'c7', clientName: 'Sahar Construction', 
     date: getDate(0), dueDate: getDate(7), amount: 5500.00, status: 'sent',
     items: [ { id: 'p3', description: 'Imprimantes', quantity: 5, price: 650 }, { id: 'p8', description: 'Logiciels', quantity: 5, price: 450 } ],
-    warehouseId: 'w1'
+    warehouseId: 'w1', subtotal: 5500
   },
   // Orders
   { 
     id: 'ord1', number: 'BC-24-055', type: 'order', clientId: 'c2', clientName: 'Clinique Internationale', 
     date: getDate(-5), amount: 4500.00, status: 'pending',
     items: [ { id: 'p6', description: 'Chaise Bureau', quantity: 10, price: 450 } ],
-    warehouseId: 'w2'
+    warehouseId: 'w2', subtotal: 4500
   },
   // Deliveries
   { 
     id: 'del1', number: 'BL-24-882', type: 'delivery', clientId: 'c4', clientName: 'Banque de l\'Habitat', 
     date: getDate(-20), amount: 0, status: 'completed',
     items: [ { id: 'p7', description: 'Routeur Cisco', quantity: 5, price: 0 } ],
-    warehouseId: 'w1', linkedDocumentId: 'inv2'
+    warehouseId: 'w1', linkedDocumentId: 'inv2', subtotal: 0
   }
 ];
 

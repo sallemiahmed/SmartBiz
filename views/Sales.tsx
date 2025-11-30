@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Plus, Trash2, Save, User, Calendar, 
-  ShoppingCart, DollarSign, FileText, ChevronRight, Calculator 
+  ShoppingCart, DollarSign, FileText, ChevronRight, Calculator,
+  Search, X 
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { InvoiceItem, Product, SalesDocumentType } from '../types';

@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { 
   ArrowLeft, Plus, Trash2, Save, ShoppingBag, 
   Search, FileText, CheckCircle, Package, Minus,
-  RefreshCcw, User, Briefcase, Store, ArrowDownCircle, ChevronRight, FilePenLine, Printer, Building
+  RefreshCcw, User, Briefcase, Store, ArrowDownCircle, ChevronRight, FilePenLine, Printer, Building,
+  X
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { InvoiceItem, Product, PurchaseDocumentType, Purchase } from '../types';
