@@ -48,20 +48,20 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
       e.preventDefault();
       if (!selectedDoc) return;
       if (paymentMethod === 'bank' && !selectedAccountId) {
-          alert("Please select a bank account.");
+          alert(t('select_bank_account'));
           return;
       }
       
       const remaining = selectedDoc.amount - (selectedDoc.amountPaid || 0);
       if (paymentAmount <= 0 || paymentAmount > remaining + 0.01) {
-          alert("Invalid payment amount.");
+          alert(t('invalid_amount'));
           return;
       }
       
       if (paymentMethod === 'cash') {
           const activeSession = cashSessions.find(s => s.status === 'open');
           if (!activeSession) {
-              alert(t('register_closed') + ". Please open register first.");
+              alert(t('register_closed') + ". " + t('open_register'));
               return;
           }
       }
@@ -316,14 +316,14 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
 
                     {paymentMethod === 'bank' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Account</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('select_account')}</label>
                             <select 
                                 required
                                 value={selectedAccountId}
                                 onChange={(e) => setSelectedAccountId(e.target.value)}
                                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
                             >
-                                <option value="">Select Account...</option>
+                                <option value="">{t('select_account')}</option>
                                 {bankAccounts.map(acc => (
                                     <option key={acc.id} value={acc.id}>{acc.name} ({acc.bankName})</option>
                                 ))}
@@ -353,7 +353,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                             />
                         </div>
                         <button type="submit" className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
-                            <CheckCircle className="w-4 h-4" /> Confirm Payment
+                            <CheckCircle className="w-4 h-4" /> {t('confirm_payment')}
                         </button>
                         <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="w-full mt-2 py-2 text-gray-500 hover:text-gray-700">
                             {t('cancel')}

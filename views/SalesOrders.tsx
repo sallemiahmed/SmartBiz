@@ -158,7 +158,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
       }));
 
     if (itemsToDeliver.length === 0) {
-      alert("Please select at least one item to deliver.");
+      alert(t('select_item_deliver'));
       return;
     }
 
@@ -390,7 +390,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                           <div className="flex flex-col">
                             <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
                             <span className="text-xs text-gray-400">
-                              Delivered: <span className={isComplete ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
+                              {t('delivered')}: <span className={isComplete ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
                             </span>
                             {remaining > 0 && (
                               <span className="text-xs text-gray-500">
@@ -498,8 +498,8 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Create Delivery</h3>
-                <p className="text-xs text-gray-500">For Order: {selectedOrder.number}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('create_delivery_title')}</h3>
+                <p className="text-xs text-gray-500">{t('for_order')}: {selectedOrder.number}</p>
               </div>
               <button onClick={() => setIsDeliveryModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
@@ -508,11 +508,11 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
                   <tr>
-                    <th className="px-3 py-2 text-left">Item</th>
-                    <th className="px-3 py-2 text-center">Ordered</th>
-                    <th className="px-3 py-2 text-center">Delivered</th>
+                    <th className="px-3 py-2 text-left">{t('item')}</th>
+                    <th className="px-3 py-2 text-center">{t('ordered')}</th>
+                    <th className="px-3 py-2 text-center">{t('delivered')}</th>
                     <th className="px-3 py-2 text-center font-bold text-red-500">{t('remaining_qty')}</th>
-                    <th className="px-3 py-2 text-right">Deliver Now</th>
+                    <th className="px-3 py-2 text-right">{t('deliver_now')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -552,14 +552,14 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                 onClick={() => setIsDeliveryModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button 
                 onClick={submitDelivery}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
               >
                 <CheckCircle className="w-4 h-4" />
-                Confirm Delivery
+                {t('confirm_delivery')}
               </button>
             </div>
           </div>

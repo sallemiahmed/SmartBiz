@@ -438,5 +438,19 @@
     "mark_accepted": "Accepter",
     "mark_rejected": "Refuser",
     "pay_supplier": "Payer Fournisseur",
-    "record_payment": "Enregistrer Paiement"
+    "record_payment": "Enregistrer Paiement",
+    "select_account": "Sélectionner un compte...",
+    "invalid_amount": "Montant invalide.",
+    "select_bank_account": "Veuillez sélectionner un compte bancaire.",
+    "confirm_payment": "Confirmer le paiement",
+    "create_delivery_title": "Créer Bon de Livraison",
+    "for_order": "Pour la commande",
+    "item": "Article",
+    "ordered": "Commandé",
+    "delivered": "Livré",
+    "deliver_now": "Livrer maintenant",
+    "confirm_delivery": "Confirmer Livraison",
+    "select_item_deliver": "Veuillez sélectionner au moins un article à livrer.",
+    "accept": "Accepter",
+    "revert_draft": "Revenir au brouillon"
 }

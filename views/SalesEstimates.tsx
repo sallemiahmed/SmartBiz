@@ -252,14 +252,14 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                         className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 transition-colors"
                         title={t('mark_accepted')}
                     >
-                        <CheckCircle className="w-4 h-4" /> Accept
+                        <CheckCircle className="w-4 h-4" /> {t('accept')}
                     </button>
                     <button 
                         onClick={() => updateStatus('rejected')}
                         className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 transition-colors"
                         title={t('mark_rejected')}
                     >
-                        <XCircle className="w-4 h-4" /> Reject
+                        <XCircle className="w-4 h-4" /> {t('reject')}
                     </button>
                   </>
               )}
@@ -270,7 +270,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                     <button
                         onClick={() => updateStatus('draft')}
                         className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center justify-center gap-2 transition-colors"
-                        title="Revert to Draft"
+                        title={t('revert_draft')}
                     >
                         <RotateCcw className="w-4 h-4" /> {t('draft')}
                     </button>
