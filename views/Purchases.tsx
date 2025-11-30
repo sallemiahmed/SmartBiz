@@ -1,185 +1,141 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
-  Search, ShoppingBag, Plus, Trash2, Store, Truck, 
-  X, Minus, Package, ChevronRight, CheckCircle, FileText, Printer, Building, FilePenLine, DollarSign, RefreshCcw, ArrowDownCircle, User, Briefcase
+  ArrowLeft, Plus, Trash2, Save, ShoppingBag, 
+  Search, FileText, CheckCircle, Package, Minus,
+  RefreshCcw, User, Briefcase, Store, ArrowDownCircle, ChevronRight, FilePenLine, Printer, Building
 } from 'lucide-react';
-import { Product, PurchaseDocumentType, Purchase } from '../types';
 import { useApp } from '../context/AppContext';
-import { printInvoice } from '../utils/printGenerator';
-import { allCurrencies } from '../utils/currencyList';
+import { InvoiceItem, Product, PurchaseDocumentType, Purchase } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
-
-interface POItem extends Product {
-  cartId: string;
-  quantity: number;
-  unitCost: number; 
-  isCustom?: boolean;
-}
+import { allCurrencies } from '../utils/currencyList';
+import { printInvoice } from '../utils/printGenerator';
 
 interface PurchasesProps {
   mode: PurchaseDocumentType;
+  onCancel?: () => void;
 }
 
-const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
-  const { products, suppliers, warehouses, purchases, createPurchaseDocument, formatCurrency, settings, t, addProduct } = useApp();
+const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => {
+  const { 
+    suppliers, products, warehouses, createPurchaseDocument, 
+    formatCurrency, settings, addProduct, t, purchases 
+  } = useApp();
 
-  // UI State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [showCustomItemModal, setShowCustomItemModal] = useState(false);
-  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [lastDocNumber, setLastDocNumber] = useState('');
-  const [lastCreatedDoc, setLastCreatedDoc] = useState<Purchase | null>(null);
-  
-  // Transaction State
-  const [cart, setCart] = useState<POItem[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState<string>('');
-  const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
-  const [linkedOrderId, setLinkedOrderId] = useState<string>('');
-  
-  // PR Specific State
-  const [requesterName, setRequesterName] = useState('');
-  const [department, setDepartment] = useState('');
-
-  // Currency State
-  const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
-  const [exchangeRate, setExchangeRate] = useState(1);
-
-  // New Fields
-  const [paymentTerms, setPaymentTerms] = useState('Due on Receipt');
-  const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
-  const [notes, setNotes] = useState('');
-  const [additionalCosts, setAdditionalCosts] = useState<number>(0);
-
-  // Initialize tax rate
-  const defaultRate = settings.taxRates.find(r => r.isDefault)?.rate || 0;
-  const [taxRate, setTaxRate] = useState<number>(defaultRate); 
-  
-  // New Product Form State
-  const [newProductForm, setNewProductForm] = useState({
-    name: '',
-    sku: '',
-    category: 'General',
-    cost: '',
-    price: ''
-  });
-
-  useEffect(() => {
-    setCart([]);
-    setSelectedSupplier('');
-    setLinkedOrderId('');
-    setTaxRate(defaultRate);
-    setPaymentTerms('Due on Receipt');
-    setPaymentMethod('Bank Transfer');
-    setNotes('');
-    setAdditionalCosts(0);
-    setRequesterName('');
-    setDepartment('');
-    setShowSuccessModal(false);
-    setLastCreatedDoc(null);
-    setSelectedCurrency(settings.currency);
-    setExchangeRate(1);
-  }, [mode, defaultRate, settings.currency]);
-
-  // Helpers
+  // Mode Specific Titles
   const getPageTitle = () => {
-    switch(mode) {
+    switch (mode) {
+      case 'order': return t('purchase_order');
+      case 'delivery': return t('goods_received_grn');
       case 'pr': return t('internal_purchase_request');
-      case 'order': return 'New Supplier Order';
-      case 'delivery': return 'Receive Goods (GRN)';
-      default: return 'Register Supplier Invoice';
+      case 'rfq': return t('request_for_quotation');
+      default: return t('supplier_invoice');
     }
   };
 
   const getButtonLabel = () => {
-    switch(mode) {
-      case 'pr': return t('save_request');
-      case 'order': return 'Create Order';
-      case 'delivery': return 'Confirm Receipt';
-      default: return 'Save Invoice';
+    switch (mode) {
+      case 'order': return t('create_po');
+      case 'delivery': return t('confirm_receipt');
+      case 'pr': return t('submit_request');
+      case 'rfq': return t('create_rfq');
+      default: return t('log_invoice');
     }
   };
 
   const getButtonColor = () => {
-    switch(mode) {
+    switch (mode) {
+      case 'order': return 'bg-emerald-600 hover:bg-emerald-700';
+      case 'delivery': return 'bg-blue-600 hover:bg-blue-700';
       case 'pr': return 'bg-indigo-600 hover:bg-indigo-700';
-      case 'order': return 'bg-orange-600 hover:bg-orange-700';
-      case 'delivery': return 'bg-emerald-600 hover:bg-emerald-700';
-      default: return 'bg-blue-600 hover:bg-blue-700';
+      case 'rfq': return 'bg-purple-600 hover:bg-purple-700';
+      default: return 'bg-emerald-600 hover:bg-emerald-700';
     }
   };
+
+  // State
+  const [cart, setCart] = useState<(Product & { cartId: string; quantity: number; unitCost: number; isCustom?: boolean })[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>('');
+  const [requesterName, setRequesterName] = useState('');
+  const [department, setDepartment] = useState('');
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string>(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(settings.currency);
+  const [exchangeRate, setExchangeRate] = useState<number>(1);
+  const [additionalCosts, setAdditionalCosts] = useState<number>(0);
+  const [paymentTerms, setPaymentTerms] = useState<string>('Net 30');
+  const [paymentMethod, setPaymentMethod] = useState<string>('Bank Transfer');
+  const [notes, setNotes] = useState<string>('');
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [linkedOrderId, setLinkedOrderId] = useState<string>('');
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Modals
+  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
+  const [showCustomItemModal, setShowCustomItemModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
-  // Pending Orders for GRN
-  const pendingOrders = mode === 'delivery' 
-    ? purchases.filter(p => p.type === 'order' && p.status === 'pending')
-    : [];
+  const [newProductForm, setNewProductForm] = useState({ name: '', sku: '', category: 'General', cost: '', price: '' });
+  const [customItem, setCustomItem] = useState({ name: '', cost: '' });
+  const [lastCreatedDoc, setLastCreatedDoc] = useState<Purchase | null>(null);
+  const [lastDocNumber, setLastDocNumber] = useState('');
+
+  // Derived Data
+  const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
+  
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const selectedSupplierData = suppliers.find(s => s.id === selectedSupplier);
+  const pendingOrders = purchases.filter(p => p.type === 'order' && (p.status === 'pending' || p.status === 'partial'));
 
   const handleOrderSelect = (orderId: string) => {
     setLinkedOrderId(orderId);
     const order = purchases.find(p => p.id === orderId);
     if (order) {
       setSelectedSupplier(order.supplierId);
-      if (order.warehouseId) setSelectedWarehouse(order.warehouseId);
-      setNotes(`Received against PO: ${order.number}`);
+      setSelectedWarehouse(order.warehouseId || '');
+      setSelectedCurrency(order.currency || settings.currency);
+      setExchangeRate(order.exchangeRate || 1);
       
-      // Populate Cart
-      const newCart: POItem[] = order.items.map(item => {
+      // Load items from order
+      const itemsFromOrder = order.items.map(item => {
         const product = products.find(p => p.id === item.id);
-        if (product) {
-          return {
-            ...product,
-            cartId: `${product.id}-${Date.now()}`,
-            quantity: item.quantity,
-            unitCost: item.price
-          };
-        } else {
-          // Handle non-inventory items if necessary
-          return {
-            id: item.id,
-            sku: 'N/A',
-            name: item.description,
-            category: 'General',
-            stock: 0,
-            warehouseStock: {},
-            price: 0,
-            cost: item.price,
-            status: 'in_stock',
-            cartId: `${item.id}-${Date.now()}`,
-            quantity: item.quantity,
-            unitCost: item.price
-          } as POItem;
-        }
-      });
-      setCart(newCart);
+        const remainingQty = item.quantity - (item.fulfilledQuantity || 0);
+        if (remainingQty <= 0 && mode === 'delivery') return null; // Skip fulfilled items for delivery
+
+        return {
+          id: item.id,
+          sku: product?.sku || 'N/A',
+          name: item.description,
+          category: product?.category || 'General',
+          stock: product?.stock || 0,
+          warehouseStock: product?.warehouseStock || {},
+          price: product?.price || 0,
+          cost: item.price, // Use cost from PO
+          status: product?.status || 'in_stock',
+          marginPercent: 0,
+          cartId: `${item.id}-${Date.now()}`,
+          quantity: mode === 'delivery' ? remainingQty : item.quantity,
+          unitCost: item.price
+        } as any;
+      }).filter(Boolean);
+      
+      setCart(itemsFromOrder);
     } else {
-      // Clear selection
       setCart([]);
-      setSelectedSupplier('');
-      setNotes('');
     }
   };
-
-  // Custom Item Form State
-  const [customItem, setCustomItem] = useState({ name: '', cost: '' });
-
-  // Derived Data
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
-
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const selectedSupplierData = suppliers.find(s => s.id === selectedSupplier);
 
   // Calculations
   const subtotal = cart.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0);
   const taxAmount = subtotal * (taxRate / 100);
-  const total = subtotal + taxAmount + additionalCosts;
+  const fiscalStampAmount = (mode === 'invoice' && settings.enableFiscalStamp) ? settings.fiscalStampValue : 0;
+  const total = subtotal + taxAmount + additionalCosts + fiscalStampAmount;
 
   // Handlers
   const addToCart = (product: Product) => {
@@ -193,9 +149,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
         );
       }
       
-      // Auto-convert cost if currency differs from base
       const convertedCost = selectedCurrency !== settings.currency 
-        ? product.cost / exchangeRate // Base Cost / Rate = Foreign Cost
+        ? product.cost / exchangeRate 
         : product.cost;
 
       return [...prev, { 
@@ -212,7 +167,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
     if (!customItem.name || !customItem.cost) return;
     
     const cost = parseFloat(customItem.cost);
-    const newItem: POItem = {
+    const newItem: any = {
       id: `custom-${Date.now()}`,
       cartId: `custom-${Date.now()}`,
       sku: 'NON-INV',
@@ -226,7 +181,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       quantity: 1,
       unitCost: cost,
       isCustom: true,
-      marginPercent: 0 // No margin for expensed items
+      marginPercent: 0 
     };
     
     setCart(prev => [...prev, newItem]);
@@ -318,7 +273,8 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
       currency: selectedCurrency,
       exchangeRate: exchangeRate,
       additionalCosts: additionalCosts,
-      status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed', // GRN and Invoice are completed immediately here
+      fiscalStamp: fiscalStampAmount,
+      status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed', 
       warehouseId: selectedWarehouse,
       paymentTerms,
       paymentMethod,
@@ -361,10 +317,15 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
         {/* Header */}
         <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-emerald-600" />
-              {getPageTitle()} <span className="text-sm font-normal text-gray-400">| Catalog</span>
-            </h2>
+            <div className="flex items-center gap-2">
+                <button onClick={onCancel} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full lg:hidden">
+                    <ArrowLeft className="w-5 h-5 text-gray-500" />
+                </button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-emerald-600" />
+                {getPageTitle()} <span className="text-sm font-normal text-gray-400">| Catalog</span>
+                </h2>
+            </div>
             <div className="flex gap-2">
                 <button 
                   onClick={() => setShowCreateProductModal(true)}
@@ -406,7 +367,6 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map(product => {
-                // Calculate display cost
                 const displayCost = selectedCurrency !== settings.currency 
                   ? product.cost / exchangeRate 
                   : product.cost;
@@ -587,7 +547,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
-              <Truck className="w-12 h-12 opacity-20" />
+              <div className="w-12 h-12 opacity-20">🛒</div>
               <p className="text-sm">Draft is empty</p>
               <p className="text-xs text-center px-8">Add items to build a {mode === 'pr' ? 'request' : mode === 'order' ? 'purchase order' : mode === 'delivery' ? 'receipt note' : 'invoice'}.</p>
             </div>
@@ -726,6 +686,13 @@ const Purchases: React.FC<PurchasesProps> = ({ mode }) => {
               </span>
               <span>{formatCurrency(taxAmount, selectedCurrency)}</span>
             </div>
+
+            {fiscalStampAmount > 0 && (
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Fiscal Stamp</span>
+                <span>{formatCurrency(fiscalStampAmount, selectedCurrency)}</span>
+              </div>
+            )}
             
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
               <span className="font-bold text-gray-900 dark:text-white">Total Amount</span>

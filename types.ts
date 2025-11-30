@@ -1,21 +1,23 @@
 
-export type AppView =
-  | 'dashboard'
-  | 'clients'
-  | 'suppliers'
-  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
-  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-rfq-create' | 'purchases-pr-create'
+export type AppView = 
+  | 'dashboard' 
+  | 'clients' 
+  | 'suppliers' 
+  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' 
+  | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
+  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice'
+  | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create'
+  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-jobs-create' | 'services-sales' | 'services-catalog' | 'services-technicians'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
-  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-catalog' | 'services-technicians' | 'services-jobs-create' | 'services-sales'
-  | 'invoices'
+  | 'invoices' 
   | 'banking' | 'banking-accounts' | 'banking-transactions'
-  | 'cash_register'
-  | 'cost_analysis'
-  | 'reports'
+  | 'cash_register' 
+  | 'cost_analysis' 
+  | 'reports' 
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
 
-export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'grn';
 export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue' | 'credit';
+export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice';
 
 export interface InvoiceItem {
   id: string;
@@ -23,7 +25,7 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   fulfilledQuantity?: number;
-  historicalCost?: number;
+  historicalCost?: number; // for cost analysis
 }
 
 export interface Client {
@@ -48,7 +50,6 @@ export interface Supplier {
   category: string;
   status: 'active' | 'inactive';
   totalPurchased: number;
-  customFields?: Record<string, any>;
 }
 
 export interface Product {
@@ -62,8 +63,7 @@ export interface Product {
   price: number;
   cost: number;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
-  description?: string;
-  marginPercent: number; // Added for CostAnalysis
+  marginPercent: number;
 }
 
 export interface Invoice {
@@ -75,23 +75,23 @@ export interface Invoice {
   date: string;
   dueDate?: string;
   amount: number;
-  amountPaid?: number; // Track partial payments
-  status: 'paid' | 'pending' | 'overdue' | 'draft' | 'completed' | 'sent' | 'partial' | 'accepted' | 'rejected';
+  amountPaid?: number;
+  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled' | 'completed' | 'sent' | 'accepted' | 'rejected' | 'partial';
   items: InvoiceItem[];
   warehouseId?: string;
+  subtotal: number;
+  taxRate?: number; // percent
+  discount?: number;
+  discountType?: 'percent' | 'amount';
+  discountValue?: number;
+  fiscalStamp?: number;
   currency?: string;
   exchangeRate?: number;
-  subtotal?: number;
-  discount?: number;
-  discountValue?: number;
-  discountType?: 'percent' | 'amount';
-  taxRate?: number;
-  fiscalStamp?: number;
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
-  salespersonName?: string;
   linkedDocumentId?: string;
+  salespersonName?: string;
 }
 
 export interface Purchase {
@@ -101,14 +101,15 @@ export interface Purchase {
   supplierId: string;
   supplierName: string;
   date: string;
-  deadline?: string; // Specific for RFQ
-  requesterName?: string; // Specific for PR
-  department?: string; // Specific for PR
+  deadline?: string;
+  requesterName?: string;
+  department?: string;
   amount: number;
-  amountPaid?: number; // Track partial payments
+  amountPaid?: number;
   currency?: string;
   exchangeRate?: number;
   additionalCosts?: number;
+  fiscalStamp?: number;
   status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'approved' | 'partial';
   items: InvoiceItem[];
   warehouseId?: string;
@@ -118,6 +119,41 @@ export interface Purchase {
   taxRate?: number;
   subtotal?: number;
   linkedDocumentId?: string;
+}
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  location: string;
+  isDefault?: boolean;
+}
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  warehouseName: string;
+  date: string;
+  quantity: number;
+  type: 'initial' | 'sale' | 'purchase' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return';
+  reference?: string;
+  notes?: string;
+  unitCost?: number;
+  costBefore?: number;
+  costAfter?: number;
+}
+
+export interface StockTransfer {
+  id: string;
+  productId: string;
+  productName: string;
+  fromWarehouseId: string;
+  toWarehouseId: string;
+  quantity: number;
+  date: string;
+  reference?: string;
+  notes?: string;
 }
 
 export interface BankAccount {
@@ -135,9 +171,9 @@ export interface BankTransaction {
   accountId: string;
   date: string;
   description: string;
-  amount: number;
-  type: 'deposit' | 'withdrawal' | 'payment' | 'transfer' | 'fee';
-  status: 'cleared' | 'pending' | 'reconciled';
+  amount: number; // positive for deposit, negative for withdrawal
+  type: 'deposit' | 'payment' | 'transfer' | 'fee' | 'withdrawal';
+  status: 'pending' | 'cleared' | 'reconciled';
 }
 
 export interface CashSession {
@@ -149,6 +185,7 @@ export interface CashSession {
   closingBalance?: number;
   expectedBalance: number;
   status: 'open' | 'closed';
+  notes?: string;
 }
 
 export interface CashTransaction {
@@ -156,55 +193,16 @@ export interface CashTransaction {
   sessionId: string;
   date: string;
   type: 'sale' | 'expense' | 'deposit' | 'withdrawal';
-  amount: number;
+  amount: number; // positive or negative
   description: string;
 }
-
-export interface Warehouse {
-  id: string;
-  name: string;
-  location: string;
-  isDefault?: boolean;
-}
-
-export interface StockTransfer {
-  id: string;
-  productId: string;
-  productName: string;
-  fromWarehouseId: string;
-  toWarehouseId: string;
-  quantity: number;
-  date: string;
-  reference?: string;
-  notes?: string;
-}
-
-export interface StockMovement {
-  id: string;
-  productId: string;
-  productName: string;
-  warehouseId: string;
-  warehouseName: string;
-  date: string;
-  quantity: number;
-  type: 'initial' | 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return';
-  reference?: string;
-  notes?: string;
-  unitCost?: number;
-  costBefore?: number;
-  costAfter?: number;
-  relatedWarehouseName?: string;
-}
-
-// --- Service Module Types ---
 
 export interface Technician {
   id: string;
   name: string;
   specialty: string;
   status: 'available' | 'busy' | 'off_duty';
-  email?: string;
-  phone?: string;
+  phone: string;
 }
 
 export interface ServiceItem {
@@ -221,25 +219,23 @@ export interface ServiceJob {
   clientId: string;
   clientName: string;
   date: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'invoiced';
+  status: 'pending' | 'in_progress' | 'completed' | 'invoiced' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'critical';
   technicianId?: string;
   technicianName?: string;
-  deviceInfo?: string; // E.g. "Laptop HP Omen", "Car Model X"
-  problemDescription: string;
+  deviceInfo: string;
+  problemDescription?: string;
   resolutionNotes?: string;
-  estimatedCost: number;
+  estimatedCost?: number;
   services: { serviceId: string; name: string; price: number }[];
   usedParts: { productId: string; name: string; quantity: number; price: number }[];
-  
-  // New Metrics
-  rating?: number; // 1-5 Stars (CSAT)
-  resolutionHours?: number; // Time taken to complete
+  rating?: number;
+  resolutionHours?: number;
 }
 
 export interface ServiceSaleItem {
   id: string;
-  serviceId?: string; // If linked to catalog
+  serviceId?: string;
   description: string;
   quantity: number;
   unitPrice: number;
@@ -257,7 +253,7 @@ export interface ServiceSale {
   status: 'draft' | 'pending' | 'paid' | 'cancelled';
   items: ServiceSaleItem[];
   subtotal: number;
-  discountType: 'percent' | 'amount';
+  discountType: 'amount' | 'percent';
   discountValue: number;
   discountAmount: number;
   taxRate: number;
@@ -273,12 +269,12 @@ export interface TaxRate {
   isDefault?: boolean;
 }
 
-export interface CustomFieldDefinition {
+export interface CustomField {
   id: string;
   key: string;
   label: string;
   type: 'text' | 'number' | 'date' | 'boolean';
-  required: boolean;
+  required?: boolean;
 }
 
 export interface AppSettings {
@@ -286,7 +282,7 @@ export interface AppSettings {
   companyEmail: string;
   companyPhone: string;
   companyAddress: string;
-  companyLogo?: string;
+  companyLogo: string;
   companyVatId?: string;
   currency: string;
   language: string;
@@ -296,9 +292,7 @@ export interface AppSettings {
   fiscalStampValue: number;
   taxRates: TaxRate[];
   customFields: {
-    clients: CustomFieldDefinition[];
-    suppliers: CustomFieldDefinition[];
+    clients: CustomField[];
+    suppliers: CustomField[];
   };
 }
-
-export type Language = 'en' | 'fr' | 'ar';
