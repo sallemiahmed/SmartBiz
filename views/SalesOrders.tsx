@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Truck, CheckCircle, Receipt, Layers, Printer, RotateCcw } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -222,6 +222,13 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     alert(t('success'));
   };
 
+  const updateStatus = (status: 'draft' | 'pending') => {
+    if (!selectedOrder) return;
+    const updatedDoc = { ...selectedOrder, status };
+    updateInvoice(updatedDoc);
+    setSelectedOrder(updatedDoc);
+  };
+
   const handlePrint = () => {
     if (selectedOrder) {
       printInvoice(selectedOrder, settings);
@@ -306,7 +313,9 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
                      <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                       ${doc.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}
+                       ${doc.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 
+                         doc.status === 'draft' ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' :
+                         'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}
                      `}>
                        {t(doc.status)}
                      </span>
@@ -361,6 +370,10 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.date}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('status')}</span>
+                <span className="font-medium text-gray-900 dark:text-white uppercase text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{t(selectedOrder.status)}</span>
               </div>
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
@@ -425,7 +438,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3 flex-wrap">
               <button 
                 onClick={handlePrint}
                 className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
@@ -434,23 +447,40 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                 {t('print')}
               </button>
               
-              <button 
-                onClick={handleGenerateInvoice}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Receipt className="w-4 h-4" />
-                {t('generate_invoice')}
-              </button>
-              
-              {selectedOrder.status !== 'completed' && (
+              {selectedOrder.status === 'draft' && (
                 <button
-                  onClick={handleOpenDeliveryModal}
-                  className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                    onClick={() => updateStatus('pending')}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  <Truck className="w-4 h-4" />
-                  {t('create_delivery')}
+                    <CheckCircle className="w-4 h-4" /> {t('confirm_order')}
                 </button>
               )}
+
+              {selectedOrder.status === 'pending' && (
+                <>
+                    <button
+                        onClick={() => updateStatus('draft')}
+                        className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <RotateCcw className="w-4 h-4" /> {t('draft')}
+                    </button>
+                    <button 
+                        onClick={handleGenerateInvoice}
+                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <Receipt className="w-4 h-4" />
+                        {t('generate_invoice')}
+                    </button>
+                    <button
+                        onClick={handleOpenDeliveryModal}
+                        className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <Truck className="w-4 h-4" />
+                        {t('create_delivery')}
+                    </button>
+                </>
+              )}
+              
               <button 
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
