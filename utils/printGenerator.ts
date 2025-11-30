@@ -1,5 +1,5 @@
 
-import { Invoice, AppSettings, Purchase } from '../types';
+import { Invoice, AppSettings, Purchase, ServiceJob } from '../types';
 
 export const printInvoice = (document: Invoice | Purchase, settings: AppSettings) => {
   const isRTL = settings.language === 'ar';
@@ -246,6 +246,146 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       <script>
         window.onload = function() { window.print(); }
       </script>
+    </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+  }
+};
+
+export const printJobCard = (job: ServiceJob, settings: AppSettings) => {
+  const isRTL = settings.language === 'ar';
+  
+  const logoHtml = settings.companyLogo 
+    ? `<img src="${settings.companyLogo}" style="max-width: 150px; max-height: 80px; margin-bottom: 10px; display: block;" alt="Company Logo" />` 
+    : '';
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="${settings.language}" dir="${isRTL ? 'rtl' : 'ltr'}">
+    <head>
+      <meta charset="UTF-8">
+      <title>Job Card - ${job.ticketNumber}</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 20px; font-size: 13px; line-height: 1.5; }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .company-details h1 { margin: 0; font-size: 20px; }
+        .company-details div { font-size: 12px; color: #555; }
+        .job-meta { text-align: ${isRTL ? 'left' : 'right'}; }
+        .job-meta h2 { margin: 0; font-size: 24px; color: #444; text-transform: uppercase; }
+        .ticket-num { font-size: 16px; font-weight: bold; font-family: monospace; border: 1px solid #333; padding: 5px 10px; display: inline-block; margin-top: 5px; }
+        
+        .section { margin-bottom: 20px; }
+        .section-title { font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #ccc; margin-bottom: 8px; font-size: 11px; color: #666; }
+        
+        .grid { display: flex; gap: 20px; }
+        .col { flex: 1; }
+        
+        .field { margin-bottom: 5px; }
+        .label { font-weight: bold; width: 100px; display: inline-block; color: #555; }
+        
+        .problem-box { border: 1px solid #ddd; background: #f9f9f9; padding: 10px; min-height: 60px; white-space: pre-wrap; }
+        .tech-notes { border: 1px dashed #999; padding: 10px; min-height: 100px; margin-top: 5px; }
+        
+        .checklist { margin-top: 10px; }
+        .check-item { display: inline-block; width: 48%; margin-bottom: 5px; }
+        .check-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #333; margin-right: 5px; vertical-align: middle; }
+        
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; border-top: 1px solid #ccc; font-size: 10px; text-align: center; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+        .sig-box { border-top: 1px solid #333; width: 200px; text-align: center; padding-top: 5px; font-size: 11px; }
+        
+        @media print {
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="company-details">
+          ${logoHtml}
+          <h1>${settings.companyName}</h1>
+          <div>${settings.companyPhone}</div>
+          <div>${settings.companyEmail}</div>
+        </div>
+        <div class="job-meta">
+          <h2>JOB CARD</h2>
+          <div class="ticket-num">${job.ticketNumber}</div>
+          <div style="margin-top:5px;">Date: ${job.date}</div>
+          <div>Priority: <strong>${job.priority.toUpperCase()}</strong></div>
+        </div>
+      </div>
+
+      <div class="grid section">
+        <div class="col">
+          <div class="section-title">Customer Details</div>
+          <div class="field"><span class="label">Name:</span> ${job.clientName}</div>
+          <div class="field"><span class="label">Client ID:</span> ${job.clientId}</div>
+        </div>
+        <div class="col">
+          <div class="section-title">Device Details</div>
+          <div class="field"><span class="label">Device:</span> ${job.deviceInfo}</div>
+          <div class="field"><span class="label">Technician:</span> ${job.technicianName || 'Unassigned'}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Reported Problem</div>
+        <div class="problem-box">${job.problemDescription}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Work Checklist (Internal Use)</div>
+        <div class="checklist">
+          <div class="check-item"><span class="check-box"></span> Power On Test</div>
+          <div class="check-item"><span class="check-box"></span> Physical Damage Check</div>
+          <div class="check-item"><span class="check-box"></span> Data Backup</div>
+          <div class="check-item"><span class="check-box"></span> Component Clean</div>
+          <div class="check-item"><span class="check-box"></span> OS Update</div>
+          <div class="check-item"><span class="check-box"></span> Final QA Pass</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Technician Notes / Diagnosis / Resolution</div>
+        <div class="tech-notes">
+          ${job.resolutionNotes || ''}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Services & Parts (Used)</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="border-bottom: 1px solid #ccc; text-align: left;">
+              <th style="padding: 5px;">Type</th>
+              <th style="padding: 5px;">Item / Service</th>
+              <th style="padding: 5px; width: 50px;">Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${job.services.length === 0 && job.usedParts.length === 0 ? '<tr><td colspan="3" style="padding:10px; font-style:italic; color:#888;">No items added yet.</td></tr>' : ''}
+            ${job.services.map(s => `<tr><td style="padding: 5px; width: 80px; color:#555;">Service</td><td style="padding: 5px;">${s.name}</td><td style="padding: 5px;">1</td></tr>`).join('')}
+            ${job.usedParts.map(p => `<tr><td style="padding: 5px; width: 80px; color:#555;">Part</td><td style="padding: 5px;">${p.name}</td><td style="padding: 5px;">${p.quantity}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="signatures">
+        <div class="sig-box">Customer Signature</div>
+        <div class="sig-box">Technician Signature</div>
+      </div>
+
+      <div class="footer">
+        <p>Terms: The company is not responsible for data loss. Please ensure data is backed up before repair. Devices not claimed within 30 days of completion notification may be disposed of.</p>
+        <p>${settings.companyName} &bull; ${settings.companyAddress}</p>
+      </div>
+      <script>window.onload = function() { window.print(); }</script>
     </body>
     </html>
   `;

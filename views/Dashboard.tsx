@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
-import { DollarSign, ShoppingCart, TrendingUp, Users, Wrench, Zap } from 'lucide-react';
+import { DollarSign, ShoppingCart, TrendingUp, Users, Wrench, Zap, FileText, Download } from 'lucide-react';
 import StatsCard from '../components/StatsCard';
 import { useApp } from '../context/AppContext';
 import { AppView } from '../types';
@@ -13,36 +13,22 @@ const Dashboard: React.FC = () => {
 
   const activeRepairs = serviceJobs.filter(j => j.status === 'in_progress' || j.status === 'pending').length;
 
-  const navigateTo = (view: string) => {
-    // This assumes Dashboard is rendered within AppContent where handleNavigate exists. 
-    // Since we can't easily pass the handler down without prop drilling through 
-    // App -> AppContent -> Dashboard, we simulate a click or use context if we had navigation context.
-    // For this architecture, we will rely on Sidebar doing the navigation, 
-    // OR we trigger a state update via a hidden mechanism, OR cleaner: 
-    // We can't easily switch view from here without context.
-    // Let's assume the user uses the Sidebar for main nav, but we will add buttons that just alert for now 
-    // OR ideally we would add navigation to AppContext. 
-    // Since we don't want to refactor Context, we will leave the buttons visual or use window.location.hash hack if router used hashes.
-    // BUT, since we are inside AppContent, we actually passed `renderView`. 
-    // Let's just display the stats.
-  };
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard_overview')}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('welcome_message')}</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{t('dashboard_overview')}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('welcome_message')}</p>
         </div>
         
-        {/* Quick Actions - Logical Connections */}
-        <div className="flex gap-2">
-           <div className="hidden md:flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
-              <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-300 uppercase tracking-wide">Quick Actions</span>
-           </div>
-           {/* These buttons are placeholders since we need the navigate function prop */}
-           <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-3">
+           <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow-md">
+             <FileText className="w-4 h-4" />
+             {t('new_invoice')}
+           </button>
+           <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200 shadow-sm">
+             <Download className="w-4 h-4" />
              {t('export_report')}
            </button>
         </div>
@@ -92,8 +78,11 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">{t('revenue_vs_expenses')}</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-indigo-500" />
+            {t('revenue_vs_expenses')}
+          </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
@@ -109,15 +98,18 @@ const Dashboard: React.FC = () => {
                 <RechartsTooltip 
                   contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '8px', color: '#fff' }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
-                <Area type="monotone" dataKey="expenses" stroke="#f43f5e" strokeWidth={2} fill="transparent" />
+                <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                <Area type="monotone" dataKey="expenses" stroke="#f43f5e" strokeWidth={3} fill="transparent" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">{t('monthly_sales')}</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-emerald-500" />
+            {t('monthly_sales')}
+          </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
@@ -128,7 +120,7 @@ const Dashboard: React.FC = () => {
                   cursor={{fill: 'transparent'}}
                   contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '8px', color: '#fff' }}
                 />
-                <Bar dataKey="revenue" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="revenue" fill="#4f46e5" radius={[6, 6, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>

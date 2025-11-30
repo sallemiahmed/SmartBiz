@@ -110,7 +110,7 @@
     "inventory_management": "Inventory Management",
     "inventory_desc": "Track stock levels, value, and product details.",
     "add_product": "Add Product",
-    "total_products": "Total Products",
+    "total_products": "Total Produits",
     "needs_attention": "Needs Attention",
     "total_value": "Total Inventory Value",
     "search_products": "Search by name, SKU or category...",
@@ -450,5 +450,8 @@
     "restock_low_stock": "Restock Low/Out of Stock",
     "generate_order": "Generate Order",
     "select_products_restock": "Select Products to Restock",
-    "order_qty": "Order Qty"
+    "order_qty": "Order Qty",
+    "fiscal_stamp_settings": "Fiscal Stamp (Timbre Fiscal)",
+    "enable_fiscal_stamp": "Enable Fiscal Stamp",
+    "fiscal_stamp_value": "Value"
 }

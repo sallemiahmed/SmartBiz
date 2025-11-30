@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import AIAssistant from './components/AIAssistant';
-import ProgressBar from './components/ProgressBar'; // Import ProgressBar
+import ProgressBar from './components/ProgressBar';
 import Dashboard from './views/Dashboard';
 import Clients from './views/Clients';
 import Inventory from './views/Inventory';
@@ -21,6 +20,14 @@ import SalesEstimates from './views/SalesEstimates';
 import SalesDeliveries from './views/SalesDeliveries';
 import SalesInvoices from './views/SalesInvoices';
 import SalesIssues from './views/SalesIssues';
+import RequestForQuotation from './views/RequestForQuotation';
+import InternalPurchaseRequest from './views/InternalPurchaseRequest';
+import Services from './views/Services';
+import ServiceJobs from './views/ServiceJobs';
+import ServiceDashboard from './views/ServiceDashboard'; 
+import ServiceCatalog from './views/ServiceCatalog'; 
+import ServiceSales from './views/ServiceSales';
+import Technicians from './views/Technicians'; 
 import Reports from './views/Reports';
 import Settings from './views/Settings';
 import BankManagement from './views/BankManagement'; 
@@ -35,14 +42,11 @@ function AppContent() {
   const [isDark, setIsDark] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
   
-  // Access global settings for language handling and loading
   const { settings, setIsLoading } = useApp();
 
-  // Handle navigation with loading simulation
   const handleNavigate = (view: AppView) => {
     if (view !== currentView) {
       setIsLoading(true);
-      // Simulate network delay for UX
       setTimeout(() => {
         setCurrentView(view);
         setTimeout(() => setIsLoading(false), 200);
@@ -50,7 +54,6 @@ function AppContent() {
     }
   };
 
-  // Initialize theme
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -59,7 +62,6 @@ function AppContent() {
     }
   }, [isDark]);
 
-  // Initialize Direction (RTL/LTR) based on Language
   useEffect(() => {
     if (settings.language === 'ar') {
       document.documentElement.dir = 'rtl';
@@ -73,41 +75,51 @@ function AppContent() {
   const toggleTheme = () => setIsDark(!isDark);
 
   const renderView = () => {
-    // --- Specific Sales Lists Routing ---
+    // --- Services Routing ---
+    if (currentView === 'services' || currentView === 'services-dashboard') {
+        return <ServiceDashboard />;
+    }
+    if (currentView === 'services-jobs') {
+        return <ServiceJobs onAddNew={() => handleNavigate('services-jobs-create' as AppView)} />;
+    }
+    if (currentView === 'services-jobs-create' as AppView) {
+        return <Services mode="create" onCancel={() => handleNavigate('services-jobs' as AppView)} />;
+    }
+    if (currentView === 'services-catalog') {
+        return <ServiceCatalog />;
+    }
+    if (currentView === 'services-technicians') {
+        return <Technicians />;
+    }
+    if (currentView === 'services-sales') {
+        return <ServiceSales />;
+    }
 
-    // 1. Estimate
+    // --- Specific Sales Lists Routing ---
     if (currentView === 'sales-estimate') {
       return <SalesEstimates onAddNew={() => handleNavigate('sales-estimate-create' as AppView)} />;
     }
     if (currentView === 'sales-estimate-create' as AppView) {
       return <Sales mode="estimate" />;
     }
-
-    // 2. Client Order
     if (currentView === 'sales-order') {
       return <SalesOrders onAddNew={() => handleNavigate('sales-order-create' as AppView)} />;
     }
     if (currentView === 'sales-order-create' as AppView) { 
       return <Sales mode="order" />;
     }
-
-    // 3. Delivery Note
     if (currentView === 'sales-delivery') {
       return <SalesDeliveries onAddNew={() => handleNavigate('sales-delivery-create' as AppView)} />;
     }
     if (currentView === 'sales-delivery-create' as AppView) {
       return <Sales mode="delivery" />;
     }
-
-    // 4. Invoice (Sales Specific)
     if (currentView === 'sales-invoice') {
       return <SalesInvoices onAddNew={() => handleNavigate('sales-invoice-create' as AppView)} />;
     }
     if (currentView === 'sales-invoice-create' as AppView) {
       return <Sales mode="invoice" />;
     }
-
-    // 5. Issue Note
     if (currentView === 'sales-issue') {
       return <SalesIssues onAddNew={() => handleNavigate('sales-issue-create' as AppView)} />;
     }
@@ -116,24 +128,30 @@ function AppContent() {
     }
 
     // --- Purchases Routing ---
-
-    // 1. Supplier Order
+    if (currentView === 'purchases-pr') {
+        return <InternalPurchaseRequest onAddNew={() => handleNavigate('purchases-pr-create' as AppView)} />;
+    }
+    if (currentView === 'purchases-pr-create' as AppView) {
+        return <Purchases mode="pr" />;
+    }
+    if (currentView === 'purchases-rfq') {
+        return <RequestForQuotation onAddNew={() => handleNavigate('purchases-rfq-create' as AppView)} />;
+    }
+    if (currentView === 'purchases-rfq-create' as AppView) {
+        return <Purchases mode="rfq" />;
+    }
     if (currentView === 'purchases-order') {
       return <PurchaseOrders onAddNew={() => handleNavigate('purchases-order-create' as AppView)} />;
     }
     if (currentView === 'purchases-order-create' as AppView) {
       return <Purchases mode="order" />;
     }
-
-    // 2. Supplier Delivery (GRN)
     if (currentView === 'purchases-delivery') {
       return <PurchaseDeliveries onAddNew={() => handleNavigate('purchases-delivery-create' as AppView)} />;
     }
     if (currentView === 'purchases-delivery-create' as AppView) {
       return <Purchases mode="delivery" />;
     }
-
-    // 3. Supplier Invoice
     if (currentView === 'purchases-invoice') {
       return <PurchaseInvoices onAddNew={() => handleNavigate('purchases-invoice-create' as AppView)} />;
     }
@@ -141,39 +159,33 @@ function AppContent() {
       return <Purchases mode="invoice" />;
     }
 
-    // Fallbacks for general sales/purchases links if sidebar structure changes
+    // Fallbacks
     if (currentView.startsWith('sales')) {
       if (currentView === 'sales') return <Sales mode="invoice" />; 
       const mode = currentView.replace('sales-', '') as any; 
       return <Sales mode={mode} />;
     }
-
     if (currentView.startsWith('purchases')) {
       if (currentView === 'purchases') return <Purchases mode="invoice" />; 
       const mode = currentView.replace('purchases-', '') as any;
       return <Purchases mode={mode} />;
     }
 
-    // --- Settings Routing ---
     if (currentView.startsWith('settings')) {
       return <Settings view={currentView} />;
     }
 
-    // --- Inventory Routing ---
     if (currentView.startsWith('inventory')) {
-        if (currentView === 'inventory') return <Inventory />; // Default
+        if (currentView === 'inventory') return <Inventory />;
         const mode = currentView.replace('inventory-', '');
         if (mode === 'products') return <Inventory />;
         if (mode === 'warehouses') return <InventoryWarehouses />;
         if (mode === 'transfers') return <InventoryTransfers />;
     }
 
-    // --- Banking Routing ---
     if (currentView.startsWith('banking')) {
       return <BankManagement view={currentView} />;
     }
-
-    // --- Main Modules ---
 
     switch (currentView) {
       case 'dashboard':
@@ -202,7 +214,7 @@ function AppContent() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 font-sans">
-      <ProgressBar /> {/* Global Progress Bar */}
+      <ProgressBar />
       <Sidebar 
         currentView={currentView.includes('-create') ? currentView.replace('-create', '') as AppView : currentView} 
         onChangeView={handleNavigate}
@@ -222,14 +234,13 @@ function AppContent() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {renderView()}
           
-          {!currentView.startsWith('sales') && !currentView.startsWith('purchases') && !currentView.startsWith('settings') && (
+          {!currentView.startsWith('sales') && !currentView.startsWith('purchases') && !currentView.startsWith('settings') && !currentView.startsWith('services') && (
             <footer className="p-6 text-center text-xs text-gray-400 dark:text-gray-600">
               &copy; 2024 SmartBiz Manager SaaS. All rights reserved. v1.0.0
             </footer>
           )}
         </main>
 
-        {/* AI Assistant Overlay */}
         <AIAssistant isOpen={isAIOpen} onClose={() => setIsAIOpen(false)} />
       </div>
     </div>

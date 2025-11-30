@@ -273,7 +273,8 @@ export const mockServiceJobs: ServiceJob[] = [
     resolutionNotes: 'Patched OS and updated firewall rules.',
     estimatedCost: 120.00,
     services: [{ serviceId: 'srv2', name: 'OS Update', price: 120 }],
-    usedParts: []
+    usedParts: [],
+    rating: 5, resolutionHours: 2.5
   },
   {
     id: 'job4', ticketNumber: 'JOB-24-1003', clientId: 'c4', clientName: 'City Bank',
@@ -292,7 +293,41 @@ export const mockServiceJobs: ServiceJob[] = [
     resolutionNotes: 'Replaced screen panel.',
     estimatedCost: 300.00,
     services: [{ serviceId: 'srv3', name: 'Screen Replacement', price: 100 }],
-    usedParts: [{ productId: 'p1', name: 'LCD Panel', quantity: 1, price: 200 }]
+    usedParts: [{ productId: 'p1', name: 'LCD Panel', quantity: 1, price: 200 }],
+    rating: 4, resolutionHours: 48.0
+  },
+  {
+    id: 'job6', ticketNumber: 'JOB-24-0990', clientId: 'c6', clientName: 'Creative Design Studio',
+    date: getDate(-12), status: 'completed', priority: 'medium',
+    technicianId: 'tech4', technicianName: 'Donna Paulsen', deviceInfo: 'iMac Pro',
+    problemDescription: 'Slow performance',
+    resolutionNotes: 'Cleaned dust, re-seated RAM.',
+    estimatedCost: 80.00,
+    services: [{ serviceId: 'srv4', name: 'Maintenance', price: 80 }],
+    usedParts: [],
+    rating: 5, resolutionHours: 4.0
+  },
+  {
+    id: 'job7', ticketNumber: 'JOB-24-0992', clientId: 'c2', clientName: 'Global Services Ltd',
+    date: getDate(-11), status: 'invoiced', priority: 'high',
+    technicianId: 'tech1', technicianName: 'Mike Ross', deviceInfo: 'Server Rack',
+    problemDescription: 'Power supply failure',
+    resolutionNotes: 'Replaced PSU unit.',
+    estimatedCost: 450.00,
+    services: [{ serviceId: 'srv5', name: 'Hardware Install', price: 150 }],
+    usedParts: [{ productId: 'p5', name: 'PSU 1000W', quantity: 1, price: 300 }],
+    rating: 4.5, resolutionHours: 6.5
+  },
+  {
+    id: 'job8', ticketNumber: 'JOB-24-0999', clientId: 'c5', clientName: 'HealthPlus Clinic',
+    date: getDate(-4), status: 'completed', priority: 'critical',
+    technicianId: 'tech5', technicianName: 'Louis Litt', deviceInfo: 'Database Server',
+    problemDescription: 'Database corruption',
+    resolutionNotes: 'Restored from backup, integrity check passed.',
+    estimatedCost: 600.00,
+    services: [{ serviceId: 'srv6', name: 'Data Recovery', price: 600 }],
+    usedParts: [],
+    rating: 3.5, resolutionHours: 12.0
   }
 ];
 

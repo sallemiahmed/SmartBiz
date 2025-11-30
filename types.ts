@@ -229,6 +229,10 @@ export interface ServiceJob {
   estimatedCost: number;
   services: { serviceId: string; name: string; price: number }[];
   usedParts: { productId: string; name: string; quantity: number; price: number }[];
+  
+  // New Metrics
+  rating?: number; // 1-5 Stars (CSAT)
+  resolutionHours?: number; // Time taken to complete
 }
 
 export interface ServiceSaleItem {

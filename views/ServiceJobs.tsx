@@ -3,18 +3,19 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Plus, Filter, Wrench, User, Calendar, DollarSign, 
   Eye, Trash2, X, CheckCircle, Receipt, Clock, LayoutGrid, List,
-  AlertCircle, Package, MoreHorizontal, ChevronRight, PenTool
+  AlertCircle, Package, MoreHorizontal, ChevronRight, PenTool, Printer, Smartphone
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ServiceJob, InvoiceItem, Product, ServiceItem } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
+import { printJobCard } from '../utils/printGenerator';
 
 interface ServiceJobsProps {
   onAddNew: () => void;
 }
 
 const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
-  const { serviceJobs, updateServiceJob, deleteServiceJob, technicians, clients, serviceCatalog, products, createSalesDocument, formatCurrency, warehouses, t } = useApp();
+  const { serviceJobs, updateServiceJob, deleteServiceJob, technicians, clients, serviceCatalog, products, createSalesDocument, formatCurrency, warehouses, t, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -394,15 +395,51 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
                 {activeTab === 'details' ? (
                     <div className="space-y-6">
-                        {/* Status Bar */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Top Controls Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Client */}
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('client')}</label>
+                                <SearchableSelect 
+                                    options={clients.map(c => ({ value: c.id, label: c.company }))}
+                                    value={selectedJob.clientId}
+                                    onChange={(val) => {
+                                        const client = clients.find(c => c.id === val);
+                                        if (client) {
+                                            const updated = { ...selectedJob, clientId: client.id, clientName: client.company };
+                                            updateServiceJob(updated);
+                                            setSelectedJob(updated);
+                                        }
+                                    }}
+                                    className="w-full rounded-lg text-sm"
+                                    placeholder="Select Client..."
+                                />
+                            </div>
+
+                            {/* Date */}
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Date In</label>
+                                <input 
+                                    type="date"
+                                    value={selectedJob.date}
+                                    onChange={(e) => {
+                                        const updated = { ...selectedJob, date: e.target.value };
+                                        updateServiceJob(updated);
+                                        setSelectedJob(updated);
+                                    }}
+                                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:text-white"
+                                />
+                            </div>
+
+                            {/* Status */}
                             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Current Status</label>
                                 <select 
                                     value={selectedJob.status}
                                     onChange={(e) => {
-                                        updateServiceJob({ ...selectedJob, status: e.target.value as any });
-                                        setSelectedJob(prev => prev ? ({ ...prev, status: e.target.value as any }) : null);
+                                        const updated = { ...selectedJob, status: e.target.value as any };
+                                        updateServiceJob(updated);
+                                        setSelectedJob(updated);
                                     }}
                                     className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:text-white"
                                 >
@@ -413,8 +450,10 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                                     <option value="cancelled">{t('cancelled')}</option>
                                 </select>
                             </div>
+
+                            {/* Technician */}
                             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Assigned Technician</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Technician</label>
                                 <select 
                                     value={selectedJob.technicianId || ''}
                                     onChange={(e) => {
@@ -429,12 +468,59 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                                     {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                 </select>
                             </div>
+
+                            {/* Priority */}
                             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Priority</label>
-                                <span className={`block px-3 py-2 rounded-lg text-sm font-bold border border-gray-100 dark:border-gray-700 ${getPriorityColor(selectedJob.priority)}`}>
-                                    {t(selectedJob.priority)}
-                                </span>
+                                <select
+                                    value={selectedJob.priority}
+                                    onChange={(e) => {
+                                        const updated = { ...selectedJob, priority: e.target.value as any };
+                                        updateServiceJob(updated);
+                                        setSelectedJob(updated);
+                                    }}
+                                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:text-white font-medium"
+                                >
+                                    <option value="low">{t('low')}</option>
+                                    <option value="medium">{t('medium')}</option>
+                                    <option value="high">{t('high')}</option>
+                                    <option value="critical">{t('critical')}</option>
+                                </select>
                             </div>
+
+                            {/* Estimated Cost */}
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Est. Cost</label>
+                                <input 
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={selectedJob.estimatedCost}
+                                    onChange={(e) => {
+                                        const updated = { ...selectedJob, estimatedCost: parseFloat(e.target.value) || 0 };
+                                        updateServiceJob(updated);
+                                        setSelectedJob(updated);
+                                    }}
+                                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:text-white text-right"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Device Info - Full Width */}
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                                <Smartphone className="w-4 h-4" /> {t('device_info')}
+                            </label>
+                            <input 
+                                type="text"
+                                value={selectedJob.deviceInfo}
+                                onChange={(e) => {
+                                    const updated = { ...selectedJob, deviceInfo: e.target.value };
+                                    updateServiceJob(updated);
+                                    setSelectedJob(updated);
+                                }}
+                                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:text-white"
+                            />
                         </div>
 
                         {/* Problem & Resolution */}
@@ -444,9 +530,16 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                                     <AlertCircle className="w-4 h-4" />
                                     <h4 className="font-bold text-sm uppercase">Reported Issue</h4>
                                 </div>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-100 dark:border-red-900/20">
-                                    {selectedJob.problemDescription}
-                                </p>
+                                <textarea 
+                                    className="w-full px-3 py-2 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-lg text-sm dark:text-white resize-none"
+                                    rows={3}
+                                    value={selectedJob.problemDescription}
+                                    onChange={(e) => {
+                                        const updated = { ...selectedJob, problemDescription: e.target.value };
+                                        updateServiceJob(updated);
+                                        setSelectedJob(updated);
+                                    }}
+                                />
                             </div>
 
                             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full flex flex-col">
@@ -459,8 +552,9 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                                     placeholder="Enter technical notes and resolution details..."
                                     value={selectedJob.resolutionNotes || ''}
                                     onChange={(e) => {
-                                        updateServiceJob({ ...selectedJob, resolutionNotes: e.target.value });
-                                        setSelectedJob(prev => prev ? ({ ...prev, resolutionNotes: e.target.value }) : null);
+                                        const updated = { ...selectedJob, resolutionNotes: e.target.value };
+                                        updateServiceJob(updated);
+                                        setSelectedJob(updated);
                                     }}
                                 />
                             </div>
@@ -585,6 +679,12 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                     Delete Job
                 </button>
                 <div className="flex gap-3">
+                    <button 
+                        onClick={() => printJobCard(selectedJob, settings)}
+                        className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors flex items-center gap-2"
+                    >
+                        <Printer className="w-4 h-4" /> Print Card
+                    </button>
                     <button 
                         onClick={() => setIsModalOpen(false)} 
                         className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"

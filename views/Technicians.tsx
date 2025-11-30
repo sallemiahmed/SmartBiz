@@ -56,9 +56,17 @@ const Technicians: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {technicians.map(tech => (
-          <div key={tech.id} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative group">
+          <div 
+            key={tech.id} 
+            className={`
+              p-6 rounded-xl border shadow-sm relative group transition-all
+              ${tech.status === 'available' 
+                ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800' 
+                : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'}
+            `}
+          >
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${tech.status === 'available' ? 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                 <User className="w-6 h-6" />
               </div>
               <div>

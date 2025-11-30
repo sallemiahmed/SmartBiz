@@ -1,10 +1,10 @@
 
 import React, { useMemo } from 'react';
-import { Wrench, Clock, CheckCircle, Users, TrendingUp, DollarSign, Activity, Briefcase, Star, Timer } from 'lucide-react';
+import { Wrench, Clock, CheckCircle, Users, TrendingUp, DollarSign, Activity, Star, Timer } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend 
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, Legend, CartesianGrid 
 } from 'recharts';
 import StatsCard from '../components/StatsCard';
 
@@ -23,7 +23,6 @@ const ServiceDashboard: React.FC = () => {
   const completedJobsCount = serviceJobs.filter(j => j.status === 'completed' || j.status === 'invoiced').length;
   
   // 3. Average Revenue per Job (Revenue / Completed Jobs)
-  // Avoid division by zero
   const avgRevenuePerJob = completedJobsCount > 0 ? totalRevenue / completedJobsCount : 0;
 
   // 4. Technician Metrics
@@ -36,22 +35,25 @@ const ServiceDashboard: React.FC = () => {
       const active = techJobs.filter(j => j.status === 'in_progress' || j.status === 'pending').length;
       const revenue = techSales.reduce((acc, s) => acc + s.total, 0);
       
-      // Calculate derived metrics deterministically based on tech ID to ensure stability
-      const idSum = tech.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      
-      // Mock Satisfaction Score (CSAT) between 4.0 and 5.0
-      const rating = 4.0 + (idSum % 11) / 10; 
+      // Calculate Avg Resolution Time (hours)
+      const completedJobsWithTime = techJobs.filter(j => (j.status === 'completed' || j.status === 'invoiced') && j.resolutionHours);
+      const totalResolutionTime = completedJobsWithTime.reduce((sum, j) => sum + (j.resolutionHours || 0), 0);
+      const avgResolutionTime = completedJobsWithTime.length > 0 
+        ? (totalResolutionTime / completedJobsWithTime.length).toFixed(1) 
+        : '-';
 
-      // Mock Avg Resolution Time (hours) between 24h and 48h
-      const avgResolutionTime = (24 + (idSum % 25)).toFixed(1);
+      // Calculate CSAT (Rating)
+      const ratedJobs = techJobs.filter(j => j.rating && j.rating > 0);
+      const totalRating = ratedJobs.reduce((sum, j) => sum + (j.rating || 0), 0);
+      const avgRating = ratedJobs.length > 0 ? (totalRating / ratedJobs.length).toFixed(1) : '-';
 
       return {
         ...tech,
         completed,
         active,
         revenue,
-        rating: Math.min(5, rating),
-        avgResolutionTime
+        avgResolutionTime,
+        avgRating
       };
     }).sort((a, b) => b.revenue - a.revenue); // Sort by top earner
   }, [technicians, serviceJobs, serviceSales]);
@@ -239,7 +241,7 @@ const ServiceDashboard: React.FC = () => {
                             <td className="px-6 py-4 text-center">
                                 <div className="flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400">
                                     <Timer className="w-3.5 h-3.5" />
-                                    <span>{tech.avgResolutionTime}h</span>
+                                    <span>{tech.avgResolutionTime} {tech.avgResolutionTime !== '-' ? 'hrs' : ''}</span>
                                 </div>
                             </td>
                             <td className="px-6 py-4 text-right font-bold text-indigo-600 dark:text-indigo-400">
@@ -247,7 +249,7 @@ const ServiceDashboard: React.FC = () => {
                             </td>
                             <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-1 text-yellow-400">
-                                    <span className="text-gray-600 dark:text-gray-300 font-medium mr-1 text-xs">{tech.rating.toFixed(1)}</span>
+                                    <span className="text-gray-600 dark:text-gray-300 font-medium mr-1 text-xs">{tech.avgRating}</span>
                                     <Star className="w-3.5 h-3.5 fill-current" />
                                 </div>
                             </td>

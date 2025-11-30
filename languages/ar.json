@@ -450,5 +450,8 @@
     "restock_low_stock": "إعادة تخزين المخزون المنخفض",
     "generate_order": "إنشاء طلب",
     "select_products_restock": "اختر المنتجات لإعادة التخزين",
-    "order_qty": "كمية الطلب"
+    "order_qty": "كمية الطلب",
+    "fiscal_stamp_settings": "الطابع الجبائي",
+    "enable_fiscal_stamp": "تفعيل الطابع الجبائي",
+    "fiscal_stamp_value": "القيمة"
 }

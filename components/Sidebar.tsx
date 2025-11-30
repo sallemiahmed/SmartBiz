@@ -196,15 +196,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         <div className={`h-full flex flex-col w-64 md:w-auto`} style={{ width: window.innerWidth >= 768 ? sidebarWidth : undefined }}>
           
           <div className="flex items-center h-16 px-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10 flex-shrink-0">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
+            <div className="flex items-center gap-2 overflow-hidden cursor-pointer" onClick={() => onChangeView('dashboard')}>
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0 shadow-sm">
                 SB
               </div>
               <span className="text-lg font-bold text-gray-900 dark:text-white truncate">SmartBiz</span>
             </div>
           </div>
 
-          <nav className="p-4 space-y-1 overflow-y-auto flex-1">
+          <nav className="p-4 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
             {menuItems.map((item) => {
               const isExpanded = expandedMenus[item.id];
               const isActive = currentView === item.id || (item.subItems && item.subItems.some(sub => sub.id === currentView));
@@ -222,13 +222,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
                       }
                     }}
                     className={`
-                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
                       ${isActive && !hasSubItems
-                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' 
-                        : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/50'}
+                        ? 'bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 dark:from-indigo-900/40 dark:to-indigo-900/10 dark:text-indigo-300 shadow-sm border-l-4 border-indigo-600' 
+                        : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/50 border-l-4 border-transparent'}
                     `}
                   >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive && !hasSubItems ? 'text-indigo-600 dark:text-indigo-400' : ''}`} />
                     <span className="flex-1 text-left rtl:text-right truncate">{t(item.labelKey)}</span>
                     {hasSubItems && (
                       <span className="text-gray-400">
@@ -239,7 +239,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
                   </button>
 
                   {hasSubItems && isExpanded && (
-                    <div className="pl-9 rtl:pl-0 rtl:pr-9 space-y-1 mt-1">
+                    <div className="pl-4 rtl:pl-0 rtl:pr-4 space-y-1 mt-1 border-l-2 border-gray-100 dark:border-gray-700 ml-4 rtl:ml-0 rtl:mr-4">
                       {item.subItems?.map((subItem, idx) => {
                         const isSubActive = currentView === subItem.id;
                         return (
@@ -251,19 +251,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
                               if (window.innerWidth < 768) setIsOpen(false);
                             }}
                             className={`
-                              w-full flex items-center justify-between px-2 py-2 rounded-lg text-sm transition-colors group relative
+                              w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors group
                               ${isSubActive 
-                                ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20' 
+                                ? 'text-indigo-700 dark:text-indigo-300 font-medium bg-indigo-50 dark:bg-indigo-900/20' 
                                 : 'text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700/30'}
                             `}
                           >
-                            {/* Vertical line indicator */}
-                            <div className={`
-                              absolute left-0 rtl:left-auto rtl:right-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full transition-colors
-                              ${isSubActive ? 'bg-indigo-600 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-gray-600 group-hover:bg-indigo-500'}
-                            `} />
-                            
-                            <span className="pl-2 rtl:pl-0 rtl:pr-2 text-left rtl:text-right w-full truncate">
+                            <span className="truncate text-left rtl:text-right w-full">
                               {t(subItem.labelKey)}
                             </span>
                             {subItem.hasAction && (

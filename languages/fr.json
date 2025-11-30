@@ -450,5 +450,8 @@
     "restock_low_stock": "Réapp. Stock Faible/Rupture",
     "generate_order": "Générer Commande",
     "select_products_restock": "Produits à réapprovisionner",
-    "order_qty": "Qté Cmd"
+    "order_qty": "Qté Cmd",
+    "fiscal_stamp_settings": "Timbre Fiscal",
+    "enable_fiscal_stamp": "Activer le Timbre Fiscal",
+    "fiscal_stamp_value": "Valeur"
 }
