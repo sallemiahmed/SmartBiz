@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle, RotateCcw, Pencil, Save, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, XCircle, ArrowRightCircle, RotateCcw, Pencil, Save, RefreshCw, Calendar, Filter, User } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -17,6 +17,11 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // Filters State
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [clientFilter, setClientFilter] = useState<string>('all');
+
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
   const [editedDoc, setEditedDoc] = useState<Invoice | null>(null);
@@ -24,10 +29,40 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
 
   const estimates = invoices.filter(inv => inv.type === 'estimate');
 
+  // Get unique clients from estimates for the filter dropdown
+  const uniqueClients = useMemo(() => {
+    const clientsMap = new Map();
+    estimates.forEach(doc => {
+      if (!clientsMap.has(doc.clientId)) {
+        clientsMap.set(doc.clientId, doc.clientName);
+      }
+    });
+    return Array.from(clientsMap.entries()).map(([id, name]) => ({ id, name }));
+  }, [estimates]);
+
   const filteredDocs = estimates.filter(doc => {
-    return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-           doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
+    const matchesClient = clientFilter === 'all' || doc.clientId === clientFilter;
+    
+    const docDate = new Date(doc.date);
+    const startDate = dateRange.start ? new Date(dateRange.start) : null;
+    const endDate = dateRange.end ? new Date(dateRange.end) : null;
+    
+    const matchesDate = (!startDate || docDate >= startDate) && 
+                        (!endDate || docDate <= endDate);
+
+    return matchesSearch && matchesStatus && matchesClient && matchesDate;
   });
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setDateRange({ start: '', end: '' });
+    setStatusFilter('all');
+    setClientFilter('all');
+  };
 
   // Reset edit state when opening a modal
   useEffect(() => {
@@ -173,16 +208,82 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder={t('search_estimates')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
-            />
+        {/* Filters Section */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col gap-4 bg-gray-50 dark:bg-gray-900/50">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder={t('search_estimates')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+              />
+            </div>
+
+            {/* Date Range Filter */}
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <input 
+                type="date" 
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white w-28 lg:w-32"
+                placeholder="Start"
+              />
+              <span className="text-gray-400">-</span>
+              <input 
+                type="date" 
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white w-28 lg:w-32"
+                placeholder="End"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative min-w-[150px]">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="all">{t('all_status')}</option>
+                <option value="draft">{t('draft')}</option>
+                <option value="sent">{t('sent')}</option>
+                <option value="accepted">{t('accepted')}</option>
+                <option value="rejected">{t('rejected')}</option>
+              </select>
+            </div>
+
+            {/* Client Filter */}
+            <div className="relative min-w-[150px]">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <select 
+                value={clientFilter}
+                onChange={(e) => setClientFilter(e.target.value)}
+                className="w-full pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="all">{t('all')}</option>
+                {uniqueClients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Reset Button */}
+            {(searchTerm || statusFilter !== 'all' || clientFilter !== 'all' || dateRange.start || dateRange.end) && (
+              <button 
+                onClick={handleResetFilters}
+                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Reset Filters"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
