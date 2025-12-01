@@ -130,7 +130,9 @@ graph TD
     *   Full cycle: Quote → Order → Delivery → Invoice.
     *   Includes "Issue Notes" for manual stock-out without invoicing.
     *   **Estimates (Devis):** Advanced editing capabilities including Draft mode, Status workflow (Draft->Sent->Accepted), and conversion to Order/Invoice.
-    *   **Orders (Commande):** Includes **Payment Terms** (e.g., Net 30) and **Payment Method** (e.g., Check) selection.
+    *   **Orders (Commande):** 
+        *   Includes **Payment Terms** (e.g., Net 30) and **Payment Method** (e.g., Check) selection.
+        *   **Validation Workflow:** Orders can be Validated (moving to 'Pending' status) and Reverted to Draft (allowing modification of items and details).
     *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
@@ -177,6 +179,7 @@ Key entities defined in `types.ts`:
     *   **Custom Items:** Can add ad-hoc items that are not in the product database.
 2.  **Order:** Created directly or converted from Estimate.
     *   **Terms:** Must select Payment Terms and Payment Method during creation.
+    *   **Revert:** Can be reverted from 'Validated' (Pending) to 'Draft' to modify elements.
 3.  **Delivery:** Created from Order. **Action:** Deducts stock from specific warehouse via `addStockMovement`.
 4.  **Invoice:** Created from Order or Delivery. Records revenue.
 5.  **Payment:** Recorded against Invoice. Updates `amountPaid` and creates `BankTransaction` or `CashTransaction`.
@@ -255,3 +258,4 @@ Key entities defined in `types.ts`:
 *   **Sales Estimates Update:** Added details about Edit mode, Validation workflow, and Custom Items.
 *   Added business rule: "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis."
 *   **Sales Orders Update:** Added Payment Terms and Payment Method to creation flow and details view.
+*   **Sales Orders Workflow:** Added Validation (Draft->Pending) and Revert to Draft (Pending->Draft) with inline editing capabilities.
