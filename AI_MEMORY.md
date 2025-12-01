@@ -130,7 +130,7 @@ graph TD
     *   **Multi-Warehouse:** Products track stock per warehouse (`warehouseStock`).
     *   **Movements:** Log of all ins/outs (`StockMovement`).
     *   **Valuation:** Weighted Average Cost (WAC) logic present in analysis.
-    *   **Inventory Audit (New):** Module to control and adjust physical stock. Supports Partial/Full inventory, snapshot comparison, and variance calculation. Committing an audit generates adjustment movements.
+    *   **Inventory Audit:** Complete module to control and adjust physical stock. Supports Partial/Full inventory, snapshot comparison, variance calculation, and commitment generating adjustment movements.
 4.  **Sales:**
     *   Full cycle: Quote → Order → Delivery → Invoice.
     *   **Estimates (Devis):** Advanced editing capabilities including Draft mode, Status workflow (Draft->Sent->Accepted), and conversion to Order/Invoice.
@@ -214,6 +214,7 @@ Key entities defined in `types.ts`:
 2.  **Count:** User enters physical quantities. System highlights variance in real-time.
 3.  **Save:** Progress can be saved without committing.
 4.  **Commit:** System finalizes the session. **Action:** Creates `StockMovement` records (type: `adjustment`) for all items where `variance != 0` to bring system stock in line with physical stock.
+5.  **Report:** Printable report available for completed sessions.
 
 ### Service Workflow
 1.  **Job Card:** Created with customer & device info.
@@ -289,4 +290,4 @@ Key entities defined in `types.ts`:
 *   **Returns Module:** Implemented Returns for Customers and Suppliers. Removed Issue Notes module.
 *   **Client Update:** Added `taxId` (Matricule Fiscal) field to Client entity.
 *   **PDF Update:** Added Client Name, Address, Phone, and Tax ID to Estimate, Order, and Invoice PDFs.
-*   **Inventory Audit:** Added `InventoryAudit` module for stocktaking and adjustments.
+*   **Inventory Audit:** Added `InventoryAudit` module for stocktaking and adjustments, including printing support.

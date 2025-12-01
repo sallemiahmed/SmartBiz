@@ -9,6 +9,7 @@ import Clients from './views/Clients';
 import Inventory from './views/Inventory';
 import InventoryWarehouses from './views/InventoryWarehouses';
 import InventoryTransfers from './views/InventoryTransfers';
+import InventoryAudit from './views/InventoryAudit';
 import Invoices from './views/Invoices';
 import Suppliers from './views/Suppliers';
 import Sales from './views/Sales';
@@ -20,6 +21,7 @@ import PurchaseInvoices from './views/PurchaseInvoices';
 import SalesEstimates from './views/SalesEstimates';
 import SalesDeliveries from './views/SalesDeliveries';
 import SalesInvoices from './views/SalesInvoices';
+import SalesIssues from './views/SalesIssues';
 import Returns from './views/Returns';
 import RequestForQuotation from './views/RequestForQuotation';
 import InternalPurchaseRequest from './views/InternalPurchaseRequest';
@@ -188,6 +190,7 @@ function AppContent() {
         if (mode === 'products') return <Inventory />;
         if (mode === 'warehouses') return <InventoryWarehouses />;
         if (mode === 'transfers') return <InventoryTransfers />;
+        if (mode === 'audit') return <InventoryAudit />;
     }
 
     if (currentView.startsWith('banking')) {

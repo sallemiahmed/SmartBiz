@@ -6,11 +6,12 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { InventorySession, InventoryItem } from '../types';
+import { printInventoryAudit } from '../utils/printGenerator';
 
 const InventoryAudit: React.FC = () => {
   const { 
     inventorySessions, createInventorySession, updateInventorySession, commitInventorySession,
-    warehouses, products, t 
+    warehouses, products, t, settings
   } = useApp();
 
   // Main View State
@@ -140,7 +141,10 @@ const InventoryAudit: React.FC = () => {
                </>
              )}
              {activeSession.status === 'completed' && (
-               <button className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium flex items-center gap-2">
+               <button 
+                  onClick={() => printInventoryAudit(activeSession, settings)}
+                  className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium flex items-center gap-2"
+                >
                   <Printer className="w-4 h-4" /> Print Report
                </button>
              )}

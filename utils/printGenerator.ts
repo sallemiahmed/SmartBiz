@@ -1,5 +1,5 @@
 
-import { Invoice, Purchase, AppSettings, ServiceJob, Client } from '../types';
+import { Invoice, Purchase, AppSettings, ServiceJob, Client, InventorySession } from '../types';
 
 export const printInvoice = (document: Invoice | Purchase, settings: AppSettings, entity?: Client | any) => {
   const isRTL = settings.language === 'ar';
@@ -232,6 +232,117 @@ export const printJobCard = (job: ServiceJob, settings: AppSettings) => {
       <div class="footer">
         <p>Signature (Client) __________________________</p>
         <p>Signature (Technician) __________________________</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  }
+};
+
+export const printInventoryAudit = (session: InventorySession, settings: AppSettings) => {
+  const isRTL = settings.language === 'ar';
+  const totalVariance = session.items.reduce((acc, item) => acc + item.variance, 0);
+  const varianceValue = session.items.reduce((acc, item) => acc + (item.variance * item.cost), 0);
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="${settings.language}" dir="${isRTL ? 'rtl' : 'ltr'}">
+    <head>
+      <meta charset="UTF-8">
+      <title>Inventory Audit ${session.reference}</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; direction: ${isRTL ? 'rtl' : 'ltr'}; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .logo { max-height: 60px; margin-bottom: 10px; }
+        .company-info h1 { margin: 0 0 5px; font-size: 20px; color: #2c3e50; }
+        .doc-title h2 { margin: 0; font-size: 24px; color: #2c3e50; text-transform: uppercase; }
+        .info-table { width: 100%; margin-bottom: 30px; }
+        .info-table td { padding: 5px 0; }
+        .label { font-weight: bold; color: #666; width: 120px; display: inline-block; }
+        table.items { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table.items th { text-align: left; padding: 10px; background: #f3f4f6; border-bottom: 2px solid #ddd; font-size: 12px; text-transform: uppercase; }
+        table.items td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .positive { color: green; }
+        .negative { color: red; }
+        .summary { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; display: flex; justify-content: flex-end; }
+        .summary-box { background: #f9fafb; padding: 15px; border-radius: 8px; width: 250px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="company-info">
+           ${settings.companyLogo ? `<img src="${settings.companyLogo}" class="logo" />` : ''}
+           <h1>${settings.companyName}</h1>
+        </div>
+        <div class="doc-title">
+          <h2>Inventory Audit</h2>
+          <p>#${session.reference}</p>
+        </div>
+      </div>
+
+      <div class="info-table">
+         <div><span class="label">Date:</span> ${session.date}</div>
+         <div><span class="label">Warehouse:</span> ${session.warehouseName}</div>
+         <div><span class="label">Category:</span> ${session.categoryFilter || 'All'}</div>
+         <div><span class="label">Status:</span> ${session.status.toUpperCase()}</div>
+      </div>
+
+      <table class="items">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th class="text-right">System Qty</th>
+            <th class="text-center">Counted</th>
+            <th class="text-right">Variance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${session.items.map(item => `
+            <tr>
+              <td>${item.productName}</td>
+              <td>${item.sku}</td>
+              <td class="text-right">${item.systemQty}</td>
+              <td class="text-center"><strong>${item.physicalQty}</strong></td>
+              <td class="text-right ${item.variance !== 0 ? (item.variance > 0 ? 'positive' : 'negative') : ''}">
+                ${item.variance > 0 ? '+' : ''}${item.variance}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="summary">
+        <div class="summary-box">
+           <div class="summary-row">
+             <span>Total Items:</span>
+             <strong>${session.items.length}</strong>
+           </div>
+           <div class="summary-row">
+             <span>Net Quantity Variance:</span>
+             <strong class="${totalVariance !== 0 ? (totalVariance > 0 ? 'positive' : 'negative') : ''}">${totalVariance > 0 ? '+' : ''}${totalVariance}</strong>
+           </div>
+           <div class="summary-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+             <span>Value Impact:</span>
+             <strong>${varianceValue.toFixed(2)} ${settings.currency}</strong>
+           </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Authorized Signature: __________________________</p>
+        <p>Generated on ${new Date().toLocaleString()}</p>
       </div>
     </body>
     </html>
