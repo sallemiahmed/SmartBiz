@@ -33,6 +33,7 @@ const Clients: React.FC = () => {
     status: 'active',
     category: 'Corporate',
     totalSpent: 0,
+    taxId: '',
     customFields: {}
   });
 
@@ -68,6 +69,7 @@ const Clients: React.FC = () => {
       status: 'active',
       category: 'Corporate',
       totalSpent: 0,
+      taxId: '',
       customFields: {}
     });
   };
@@ -398,6 +400,17 @@ const Clients: React.FC = () => {
                     required
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('tax_id')}</label>
+                  <input
+                    type="text"
+                    name="taxId"
+                    value={newClient.taxId}
+                    onChange={(e) => handleInputChange(e, true)}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    placeholder="Matricule Fiscal / Tax ID"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
@@ -505,6 +518,17 @@ const Clients: React.FC = () => {
                     onChange={(e) => handleInputChange(e)}
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
                     required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('tax_id')}</label>
+                  <input
+                    type="text"
+                    name="taxId"
+                    value={selectedClient.taxId || ''}
+                    onChange={(e) => handleInputChange(e)}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    placeholder="Matricule Fiscal / Tax ID"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -619,6 +643,12 @@ const Clients: React.FC = () => {
                    <span className="text-gray-500 dark:text-gray-400">Contact Person</span>
                    <span className="font-medium text-gray-900 dark:text-white">{selectedClient.name}</span>
                  </div>
+                 {selectedClient.taxId && (
+                    <div className="flex justify-between border-b border-gray-100 dark:border-gray-700 pb-2">
+                      <span className="text-gray-500 dark:text-gray-400">{t('tax_id')}</span>
+                      <span className="font-medium text-gray-900 dark:text-white font-mono">{selectedClient.taxId}</span>
+                    </div>
+                 )}
                  <div className="flex justify-between border-b border-gray-100 dark:border-gray-700 pb-2">
                    <span className="text-gray-500 dark:text-gray-400">Email</span>
                    <span className="font-medium text-gray-900 dark:text-white">{selectedClient.email}</span>

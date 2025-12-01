@@ -122,6 +122,7 @@ graph TD
 
 1.  **CRM (Clients):**
     *   Manage customer profiles, contact info, and track total spend.
+    *   **Fields:** Includes `taxId` (Matricule Fiscal).
 2.  **SRM (Suppliers):**
     *   Manage vendor profiles and procurement history.
 3.  **Inventory (Stock):**
@@ -163,7 +164,7 @@ Key entities defined in `types.ts`:
 
 | Entity | Key Fields | Notes |
 | :--- | :--- | :--- |
-| **Client** | `id`, `company`, `status`, `totalSpent` | Basic CRM entity. |
+| **Client** | `id`, `company`, `status`, `totalSpent`, `taxId` | Basic CRM entity with Matricule Fiscal. |
 | **Product** | `id`, `sku`, `price`, `cost`, `stock`, `warehouseStock` | `warehouseStock` is a Record<WarehouseId, Quantity>. |
 | **Invoice** | `id`, `type`, `status`, `items`, `amount`, `paymentTerms`, `paymentMethod` | **Polymorphic**: Handles Estimates, Orders, Deliveries, Invoices, and Returns based on `type`. Stores Payment info. |
 | **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, Invoices, and Returns. |
@@ -276,3 +277,4 @@ Key entities defined in `types.ts`:
 *   **Sales Orders Cancellation:** Confirmed "Cancel Order" functionality for validated orders.
 *   **Sales Orders Delivery:** Added Partial/Full delivery functionality and "Deliver All" auto-creation.
 *   **Returns Module:** Implemented Returns for Customers and Suppliers. Removed Issue Notes module.
+*   **Client Update:** Added `taxId` (Matricule Fiscal) field to Client entity.
