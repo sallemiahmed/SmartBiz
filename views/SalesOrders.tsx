@@ -172,10 +172,22 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                 <span className="text-gray-500">{t('date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
               </div>
+
+              {/* Payment Details Display */}
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg text-sm border border-gray-100 dark:border-gray-700">
+                  <div>
+                      <span className="text-gray-500 block text-xs uppercase mb-1">{t('payment_terms')}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.paymentTerms || '-'}</span>
+                  </div>
+                  <div>
+                      <span className="text-gray-500 block text-xs uppercase mb-1">{t('payment_method')}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.paymentMethod || '-'}</span>
+                  </div>
+              </div>
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
                   {selectedDoc.items.length > 0 ? (
                     selectedDoc.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-sm">

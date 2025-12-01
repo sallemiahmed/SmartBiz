@@ -1,3 +1,4 @@
+
 # AI Project Memory: SmartBiz Manager
 
 **Last Updated:** 2024-05-22
@@ -129,6 +130,7 @@ graph TD
     *   Full cycle: Quote → Order → Delivery → Invoice.
     *   Includes "Issue Notes" for manual stock-out without invoicing.
     *   **Estimates (Devis):** Advanced editing capabilities including Draft mode, Status workflow (Draft->Sent->Accepted), and conversion to Order/Invoice.
+    *   **Orders (Commande):** Includes **Payment Terms** (e.g., Net 30) and **Payment Method** (e.g., Check) selection.
     *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
@@ -152,7 +154,7 @@ Key entities defined in `types.ts`:
 | :--- | :--- | :--- |
 | **Client** | `id`, `company`, `status`, `totalSpent` | Basic CRM entity. |
 | **Product** | `id`, `sku`, `price`, `cost`, `stock`, `warehouseStock` | `warehouseStock` is a Record<WarehouseId, Quantity>. |
-| **Invoice** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles Estimates, Orders, Deliveries, and Invoices based on `type`. |
+| **Invoice** | `id`, `type`, `status`, `items`, `amount`, `paymentTerms`, `paymentMethod` | **Polymorphic**: Handles Estimates, Orders, Deliveries, and Invoices based on `type`. Stores Payment info. |
 | **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, and Invoices. |
 | **StockMovement** | `id`, `productId`, `warehouseId`, `type`, `quantity` | Ledger for all stock changes. Types: `sale`, `purchase`, `transfer`, etc. |
 | **ServiceJob** | `id`, `ticketNumber`, `status`, `services`, `usedParts` | Tracks repair jobs. Links to `ServiceItem` and `Product`. |
@@ -173,7 +175,8 @@ Key entities defined in `types.ts`:
     *   **Draft Mode:** Editable (lines, custom items, payment terms).
     *   **Workflow:** `draft` (editable) -> `sent` (validated) -> `accepted` (final) -> Convert.
     *   **Custom Items:** Can add ad-hoc items that are not in the product database.
-2.  **Order:** Created directly or converted from Estimate. Reserves stock conceptually.
+2.  **Order:** Created directly or converted from Estimate.
+    *   **Terms:** Must select Payment Terms and Payment Method during creation.
 3.  **Delivery:** Created from Order. **Action:** Deducts stock from specific warehouse via `addStockMovement`.
 4.  **Invoice:** Created from Order or Delivery. Records revenue.
 5.  **Payment:** Recorded against Invoice. Updates `amountPaid` and creates `BankTransaction` or `CashTransaction`.
@@ -251,3 +254,4 @@ Key entities defined in `types.ts`:
 *   Documented the critical lack of persistence.
 *   **Sales Estimates Update:** Added details about Edit mode, Validation workflow, and Custom Items.
 *   Added business rule: "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis."
+*   **Sales Orders Update:** Added Payment Terms and Payment Method to creation flow and details view.

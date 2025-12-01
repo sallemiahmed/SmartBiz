@@ -29,6 +29,10 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([]);
   
+  // Payment Details
+  const [paymentTerms, setPaymentTerms] = useState<string>('Due on Receipt');
+  const [paymentMethod, setPaymentMethod] = useState<string>('Bank Transfer');
+  
   // Catalog Filter State
   const [catalogFilter, setCatalogFilter] = useState<'all' | 'product' | 'service'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,6 +102,8 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
       discountType,
       discountValue,
       fiscalStamp: fiscalStampAmount,
+      paymentTerms,
+      paymentMethod,
       notes
     }, items);
 
@@ -294,6 +300,35 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
                    <option value="pending">Pending</option>
                    <option value="paid">Paid</option>
                    <option value="sent">Sent</option>
+                 </select>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+               <div>
+                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('payment_terms')}</label>
+                 <select 
+                   value={paymentTerms} 
+                   onChange={e => setPaymentTerms(e.target.value)}
+                   className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm dark:text-white outline-none"
+                 >
+                   <option value="Due on Receipt">{t('due_on_receipt')}</option>
+                   <option value="Net 15">Net 15</option>
+                   <option value="Net 30">Net 30</option>
+                   <option value="Net 60">Net 60</option>
+                 </select>
+               </div>
+               <div>
+                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('payment_method')}</label>
+                 <select 
+                   value={paymentMethod} 
+                   onChange={e => setPaymentMethod(e.target.value)}
+                   className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm dark:text-white outline-none"
+                 >
+                   <option value="Bank Transfer">{t('bank_transfer')}</option>
+                   <option value="Cash">{t('cash')}</option>
+                   <option value="Check">{t('check')}</option>
+                   <option value="Credit Card">Credit Card</option>
                  </select>
                </div>
             </div>
