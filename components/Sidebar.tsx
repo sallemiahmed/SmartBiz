@@ -102,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'sales-order', labelKey: 'client_order' },
         { id: 'sales-delivery', labelKey: 'delivery_note' },
         { id: 'sales-invoice', labelKey: 'invoice' },
-        { id: 'sales-issue', labelKey: 'issue_note', hasAction: true },
+        { id: 'sales-return', labelKey: 'customer_returns', hasAction: true },
       ]
     },
     { 
@@ -116,6 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'purchases-order', labelKey: 'supplier_order' },
         { id: 'purchases-delivery', labelKey: 'supplier_delivery', hasAction: true },
         { id: 'purchases-invoice', labelKey: 'supplier_invoice' },
+        { id: 'purchases-return', labelKey: 'supplier_returns', hasAction: true },
       ]
     },
     {

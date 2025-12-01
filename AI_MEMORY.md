@@ -101,12 +101,14 @@ graph TD
     SCM --> Orders
     SCM --> Deliveries
     SCM --> SalesInvoices
+    SCM --> Returns[Customer Returns]
     
     PCM --> PR[Purchase Requests]
     PCM --> RFQ
     PCM --> PO[Purchase Orders]
     PCM --> GRN[Goods Receipt]
     PCM --> PurchInvoices
+    PCM --> PurchReturns[Supplier Returns]
     
     FIN --> Banking
     FIN --> CashRegister
@@ -128,7 +130,6 @@ graph TD
     *   **Valuation:** Weighted Average Cost (WAC) logic present in analysis.
 4.  **Sales:**
     *   Full cycle: Quote → Order → Delivery → Invoice.
-    *   Includes "Issue Notes" for manual stock-out without invoicing.
     *   **Estimates (Devis):** Advanced editing capabilities including Draft mode, Status workflow (Draft->Sent->Accepted), and conversion to Order/Invoice.
     *   **Orders (Commande):** 
         *   Includes **Payment Terms** (e.g., Net 30) and **Payment Method** (e.g., Check) selection.
@@ -138,9 +139,12 @@ graph TD
         *   **Delivery Workflow:** 
             *   **Partial Delivery:** Create Delivery Notes for partial quantities via modal.
             *   **Auto Delivery (Deliver All):** One-click action to create a delivery note for all remaining items and complete the order.
+    *   **Returns (Customer):** Manage returns from customers. Source document (Invoice/Delivery) required. Updates stock (reintegrate or quarantine).
     *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
+    *   **Note:** "Issue Notes" (Bons de Sortie) module has been removed.
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
+    *   **Returns (Supplier):** Manage returns to suppliers. Source document (GRN/Invoice) required. Deducts stock.
 6.  **Services:**
     *   Job Cards for repair/maintenance.
     *   Links Services (labor) and Products (parts).
@@ -161,16 +165,16 @@ Key entities defined in `types.ts`:
 | :--- | :--- | :--- |
 | **Client** | `id`, `company`, `status`, `totalSpent` | Basic CRM entity. |
 | **Product** | `id`, `sku`, `price`, `cost`, `stock`, `warehouseStock` | `warehouseStock` is a Record<WarehouseId, Quantity>. |
-| **Invoice** | `id`, `type`, `status`, `items`, `amount`, `paymentTerms`, `paymentMethod` | **Polymorphic**: Handles Estimates, Orders, Deliveries, and Invoices based on `type`. Stores Payment info. |
-| **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, and Invoices. |
-| **StockMovement** | `id`, `productId`, `warehouseId`, `type`, `quantity` | Ledger for all stock changes. Types: `sale`, `purchase`, `transfer`, etc. |
+| **Invoice** | `id`, `type`, `status`, `items`, `amount`, `paymentTerms`, `paymentMethod` | **Polymorphic**: Handles Estimates, Orders, Deliveries, Invoices, and Returns based on `type`. Stores Payment info. |
+| **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, Invoices, and Returns. |
+| **StockMovement** | `id`, `productId`, `warehouseId`, `type`, `quantity` | Ledger for all stock changes. Types: `sale`, `purchase`, `transfer`, `return`, etc. |
 | **ServiceJob** | `id`, `ticketNumber`, `status`, `services`, `usedParts` | Tracks repair jobs. Links to `ServiceItem` and `Product`. |
 | **BankAccount** | `id`, `balance`, `currency` | Tracks liquid assets. |
 | **CashSession** | `id`, `status`, `openingBalance`, `closingBalance` | Controls cash drawer shifts. |
 
 **Important Enums/Types:**
-*   `SalesDocumentType`: 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue'
-*   `PurchaseDocumentType`: 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice'
+*   `SalesDocumentType`: 'estimate' | 'order' | 'delivery' | 'invoice' | 'credit' | 'return'
+*   `PurchaseDocumentType`: 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return'
 *   `ServiceJobStatus`: 'pending' | 'in_progress' | 'completed' | 'invoiced'
 
 ---
@@ -190,6 +194,7 @@ Key entities defined in `types.ts`:
 3.  **Delivery:** Created from Order. **Action:** Deducts stock from specific warehouse via `addStockMovement`.
 4.  **Invoice:** Created from Order or Delivery. Records revenue.
 5.  **Payment:** Recorded against Invoice. Updates `amountPaid` and creates `BankTransaction` or `CashTransaction`.
+6.  **Return:** Created from Invoice/Delivery/Order. **Action:** Increases stock (if reintegrated).
 
 ### Purchase Workflow
 1.  **PR (Internal):** Staff requests items.
@@ -197,6 +202,7 @@ Key entities defined in `types.ts`:
 3.  **Purchase Order:** Confirmed agreement.
 4.  **Goods Receipt (GRN):** **Action:** Increases stock in specific warehouse. Updates WAC (Weighted Average Cost).
 5.  **Bill/Invoice:** Records expense.
+6.  **Return:** Created from Purchase Invoice/GRN. **Action:** Decreases stock.
 
 ### Service Workflow
 1.  **Job Card:** Created with customer & device info.
@@ -269,3 +275,4 @@ Key entities defined in `types.ts`:
 *   **Sales Orders Editing:** Added support for adding Services and Custom Items (text/price) in Draft mode.
 *   **Sales Orders Cancellation:** Confirmed "Cancel Order" functionality for validated orders.
 *   **Sales Orders Delivery:** Added Partial/Full delivery functionality and "Deliver All" auto-creation.
+*   **Returns Module:** Implemented Returns for Customers and Suppliers. Removed Issue Notes module.

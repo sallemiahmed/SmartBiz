@@ -447,5 +447,17 @@
     "download_template": "下载模板",
     "deliver_all": "全部发货",
     "confirm_deliver_all": "为所有剩余项目创建送货单？",
-    "no_items_to_deliver": "没有剩余项目可发货。"
+    "no_items_to_deliver": "没有剩余项目可发货。",
+    "customer_returns": "客户退货",
+    "supplier_returns": "供应商退货",
+    "return_note": "退货单",
+    "return_details": "退货详情",
+    "return_reason": "退货原因",
+    "stock_action": "库存操作",
+    "reintegrate": "重新入库",
+    "quarantine": "隔离",
+    "defect": "缺陷",
+    "wrong_item": "错发商品",
+    "no_longer_needed": "不再需要",
+    "action": "操作"
 }

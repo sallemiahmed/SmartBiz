@@ -353,5 +353,17 @@
     "revert_draft": "Revenir au brouillon",
     "deliver_all": "Tout Livrer",
     "confirm_deliver_all": "Créer un bon de livraison pour tout le reste ?",
-    "no_items_to_deliver": "Aucun article restant à livrer."
+    "no_items_to_deliver": "Aucun article restant à livrer.",
+    "customer_returns": "Retours Clients",
+    "supplier_returns": "Retours Fournisseurs",
+    "return_note": "Bon de Retour",
+    "return_details": "Détails du Retour",
+    "return_reason": "Motif du Retour",
+    "stock_action": "Action Stock",
+    "reintegrate": "Réintégrer au Stock",
+    "quarantine": "Quarantaine",
+    "defect": "Défectueux",
+    "wrong_item": "Erreur Article",
+    "no_longer_needed": "Plus nécessaire",
+    "action": "Action"
 }

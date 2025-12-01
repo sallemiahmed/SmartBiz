@@ -451,5 +451,17 @@
     "download_template": "הורד תבנית",
     "deliver_all": "שלח הכל",
     "confirm_deliver_all": "ליצור תעודת משלוח עבור כל הפריטים הנותרים?",
-    "no_items_to_deliver": "לא נותרו פריטים למשלוח."
+    "no_items_to_deliver": "לא נותרו פריטים למשלוח.",
+    "customer_returns": "החזרות לקוח",
+    "supplier_returns": "החזרות ספק",
+    "return_note": "תעודת החזרה",
+    "return_details": "פרטי החזרה",
+    "return_reason": "סיבת החזרה",
+    "stock_action": "פעולת מלאי",
+    "reintegrate": "החזר למלאי",
+    "quarantine": "הסגר",
+    "defect": "פגום",
+    "wrong_item": "פריט שגוי",
+    "no_longer_needed": "לא נחוץ יותר",
+    "action": "פעולה"
 }

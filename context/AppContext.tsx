@@ -182,6 +182,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateProduct = (product: Product) => setProducts(prev => prev.map(p => p.id === product.id ? product : p));
   const deleteProduct = (id: string) => setProducts(prev => prev.filter(p => p.id !== id));
 
+  const addStockMovement = (movement: StockMovement) => {
+      setStockMovements(prev => [movement, ...prev]);
+      // Auto update product stock if needed
+      if (movement.productId) {
+          setProducts(prev => prev.map(p => {
+              if (p.id === movement.productId) {
+                   const newStock = p.stock + movement.quantity;
+                   const newWhStock = { ...p.warehouseStock };
+                   newWhStock[movement.warehouseId] = (newWhStock[movement.warehouseId] || 0) + movement.quantity;
+                   
+                   // Optional: Update Cost if purchase
+                   let newCost = p.cost;
+                   if (movement.type === 'purchase' && movement.unitCost) {
+                       // Simple weighted average
+                       const totalValue = (p.stock * p.cost) + (movement.quantity * movement.unitCost);
+                       newCost = totalValue / newStock;
+                   }
+
+                   return { ...p, stock: newStock, warehouseStock: newWhStock, cost: newCost };
+              }
+              return p;
+          }));
+      }
+  };
+
   const createSalesDocument = (type: SalesDocumentType, data: Partial<Invoice>, items: InvoiceItem[]): Invoice => {
     const newDoc: Invoice = {
       id: `inv-${Date.now()}`,
@@ -197,6 +222,45 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       ...data
     } as Invoice;
     setInvoices(prev => [newDoc, ...prev]);
+
+    // Handle Stock Movement for Returns
+    if (type === 'return' && data.stockAction === 'reintegrate') {
+        items.forEach(item => {
+             addStockMovement({
+                 id: `sm-ret-${Date.now()}-${item.id}`,
+                 productId: item.id,
+                 productName: item.description,
+                 warehouseId: data.warehouseId || warehouses[0]?.id || '',
+                 warehouseName: 'Return',
+                 date: new Date().toISOString(),
+                 quantity: item.quantity, // Positive for customer return
+                 type: 'return',
+                 reference: newDoc.number,
+                 notes: `Customer Return: ${data.returnReason}`
+             });
+        });
+    }
+    
+    // Handle Stock Movement for Delivery (Existing logic)
+    if (type === 'delivery' || type === 'invoice') {
+        // Deduct stock logic would typically be here if not handled separately
+        items.forEach(item => {
+            if (type === 'delivery') { // Only deduct on delivery note creation in this flow
+                addStockMovement({
+                    id: `sm-del-${Date.now()}-${item.id}`,
+                    productId: item.id,
+                    productName: item.description,
+                    warehouseId: data.warehouseId || '',
+                    warehouseName: 'Sales',
+                    date: new Date().toISOString(),
+                    quantity: -item.quantity,
+                    type: 'sale',
+                    reference: newDoc.number
+                });
+            }
+        });
+    }
+
     return newDoc;
   };
 
@@ -209,7 +273,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             if (i.id === id) {
                 const currentPaid = i.amountPaid || 0;
                 const newPaid = currentPaid + amount;
-                // Epsilon check for floating point precision
                 const isFullyPaid = newPaid >= i.amount - 0.01;
                 
                 return { 
@@ -221,14 +284,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             return i;
         }));
 
-        // Add transaction
         const refNum = invoices.find(i => i.id === id)?.number || 'REF';
         if (method === 'bank' && accountId) {
             addBankTransaction({
                 id: `tx-${Date.now()}`, accountId, date: new Date().toISOString().split('T')[0],
                 description: `Payment for Invoice ${refNum}`, amount, type: 'deposit', status: 'cleared'
             });
-            // Update balance
             setBankAccounts(prev => prev.map(a => a.id === accountId ? { ...a, balance: a.balance + amount } : a));
         } else if (method === 'cash') {
             const activeSession = cashSessions.find(s => s.status === 'open');
@@ -255,17 +316,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             return p;
         }));
 
-        // Add transaction (Payment out)
         const refNum = purchases.find(p => p.id === id)?.number || 'REF';
         if (method === 'bank' && accountId) {
             addBankTransaction({
                 id: `tx-${Date.now()}`, accountId, date: new Date().toISOString().split('T')[0],
                 description: `Payment for Purchase ${refNum}`, amount: -amount, type: 'payment', status: 'cleared'
             });
-            // Update balance
             setBankAccounts(prev => prev.map(a => a.id === accountId ? { ...a, balance: a.balance - amount } : a));
         } else if (method === 'cash') {
-             // Optional: Handle cash expense for purchase
              const activeSession = cashSessions.find(s => s.status === 'open');
              if (activeSession) {
                  addCashTransaction({
@@ -292,6 +350,44 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       ...data
     } as Purchase;
     setPurchases(prev => [newDoc, ...prev]);
+
+    // Handle Stock Movement for Supplier Returns
+    if (type === 'return' && data.stockAction === 'reintegrate') {
+        // Reintegrate in purchase context usually means "Return to Supplier" -> Stock Out
+        items.forEach(item => {
+             addStockMovement({
+                 id: `sm-sret-${Date.now()}-${item.id}`,
+                 productId: item.id,
+                 productName: item.description,
+                 warehouseId: data.warehouseId || warehouses[0]?.id || '',
+                 warehouseName: 'Return',
+                 date: new Date().toISOString(),
+                 quantity: -item.quantity, // Negative for supplier return (Stock Out)
+                 type: 'return',
+                 reference: newDoc.number,
+                 notes: `Supplier Return: ${data.returnReason}`
+             });
+        });
+    }
+    
+    // Handle GRN Stock Increase
+    if (type === 'delivery') {
+         items.forEach(item => {
+             addStockMovement({
+                 id: `sm-grn-${Date.now()}-${item.id}`,
+                 productId: item.id,
+                 productName: item.description,
+                 warehouseId: data.warehouseId || '',
+                 warehouseName: 'Purchase',
+                 date: new Date().toISOString(),
+                 quantity: item.quantity,
+                 type: 'purchase',
+                 reference: newDoc.number,
+                 unitCost: item.price // Used for WAC calculation in addStockMovement
+             });
+        });
+    }
+
     return newDoc;
   };
 
@@ -302,20 +398,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateWarehouse = (wh: Warehouse) => setWarehouses(prev => prev.map(w => w.id === wh.id ? wh : w));
   const deleteWarehouse = (id: string) => setWarehouses(prev => prev.filter(w => w.id !== id));
 
-  const addStockMovement = (movement: StockMovement) => setStockMovements(prev => [movement, ...prev]);
-
   const transferStock = (data: any) => {
     const { productId, fromWarehouseId, toWarehouseId, quantity, notes, reference } = data;
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
-    // Deduct from source
     addStockMovement({
         id: `sm-out-${Date.now()}`, productId, productName: product.name, warehouseId: fromWarehouseId, warehouseName: warehouses.find(w => w.id === fromWarehouseId)?.name || '',
         date: new Date().toISOString(), quantity: -quantity, type: 'transfer_out', reference, notes
     });
 
-    // Add to dest
     addStockMovement({
         id: `sm-in-${Date.now()}`, productId, productName: product.name, warehouseId: toWarehouseId, warehouseName: warehouses.find(w => w.id === toWarehouseId)?.name || '',
         date: new Date().toISOString(), quantity: quantity, type: 'transfer_in', reference, notes
@@ -325,12 +417,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         id: `tr-${Date.now()}`, productId, productName: product.name, fromWarehouseId, toWarehouseId, quantity, date: new Date().toISOString(), reference, notes
     };
     setStockTransfers(prev => [newTransfer, ...prev]);
-
-    // Update Product Stock
-    const newWarehouseStock = { ...product.warehouseStock };
-    newWarehouseStock[fromWarehouseId] = (newWarehouseStock[fromWarehouseId] || 0) - quantity;
-    newWarehouseStock[toWarehouseId] = (newWarehouseStock[toWarehouseId] || 0) + quantity;
-    updateProduct({ ...product, warehouseStock: newWarehouseStock });
   };
 
   const addBankAccount = (acc: BankAccount) => setBankAccounts(prev => [...prev, acc]);
@@ -339,13 +425,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const addBankTransaction = (tx: BankTransaction) => {
       setBankTransactions(prev => [tx, ...prev]);
-      // Update account balance
       setBankAccounts(prev => prev.map(a => a.id === tx.accountId ? { ...a, balance: a.balance + tx.amount } : a));
   };
   const deleteBankTransaction = (id: string) => {
       const tx = bankTransactions.find(t => t.id === id);
       if (tx) {
-          // Revert balance
           setBankAccounts(prev => prev.map(a => a.id === tx.accountId ? { ...a, balance: a.balance - tx.amount } : a));
       }
       setBankTransactions(prev => prev.filter(t => t.id !== id));
@@ -354,7 +438,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const openCashSession = (openingBalance: number) => {
       const newSession: CashSession = {
           id: `cs-${Date.now()}`,
-          openedBy: 'Current User', // Placeholder
+          openedBy: 'Current User',
           startTime: new Date().toISOString(),
           openingBalance,
           expectedBalance: openingBalance,
@@ -387,7 +471,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addServiceSale = (sale: ServiceSale) => setServiceSales(prev => [sale, ...prev]);
   const deleteServiceSale = (id: string) => setServiceSales(prev => prev.filter(s => s.id !== id));
 
-  // Stats Logic
   const stats = useMemo(() => {
     const revenue = invoices
       .filter(inv => inv.type === 'invoice' && inv.status !== 'draft')
@@ -403,13 +486,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const chartData = useMemo(() => {
     const data: any[] = [];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    // Simple mock projection over last 6 months based on data
     for (let i = 5; i >= 0; i--) {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
         const monthName = months[d.getMonth()];
-        // Aggregate actual data
         const monthRevenue = invoices
             .filter(inv => inv.type === 'invoice' && new Date(inv.date).getMonth() === d.getMonth() && new Date(inv.date).getFullYear() === d.getFullYear())
             .reduce((acc, inv) => acc + inv.amount, 0);

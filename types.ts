@@ -3,10 +3,10 @@ export type AppView =
   | 'dashboard' 
   | 'clients' 
   | 'suppliers' 
-  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-issue' 
-  | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-issue-create'
-  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice'
-  | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create'
+  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' 
+  | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create'
+  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return'
+  | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-jobs-create' | 'services-sales' | 'services-catalog' | 'services-technicians'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
   | 'invoices' 
@@ -16,8 +16,8 @@ export type AppView =
   | 'reports' 
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
 
-export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue' | 'credit';
-export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice';
+export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'credit' | 'return';
+export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return';
 
 export interface InvoiceItem {
   id: string;
@@ -76,7 +76,7 @@ export interface Invoice {
   dueDate?: string;
   amount: number;
   amountPaid?: number;
-  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled' | 'completed' | 'sent' | 'accepted' | 'rejected' | 'partial';
+  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled' | 'completed' | 'sent' | 'accepted' | 'rejected' | 'partial' | 'processed';
   items: InvoiceItem[];
   warehouseId?: string;
   subtotal: number;
@@ -92,6 +92,8 @@ export interface Invoice {
   notes?: string;
   linkedDocumentId?: string;
   salespersonName?: string;
+  returnReason?: string;
+  stockAction?: 'reintegrate' | 'quarantine';
 }
 
 export interface Purchase {
@@ -110,7 +112,7 @@ export interface Purchase {
   exchangeRate?: number;
   additionalCosts?: number;
   fiscalStamp?: number;
-  status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'approved' | 'partial';
+  status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'approved' | 'partial' | 'processed';
   items: InvoiceItem[];
   warehouseId?: string;
   paymentTerms?: string;
@@ -119,6 +121,8 @@ export interface Purchase {
   taxRate?: number;
   subtotal?: number;
   linkedDocumentId?: string;
+  returnReason?: string;
+  stockAction?: 'reintegrate' | 'quarantine'; // reintegrate means "return to supplier" in purchase context contextually
 }
 
 export interface Warehouse {

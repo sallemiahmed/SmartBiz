@@ -227,8 +227,6 @@
     "inventory_stock_report": "在庫レポート",
     "financials_report": "財務レポート",
     "rep_sales_customer": "顧客別売上",
-    "rep_sales_customer_detailed": "詳細顧客分析",
-    "rep_sales_product_detailed": "詳細製品分析",
     "rep_sales_vat": "売上消費税",
     "rep_cust_trans": "顧客取引",
     "rep_supp_purch": "仕入先別購入",
@@ -458,5 +456,17 @@
     "download_template": "テンプレートをダウンロード",
     "deliver_all": "すべて配達",
     "confirm_deliver_all": "残りのすべての商品の納品書を作成しますか?",
-    "no_items_to_deliver": "配達するアイテムがありません。"
+    "no_items_to_deliver": "配達するアイテムがありません。",
+    "customer_returns": "顧客返品",
+    "supplier_returns": "仕入先返品",
+    "return_note": "返品伝票",
+    "return_details": "返品詳細",
+    "return_reason": "返品理由",
+    "stock_action": "在庫操作",
+    "reintegrate": "在庫に戻す",
+    "quarantine": "隔離",
+    "defect": "欠陥",
+    "wrong_item": "誤配送",
+    "no_longer_needed": "不要",
+    "action": "アクション"
 }

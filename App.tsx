@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
@@ -19,7 +20,7 @@ import PurchaseInvoices from './views/PurchaseInvoices';
 import SalesEstimates from './views/SalesEstimates';
 import SalesDeliveries from './views/SalesDeliveries';
 import SalesInvoices from './views/SalesInvoices';
-import SalesIssues from './views/SalesIssues';
+import Returns from './views/Returns';
 import RequestForQuotation from './views/RequestForQuotation';
 import InternalPurchaseRequest from './views/InternalPurchaseRequest';
 import Services from './views/Services';
@@ -120,11 +121,11 @@ function AppContent() {
     if (currentView === 'sales-invoice-create' as AppView) {
       return <Sales mode="invoice" />;
     }
-    if (currentView === 'sales-issue') {
-      return <SalesIssues onAddNew={() => handleNavigate('sales-issue-create' as AppView)} />;
+    if (currentView === 'sales-return') {
+      return <Returns mode="client" onAddNew={() => handleNavigate('sales-return-create' as AppView)} />;
     }
-    if (currentView === 'sales-issue-create' as AppView) {
-      return <Sales mode="issue" />;
+    if (currentView === 'sales-return-create' as AppView) {
+      return <Returns mode="client" isCreating={true} onCancel={() => handleNavigate('sales-return' as AppView)} />;
     }
 
     // --- Purchases Routing ---
@@ -157,6 +158,12 @@ function AppContent() {
     }
     if (currentView === 'purchases-invoice-create' as AppView) {
       return <Purchases mode="invoice" />;
+    }
+    if (currentView === 'purchases-return') {
+        return <Returns mode="supplier" onAddNew={() => handleNavigate('purchases-return-create' as AppView)} />;
+    }
+    if (currentView === 'purchases-return-create' as AppView) {
+        return <Returns mode="supplier" isCreating={true} onCancel={() => handleNavigate('purchases-return' as AppView)} />;
     }
 
     // Fallbacks

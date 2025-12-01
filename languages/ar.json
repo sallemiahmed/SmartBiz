@@ -353,5 +353,17 @@
     "revert_draft": "العودة إلى المسودة",
     "deliver_all": "تسليم الكل",
     "confirm_deliver_all": "إنشاء مذكرة تسليم لجميع العناصر المتبقية؟",
-    "no_items_to_deliver": "لا توجد عناصر للتسليم."
+    "no_items_to_deliver": "لا توجد عناصر للتسليم.",
+    "customer_returns": "مردودات العملاء",
+    "supplier_returns": "مردودات الموردين",
+    "return_note": "مذكرة مردودات",
+    "return_details": "تفاصيل المردودات",
+    "return_reason": "سبب الإرجاع",
+    "stock_action": "إجراء المخزون",
+    "reintegrate": "إعادة دمج بالمخزون",
+    "quarantine": "حجر صحي",
+    "defect": "معيب",
+    "wrong_item": "عنصر خاطئ",
+    "no_longer_needed": "لم يعد مطلوباً",
+    "action": "إجراء"
 }
