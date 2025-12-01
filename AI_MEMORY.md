@@ -29,25 +29,25 @@ The application follows a classic React SPA structure using Context API for glob
 
 ```mermaid
 flowchart LR
-    User[User Browser]
+    User["User Browser"]
     
     subgraph "Frontend Application (Vite/React)"
-        Routing[Manual Routing (App.tsx)]
+        Routing["Manual Routing (App.tsx)"]
         
         subgraph "UI Layer"
-            Layout[Sidebar & TopBar]
-            Views[Views / Pages]
-            Components[Reusable Components]
+            Layout["Sidebar & TopBar"]
+            Views["Views / Pages"]
+            Components["Reusable Components"]
         end
         
         subgraph "Logic Layer"
-            Context[AppContext (Global State)]
-            Services[Mock Data & Translations]
-            Utils[Calculations & PDF Gen]
+            Context["AppContext (Global State)"]
+            Services["Mock Data & Translations"]
+            Utils["Calculations & PDF Gen"]
         end
         
         subgraph "External Integrations"
-            GenAI[Google GenAI SDK]
+            GenAI["Google GenAI SDK"]
         end
     end
 
@@ -239,6 +239,7 @@ Key entities defined in `types.ts`:
 
 **Timestamp:** 2024-05-22
 **Changelog:**
+*   Fixed Mermaid syntax error in architecture diagram by adding quotes to node labels.
 *   Initial deep scan and creation of structure `AI_MEMORY.md`.
 *   Mapped all modules and key entity relationships.
 *   Identified polymorphic nature of `Invoice` and `Purchase` types.
