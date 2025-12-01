@@ -128,6 +128,8 @@ graph TD
 4.  **Sales:**
     *   Full cycle: Quote → Order → Delivery → Invoice.
     *   Includes "Issue Notes" for manual stock-out without invoicing.
+    *   **Estimates (Devis):** Advanced editing capabilities including Draft mode, Status workflow (Draft->Sent->Accepted), and conversion to Order/Invoice.
+    *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
 6.  **Services:**
@@ -167,8 +169,11 @@ Key entities defined in `types.ts`:
 ## 5. Application Flows
 
 ### Sales Workflow
-1.  **Estimate (Optional):** Created in `SalesEstimates`. Status: `draft` -> `sent` -> `accepted`.
-2.  **Order:** Created directly or converted from Estimate. Reserves stock conceptually (though hard reservation logic is todo).
+1.  **Estimate (Optional):** Created in `SalesEstimates`. 
+    *   **Draft Mode:** Editable (lines, custom items, payment terms).
+    *   **Workflow:** `draft` (editable) -> `sent` (validated) -> `accepted` (final) -> Convert.
+    *   **Custom Items:** Can add ad-hoc items that are not in the product database.
+2.  **Order:** Created directly or converted from Estimate. Reserves stock conceptually.
 3.  **Delivery:** Created from Order. **Action:** Deducts stock from specific warehouse via `addStockMovement`.
 4.  **Invoice:** Created from Order or Delivery. Records revenue.
 5.  **Payment:** Recorded against Invoice. Updates `amountPaid` and creates `BankTransaction` or `CashTransaction`.
@@ -244,3 +249,5 @@ Key entities defined in `types.ts`:
 *   Mapped all modules and key entity relationships.
 *   Identified polymorphic nature of `Invoice` and `Purchase` types.
 *   Documented the critical lack of persistence.
+*   **Sales Estimates Update:** Added details about Edit mode, Validation workflow, and Custom Items.
+*   Added business rule: "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis."
