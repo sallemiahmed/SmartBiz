@@ -1,32 +1,14 @@
 
 export type AppView = 
-  | 'dashboard' 
-  | 'clients' 
-  | 'suppliers' 
-  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' 
-  | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create'
-  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return'
-  | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
+  | 'dashboard' | 'clients' | 'suppliers' | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
+  | 'sales' | 'sales-estimate' | 'sales-estimate-create' | 'sales-order' | 'sales-order-create' | 'sales-delivery' | 'sales-delivery-create' | 'sales-invoice' | 'sales-invoice-create' | 'sales-return' | 'sales-return-create'
+  | 'purchases' | 'purchases-pr' | 'purchases-pr-create' | 'purchases-rfq' | 'purchases-rfq-create' | 'purchases-order' | 'purchases-order-create' | 'purchases-delivery' | 'purchases-delivery-create' | 'purchases-invoice' | 'purchases-invoice-create' | 'purchases-return' | 'purchases-return-create'
+  | 'invoices' | 'banking' | 'banking-overview' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports'
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-jobs-create' | 'services-sales' | 'services-catalog' | 'services-technicians'
-  | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
-  | 'invoices' 
-  | 'banking' | 'banking-accounts' | 'banking-transactions'
-  | 'cash_register' 
-  | 'cost_analysis' 
-  | 'reports' 
   | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
 
-export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'credit' | 'return';
+export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'return';
 export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return';
-
-export interface InvoiceItem {
-  id: string;
-  description: string;
-  quantity: number;
-  price: number;
-  fulfilledQuantity?: number;
-  historicalCost?: number; // for cost analysis
-}
 
 export interface Client {
   id: string;
@@ -38,7 +20,8 @@ export interface Client {
   category: string;
   totalSpent: number;
   region?: string;
-  taxId?: string; // Matricule Fiscal
+  address?: string;
+  taxId?: string;
   customFields?: Record<string, any>;
 }
 
@@ -51,79 +34,90 @@ export interface Supplier {
   category: string;
   status: 'active' | 'inactive';
   totalPurchased: number;
+  address?: string;
+  taxId?: string;
 }
 
 export interface Product {
   id: string;
-  sku: string;
   name: string;
+  sku: string;
   category: string;
-  image?: string;
-  stock: number;
-  warehouseStock: Record<string, number>;
   price: number;
   cost: number;
+  stock: number;
+  warehouseStock: Record<string, number>;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
+  image?: string;
   marginPercent: number;
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  price: number;
+  fulfilledQuantity?: number;
+  historicalCost?: number;
 }
 
 export interface Invoice {
   id: string;
   number: string;
   type: SalesDocumentType;
+  items: InvoiceItem[];
   clientId: string;
   clientName: string;
   date: string;
   dueDate?: string;
   amount: number;
   amountPaid?: number;
-  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled' | 'completed' | 'sent' | 'accepted' | 'rejected' | 'partial' | 'processed';
-  items: InvoiceItem[];
-  warehouseId?: string;
-  subtotal: number;
-  taxRate?: number; // percent
+  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled' | 'completed' | 'partial' | 'processed';
+  currency: string;
+  exchangeRate?: number;
+  subtotal?: number;
+  taxRate?: number;
   discount?: number;
   discountType?: 'percent' | 'amount';
   discountValue?: number;
   fiscalStamp?: number;
-  currency?: string;
-  exchangeRate?: number;
+  warehouseId?: string;
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
   linkedDocumentId?: string;
-  salespersonName?: string;
-  returnReason?: string;
   stockAction?: 'reintegrate' | 'quarantine';
+  returnReason?: string;
+  salespersonName?: string;
 }
 
 export interface Purchase {
   id: string;
   number: string;
   type: PurchaseDocumentType;
+  items: InvoiceItem[];
   supplierId: string;
   supplierName: string;
-  date: string;
-  deadline?: string;
   requesterName?: string;
   department?: string;
+  date: string;
+  deadline?: string;
   amount: number;
   amountPaid?: number;
-  currency?: string;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'sent' | 'responded' | 'accepted' | 'completed' | 'partial' | 'received' | 'processed';
+  currency: string;
   exchangeRate?: number;
   additionalCosts?: number;
+  subtotal?: number;
+  taxRate?: number;
   fiscalStamp?: number;
-  status: 'pending' | 'completed' | 'received' | 'draft' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'approved' | 'partial' | 'processed';
-  items: InvoiceItem[];
   warehouseId?: string;
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
-  taxRate?: number;
-  subtotal?: number;
   linkedDocumentId?: string;
+  stockAction?: 'reintegrate' | 'quarantine';
   returnReason?: string;
-  stockAction?: 'reintegrate' | 'quarantine'; // reintegrate means "return to supplier" in purchase context contextually
 }
 
 export interface Warehouse {
@@ -141,7 +135,7 @@ export interface StockMovement {
   warehouseName: string;
   date: string;
   quantity: number;
-  type: 'initial' | 'sale' | 'purchase' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return';
+  type: 'initial' | 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'return';
   reference?: string;
   notes?: string;
   unitCost?: number;
@@ -167,8 +161,8 @@ export interface BankAccount {
   bankName: string;
   accountNumber: string;
   currency: string;
-  type: 'checking' | 'savings' | 'credit' | 'investment';
   balance: number;
+  type: 'checking' | 'savings' | 'credit' | 'investment';
 }
 
 export interface BankTransaction {
@@ -176,8 +170,8 @@ export interface BankTransaction {
   accountId: string;
   date: string;
   description: string;
-  amount: number; // positive for deposit, negative for withdrawal
-  type: 'deposit' | 'payment' | 'transfer' | 'fee' | 'withdrawal';
+  amount: number;
+  type: 'deposit' | 'withdrawal' | 'payment' | 'transfer' | 'fee';
   status: 'pending' | 'cleared' | 'reconciled';
 }
 
@@ -198,7 +192,7 @@ export interface CashTransaction {
   sessionId: string;
   date: string;
   type: 'sale' | 'expense' | 'deposit' | 'withdrawal';
-  amount: number; // positive or negative
+  amount: number;
   description: string;
 }
 
@@ -207,7 +201,8 @@ export interface Technician {
   name: string;
   specialty: string;
   status: 'available' | 'busy' | 'off_duty';
-  phone: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface ServiceItem {
@@ -229,13 +224,13 @@ export interface ServiceJob {
   technicianId?: string;
   technicianName?: string;
   deviceInfo: string;
-  problemDescription?: string;
+  problemDescription: string;
   resolutionNotes?: string;
-  estimatedCost?: number;
+  resolutionHours?: number;
+  estimatedCost: number;
   services: { serviceId: string; name: string; price: number }[];
   usedParts: { productId: string; name: string; quantity: number; price: number }[];
   rating?: number;
-  resolutionHours?: number;
 }
 
 export interface ServiceSaleItem {
@@ -258,7 +253,7 @@ export interface ServiceSale {
   status: 'draft' | 'pending' | 'paid' | 'cancelled';
   items: ServiceSaleItem[];
   subtotal: number;
-  discountType: 'amount' | 'percent';
+  discountType: 'percent' | 'amount';
   discountValue: number;
   discountAmount: number;
   taxRate: number;
@@ -272,14 +267,6 @@ export interface TaxRate {
   name: string;
   rate: number;
   isDefault?: boolean;
-}
-
-export interface CustomField {
-  id: string;
-  key: string;
-  label: string;
-  type: 'text' | 'number' | 'date' | 'boolean';
-  required?: boolean;
 }
 
 export interface AppSettings {
@@ -296,8 +283,8 @@ export interface AppSettings {
   enableFiscalStamp: boolean;
   fiscalStampValue: number;
   taxRates: TaxRate[];
-  customFields: {
-    clients: CustomField[];
-    suppliers: CustomField[];
+  customFields?: {
+    clients: any[];
+    suppliers: any[];
   };
 }
