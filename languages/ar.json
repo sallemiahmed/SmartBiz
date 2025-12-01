@@ -350,5 +350,8 @@
     "confirm_delivery": "تأكيد التسليم",
     "select_item_deliver": "الرجاء تحديد عنصر واحد على الأقل لتسليمه.",
     "accept": "قبول",
-    "revert_draft": "العودة إلى المسودة"
+    "revert_draft": "العودة إلى المسودة",
+    "deliver_all": "تسليم الكل",
+    "confirm_deliver_all": "إنشاء مذكرة تسليم لجميع العناصر المتبقية؟",
+    "no_items_to_deliver": "لا توجد عناصر للتسليم."
 }

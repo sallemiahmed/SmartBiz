@@ -3,7 +3,7 @@
     "clients": "לקוחות",
     "suppliers": "ספקים",
     "sales": "מכירות",
-    "purchases": "רכישות",
+    "purchases": "רכש",
     "inventory": "מלאי",
     "documents": "מסמכים",
     "reports": "דוחות",
@@ -448,5 +448,8 @@
     "enable_fiscal_stamp": "הפעל בול הכנסה",
     "fiscal_stamp_value": "ערך",
     "import_csv": "ייבוא CSV",
-    "download_template": "הורד תבנית"
+    "download_template": "הורד תבנית",
+    "deliver_all": "שלח הכל",
+    "confirm_deliver_all": "ליצור תעודת משלוח עבור כל הפריטים הנותרים?",
+    "no_items_to_deliver": "לא נותרו פריטים למשלוח."
 }

@@ -350,5 +350,8 @@
     "confirm_delivery": "Confirmer Livraison",
     "select_item_deliver": "Veuillez sélectionner au moins un article à livrer.",
     "accept": "Accepter",
-    "revert_draft": "Revenir au brouillon"
+    "revert_draft": "Revenir au brouillon",
+    "deliver_all": "Tout Livrer",
+    "confirm_deliver_all": "Créer un bon de livraison pour tout le reste ?",
+    "no_items_to_deliver": "Aucun article restant à livrer."
 }

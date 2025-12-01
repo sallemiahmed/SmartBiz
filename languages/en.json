@@ -457,5 +457,8 @@
     "confirm_delivery": "Confirm Delivery",
     "select_item_deliver": "Please select at least one item to deliver.",
     "accept": "Accept",
-    "revert_draft": "Revert to Draft"
+    "revert_draft": "Revert to Draft",
+    "deliver_all": "Deliver All",
+    "confirm_deliver_all": "Create delivery note for all remaining items?",
+    "no_items_to_deliver": "No items left to deliver."
 }

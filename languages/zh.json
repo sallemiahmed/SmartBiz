@@ -444,5 +444,8 @@
     "enable_fiscal_stamp": "启用印花税",
     "fiscal_stamp_value": "价值",
     "import_csv": "导入 CSV",
-    "download_template": "下载模板"
+    "download_template": "下载模板",
+    "deliver_all": "全部发货",
+    "confirm_deliver_all": "为所有剩余项目创建送货单？",
+    "no_items_to_deliver": "没有剩余项目可发货。"
 }

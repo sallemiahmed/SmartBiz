@@ -455,5 +455,8 @@
     "enable_fiscal_stamp": "収入印紙を有効化",
     "fiscal_stamp_value": "印紙額",
     "import_csv": "CSVインポート",
-    "download_template": "テンプレートをダウンロード"
+    "download_template": "テンプレートをダウンロード",
+    "deliver_all": "すべて配達",
+    "confirm_deliver_all": "残りのすべての商品の納品書を作成しますか?",
+    "no_items_to_deliver": "配達するアイテムがありません。"
 }

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus, XCircle, Truck } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus, XCircle, Truck, PackageCheck } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -121,6 +121,50 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     setDeliveryQuantities(initialQtys);
     setIsViewModalOpen(false);
     setIsDeliveryModalOpen(true);
+  };
+
+  const handleAutoDelivery = () => {
+    if (!selectedDoc) return;
+    
+    if (!confirm(t('confirm_deliver_all') || "Create delivery note for all remaining items?")) return;
+
+    const itemsToDeliver = selectedDoc.items
+        .map(item => ({
+            ...item,
+            quantity: item.quantity - (item.fulfilledQuantity || 0)
+        }))
+        .filter(item => item.quantity > 0);
+
+    if (itemsToDeliver.length === 0) {
+        alert(t('no_items_to_deliver') || "No items left to deliver.");
+        return;
+    }
+
+    // 1. Create Delivery Note
+    createSalesDocument('delivery', {
+        clientId: selectedDoc.clientId,
+        clientName: selectedDoc.clientName,
+        date: new Date().toISOString().split('T')[0],
+        warehouseId: selectedDoc.warehouseId,
+        linkedDocumentId: selectedDoc.id,
+        notes: `Full Delivery for Order ${selectedDoc.number}`,
+        status: 'completed'
+    }, itemsToDeliver);
+
+    // 2. Update Order Fulfilled Qty & Status
+    const updatedItems = selectedDoc.items.map(item => ({
+        ...item,
+        fulfilledQuantity: item.quantity
+    }));
+
+    updateInvoice({
+        ...selectedDoc,
+        items: updatedItems,
+        status: 'completed'
+    });
+
+    setIsViewModalOpen(false);
+    alert(t('success'));
   };
 
   const handleDeliveryQtyChange = (id: string, value: string) => {
@@ -635,18 +679,27 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                                 {selectedDoc.status !== 'cancelled' && (
                                     <div className="flex gap-2">
                                         {!isFullyDelivered && (
-                                            <button 
-                                                onClick={handleOpenDeliveryModal}
-                                                className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-2"
-                                            >
-                                                <Truck className="w-4 h-4" /> {t('create_delivery')}
-                                            </button>
+                                            <>
+                                                <button 
+                                                    onClick={handleOpenDeliveryModal}
+                                                    className="flex-1 px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Truck className="w-4 h-4" /> {t('create_delivery')}
+                                                </button>
+                                                <button 
+                                                    onClick={handleAutoDelivery}
+                                                    className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-1.5"
+                                                    title={t('deliver_all')}
+                                                >
+                                                    <PackageCheck className="w-4 h-4" /> {t('deliver_all') || 'Deliver All'}
+                                                </button>
+                                            </>
                                         )}
                                         <button 
                                             onClick={handleCancelOrder}
-                                            className="flex-1 px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
+                                            className="px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
                                         >
-                                            <XCircle className="w-4 h-4" /> {t('cancel_order') || 'Cancel Order'}
+                                            <XCircle className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
