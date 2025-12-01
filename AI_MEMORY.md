@@ -133,6 +133,7 @@ graph TD
     *   **Orders (Commande):** 
         *   Includes **Payment Terms** (e.g., Net 30) and **Payment Method** (e.g., Check) selection.
         *   **Validation Workflow:** Orders can be Validated (moving to 'Pending' status) and Reverted to Draft (allowing modification of items and details).
+        *   **Draft Editing:** In Draft mode, users can add Products, Services, and Custom Items (non-existent in DB), as well as modify prices, quantities, and payment conditions.
     *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
@@ -259,3 +260,4 @@ Key entities defined in `types.ts`:
 *   Added business rule: "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis."
 *   **Sales Orders Update:** Added Payment Terms and Payment Method to creation flow and details view.
 *   **Sales Orders Workflow:** Added Validation (Draft->Pending) and Revert to Draft (Pending->Draft) with inline editing capabilities.
+*   **Sales Orders Editing:** Added support for adding Services and Custom Items (text/price) in Draft mode.

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
@@ -11,7 +11,7 @@ interface SalesOrdersProps {
 }
 
 const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, createSalesDocument, updateInvoice, products, t, formatCurrency, settings } = useApp();
+  const { invoices, deleteInvoice, createSalesDocument, updateInvoice, products, serviceCatalog, t, formatCurrency, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -20,7 +20,11 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
   const [editedDoc, setEditedDoc] = useState<Invoice | null>(null);
-  const [selectedAddProductId, setSelectedAddProductId] = useState('');
+  const [selectedAddItemId, setSelectedAddItemId] = useState('');
+  
+  // Custom Item State
+  const [customItem, setCustomItem] = useState({ description: '', price: 0, quantity: 1 });
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
 
   // Filter only sales orders
   const salesOrders = invoices.filter(inv => inv.type === 'order');
@@ -30,10 +34,21 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
            doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  // Combine Products and Services for selection
+  const catalogOptions = useMemo(() => {
+    const prodOpts = products.map(p => ({ value: p.id, label: `${p.name} (${formatCurrency(p.price)})` }));
+    const servOpts = serviceCatalog.map(s => ({ value: s.id, label: `🔧 ${s.name} (${formatCurrency(s.basePrice)})` }));
+    return [...prodOpts, ...servOpts];
+  }, [products, serviceCatalog, formatCurrency]);
+
   const handleOpenModal = (doc: Invoice) => {
     setSelectedDoc(doc);
     setIsEditing(false);
     setEditedDoc(JSON.parse(JSON.stringify(doc))); // Deep copy
+    // Reset add states
+    setSelectedAddItemId('');
+    setCustomItem({ description: '', price: 0, quantity: 1 });
+    setIsAddingCustom(false);
     setIsViewModalOpen(true);
   };
 
@@ -84,7 +99,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     alert(t('success'));
   };
 
-  // --- Edit Logic (Mirrored from Estimates) ---
+  // --- Edit Logic ---
 
   const handleSaveChanges = () => {
     if (editedDoc) {
@@ -130,21 +145,49 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     recalculateTotals({ ...editedDoc, items: newItems });
   };
 
-  const handleAddProduct = () => {
-    if (!editedDoc || !selectedAddProductId) return;
-    const product = products.find(p => p.id === selectedAddProductId);
-    if (!product) return;
+  const handleAddCatalogItem = () => {
+    if (!editedDoc || !selectedAddItemId) return;
+    
+    // Try finding in products
+    let itemToAdd: any = products.find(p => p.id === selectedAddItemId);
+    let price = itemToAdd ? itemToAdd.price : 0;
+    
+    // If not product, try service
+    if (!itemToAdd) {
+        itemToAdd = serviceCatalog.find(s => s.id === selectedAddItemId);
+        if (itemToAdd) price = itemToAdd.basePrice;
+    }
+
+    if (!itemToAdd) return;
 
     const newItem: InvoiceItem = {
-        id: product.id,
-        description: product.name,
+        id: itemToAdd.id,
+        description: itemToAdd.name,
         quantity: 1,
-        price: product.price
+        price: price
     };
 
     const newItems = [...editedDoc.items, newItem];
     recalculateTotals({ ...editedDoc, items: newItems });
-    setSelectedAddProductId('');
+    setSelectedAddItemId('');
+  };
+
+  const handleAddCustomItem = () => {
+    if (!editedDoc || !customItem.description) return;
+
+    const newItem: InvoiceItem = {
+        id: `custom-${Date.now()}`,
+        description: customItem.description,
+        quantity: customItem.quantity,
+        price: customItem.price
+    };
+
+    const newItems = [...editedDoc.items, newItem];
+    recalculateTotals({ ...editedDoc, items: newItems });
+    
+    // Reset custom item form
+    setCustomItem({ description: '', price: 0, quantity: 1 });
+    setIsAddingCustom(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -305,23 +348,78 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
                 
                 {isEditing && (
-                    <div className="flex gap-2 mb-3">
-                        <div className="flex-1">
-                            <SearchableSelect 
-                                options={products.map(p => ({ value: p.id, label: `${p.name} (${formatCurrency(p.price)})` }))}
-                                value={selectedAddProductId}
-                                onChange={setSelectedAddProductId}
-                                placeholder="Add product..."
-                                className="w-full rounded text-sm"
-                            />
+                    <div className="mb-4 space-y-3 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                        {/* 1. Add Existing Product/Service */}
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <SearchableSelect 
+                                    options={catalogOptions}
+                                    value={selectedAddItemId}
+                                    onChange={setSelectedAddItemId}
+                                    placeholder="Search Product or Service..."
+                                    className="w-full rounded text-sm"
+                                />
+                            </div>
+                            <button 
+                                onClick={handleAddCatalogItem}
+                                disabled={!selectedAddItemId}
+                                className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 text-xs font-medium"
+                            >
+                                <Plus className="w-4 h-4 inline mr-1" /> Add
+                            </button>
                         </div>
-                        <button 
-                            onClick={handleAddProduct}
-                            disabled={!selectedAddProductId}
-                            className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 text-xs font-medium"
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
+
+                        {/* 2. Custom Item Button/Form */}
+                        {!isAddingCustom ? (
+                            <button 
+                                onClick={() => setIsAddingCustom(true)}
+                                className="w-full py-1.5 border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 rounded text-xs flex items-center justify-center gap-1 transition-colors"
+                            >
+                                <PackagePlus className="w-3 h-3" /> {t('add_custom_item')}
+                            </button>
+                        ) : (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                                <input 
+                                    type="text"
+                                    placeholder="Item Description"
+                                    value={customItem.description}
+                                    onChange={(e) => setCustomItem({...customItem, description: e.target.value})}
+                                    className="w-full px-2 py-1 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    autoFocus
+                                />
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number"
+                                        placeholder="Price"
+                                        min="0"
+                                        step="0.01"
+                                        value={customItem.price}
+                                        onChange={(e) => setCustomItem({...customItem, price: parseFloat(e.target.value) || 0})}
+                                        className="flex-1 px-2 py-1 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    />
+                                    <input 
+                                        type="number"
+                                        placeholder="Qty"
+                                        min="1"
+                                        value={customItem.quantity}
+                                        onChange={(e) => setCustomItem({...customItem, quantity: parseInt(e.target.value) || 1})}
+                                        className="w-20 px-2 py-1 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    />
+                                    <button 
+                                        onClick={handleAddCustomItem}
+                                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs"
+                                    >
+                                        Add
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsAddingCustom(false)}
+                                        className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-300 text-xs"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
