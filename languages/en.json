@@ -22,6 +22,7 @@
     "products": "Products",
     "warehouses": "Warehouses",
     "stock_transfers": "Stock Transfers",
+    "stock_audit": "Stock Inventory",
     "overview": "Overview",
     "accounts": "Accounts",
     "transactions": "Transactions",

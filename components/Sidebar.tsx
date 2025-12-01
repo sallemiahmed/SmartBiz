@@ -141,6 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'inventory-products', labelKey: 'products_list' },
         { id: 'inventory-warehouses', labelKey: 'warehouses' },
         { id: 'inventory-transfers', labelKey: 'stock_transfers' },
+        { id: 'inventory-audit', labelKey: 'stock_audit' },
       ]
     },
     { id: 'invoices', labelKey: 'documents', icon: FileStack, emoji: '🧮' },

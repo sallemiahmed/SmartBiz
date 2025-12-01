@@ -1,5 +1,5 @@
 
-import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, Technician, ServiceItem, ServiceJob, ServiceSale } from '../types';
+import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession } from '../types';
 
 const currentYear = new Date().getFullYear();
 const today = new Date();
@@ -326,3 +326,19 @@ export const mockStockMovements: StockMovement[] = [
 ];
 
 export const mockStockTransfers: StockTransfer[] = [];
+
+// --- INVENTORY SESSIONS ---
+export const mockInventorySessions: InventorySession[] = [
+  {
+    id: 'inv-sess-001',
+    reference: 'INV-OCT-2023',
+    date: getDate(-5),
+    warehouseId: 'w1',
+    warehouseName: 'Dépôt Principal',
+    status: 'completed',
+    items: [
+      { productId: 'p1', productName: 'HP EliteBook 840 G8', sku: 'LAP-HP-001', systemQty: 25, physicalQty: 24, variance: -1, cost: 2500 }
+    ],
+    notes: 'Annual Audit'
+  }
+];

@@ -8,7 +8,7 @@ export type AppView =
   | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return'
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-jobs-create' | 'services-sales' | 'services-catalog' | 'services-technicians'
-  | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers'
+  | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'invoices' 
   | 'banking' | 'banking-accounts' | 'banking-transactions'
   | 'cash_register' 
@@ -66,6 +66,28 @@ export interface Product {
   cost: number;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
   marginPercent: number;
+}
+
+export interface InventoryItem {
+  productId: string;
+  productName: string;
+  sku: string;
+  systemQty: number; // Snapshot of theoretical stock at start
+  physicalQty: number; // Counted quantity
+  variance: number; // physical - system
+  cost: number;
+}
+
+export interface InventorySession {
+  id: string;
+  reference: string;
+  date: string;
+  warehouseId: string;
+  warehouseName: string;
+  status: 'in_progress' | 'completed';
+  categoryFilter?: string; // 'All' or specific category
+  items: InventoryItem[];
+  notes?: string;
 }
 
 export interface Invoice {

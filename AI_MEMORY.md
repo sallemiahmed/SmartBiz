@@ -96,6 +96,7 @@ graph TD
     IMM --> Products
     IMM --> Warehouses
     IMM --> Movements
+    IMM --> Audit[Stock Audit]
     
     SCM --> Estimates
     SCM --> Orders
@@ -129,6 +130,7 @@ graph TD
     *   **Multi-Warehouse:** Products track stock per warehouse (`warehouseStock`).
     *   **Movements:** Log of all ins/outs (`StockMovement`).
     *   **Valuation:** Weighted Average Cost (WAC) logic present in analysis.
+    *   **Inventory Audit (New):** Module to control and adjust physical stock. Supports Partial/Full inventory, snapshot comparison, and variance calculation. Committing an audit generates adjustment movements.
 4.  **Sales:**
     *   Full cycle: Quote → Order → Delivery → Invoice.
     *   **Estimates (Devis):** Advanced editing capabilities including Draft mode, Status workflow (Draft->Sent->Accepted), and conversion to Order/Invoice.
@@ -169,7 +171,8 @@ Key entities defined in `types.ts`:
 | **Product** | `id`, `sku`, `price`, `cost`, `stock`, `warehouseStock` | `warehouseStock` is a Record<WarehouseId, Quantity>. |
 | **Invoice** | `id`, `type`, `status`, `items`, `amount`, `paymentTerms`, `paymentMethod` | **Polymorphic**: Handles Estimates, Orders, Deliveries, Invoices, and Returns based on `type`. Stores Payment info. |
 | **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, Invoices, and Returns. |
-| **StockMovement** | `id`, `productId`, `warehouseId`, `type`, `quantity` | Ledger for all stock changes. Types: `sale`, `purchase`, `transfer`, `return`, etc. |
+| **StockMovement** | `id`, `productId`, `warehouseId`, `type`, `quantity` | Ledger for all stock changes. Types: `sale`, `purchase`, `transfer`, `return`, `adjustment`. |
+| **InventorySession** | `id`, `reference`, `items` (array of `InventoryItem`), `status` | Represents a physical stock count session. |
 | **ServiceJob** | `id`, `ticketNumber`, `status`, `services`, `usedParts` | Tracks repair jobs. Links to `ServiceItem` and `Product`. |
 | **BankAccount** | `id`, `balance`, `currency` | Tracks liquid assets. |
 | **CashSession** | `id`, `status`, `openingBalance`, `closingBalance` | Controls cash drawer shifts. |
@@ -205,6 +208,12 @@ Key entities defined in `types.ts`:
 4.  **Goods Receipt (GRN):** **Action:** Increases stock in specific warehouse. Updates WAC (Weighted Average Cost).
 5.  **Bill/Invoice:** Records expense.
 6.  **Return:** Created from Purchase Invoice/GRN. **Action:** Decreases stock.
+
+### Inventory Audit Workflow (New)
+1.  **Create Session:** Select warehouse and category filter. System snapshots current "theoretical" stock.
+2.  **Count:** User enters physical quantities. System highlights variance in real-time.
+3.  **Save:** Progress can be saved without committing.
+4.  **Commit:** System finalizes the session. **Action:** Creates `StockMovement` records (type: `adjustment`) for all items where `variance != 0` to bring system stock in line with physical stock.
 
 ### Service Workflow
 1.  **Job Card:** Created with customer & device info.
@@ -280,3 +289,4 @@ Key entities defined in `types.ts`:
 *   **Returns Module:** Implemented Returns for Customers and Suppliers. Removed Issue Notes module.
 *   **Client Update:** Added `taxId` (Matricule Fiscal) field to Client entity.
 *   **PDF Update:** Added Client Name, Address, Phone, and Tax ID to Estimate, Order, and Invoice PDFs.
+*   **Inventory Audit:** Added `InventoryAudit` module for stocktaking and adjustments.

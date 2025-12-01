@@ -4,13 +4,13 @@ import {
   Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
   StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
-  SalesDocumentType, PurchaseDocumentType
+  SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem
 } from '../types';
 import { 
   mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, 
   mockWarehouses, mockStockMovements, mockBankAccounts, mockBankTransactions,
   mockCashSessions, mockCashTransactions, mockTechnicians, mockServiceCatalog,
-  mockServiceJobs, mockServiceSales
+  mockServiceJobs, mockServiceSales, mockInventorySessions
 } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
@@ -52,6 +52,11 @@ interface AppContextType {
 
   stockTransfers: StockTransfer[];
   transferStock: (data: any) => void;
+
+  inventorySessions: InventorySession[];
+  createInventorySession: (data: Partial<InventorySession>) => void;
+  updateInventorySession: (session: InventorySession) => void;
+  commitInventorySession: (session: InventorySession) => void;
 
   bankAccounts: BankAccount[];
   addBankAccount: (account: BankAccount) => void;
@@ -136,6 +141,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [warehouses, setWarehouses] = useState<Warehouse[]>(mockWarehouses);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>(mockStockMovements);
   const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>([]);
+  const [inventorySessions, setInventorySessions] = useState<InventorySession[]>(mockInventorySessions);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(mockBankAccounts);
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>(mockBankTransactions);
   const [cashSessions, setCashSessions] = useState<CashSession[]>(mockCashSessions);
@@ -419,6 +425,74 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setStockTransfers(prev => [newTransfer, ...prev]);
   };
 
+  // --- Inventory Sessions Logic ---
+
+  const createInventorySession = (data: Partial<InventorySession>) => {
+      const warehouseId = data.warehouseId || warehouses[0]?.id;
+      const warehouse = warehouses.find(w => w.id === warehouseId);
+      
+      // Filter products if category is set
+      let filteredProducts = products;
+      if (data.categoryFilter && data.categoryFilter !== 'All') {
+          filteredProducts = products.filter(p => p.category === data.categoryFilter);
+      }
+
+      const items: InventoryItem[] = filteredProducts.map(p => ({
+          productId: p.id,
+          productName: p.name,
+          sku: p.sku,
+          systemQty: p.warehouseStock[warehouseId] || 0, // Snapshot current qty
+          physicalQty: p.warehouseStock[warehouseId] || 0, // Default to current qty
+          variance: 0,
+          cost: p.cost
+      }));
+
+      const newSession: InventorySession = {
+          id: `inv-sess-${Date.now()}`,
+          reference: `INV-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          warehouseId: warehouseId,
+          warehouseName: warehouse?.name || 'Unknown',
+          status: 'in_progress',
+          categoryFilter: data.categoryFilter || 'All',
+          items: items,
+          notes: data.notes || ''
+      };
+      
+      setInventorySessions(prev => [newSession, ...prev]);
+  };
+
+  const updateInventorySession = (session: InventorySession) => {
+      setInventorySessions(prev => prev.map(s => s.id === session.id ? session : s));
+  };
+
+  const commitInventorySession = (session: InventorySession) => {
+      // 1. Create stock movements for variance
+      session.items.forEach(item => {
+          if (item.variance !== 0) {
+              addStockMovement({
+                  id: `sm-adj-${Date.now()}-${item.productId}`,
+                  productId: item.productId,
+                  productName: item.productName,
+                  warehouseId: session.warehouseId,
+                  warehouseName: session.warehouseName,
+                  date: new Date().toISOString(),
+                  quantity: item.variance, // Positive or negative adjustment
+                  type: 'adjustment',
+                  reference: session.reference,
+                  notes: `Inventory Audit Variance: ${item.variance}`,
+                  unitCost: item.cost,
+                  costBefore: item.cost,
+                  costAfter: item.cost
+              });
+          }
+      });
+
+      // 2. Mark session as completed
+      const completedSession = { ...session, status: 'completed' as const };
+      updateInventorySession(completedSession);
+  };
+
   const addBankAccount = (acc: BankAccount) => setBankAccounts(prev => [...prev, acc]);
   const updateBankAccount = (acc: BankAccount) => setBankAccounts(prev => prev.map(a => a.id === acc.id ? acc : a));
   const deleteBankAccount = (id: string) => setBankAccounts(prev => prev.filter(a => a.id !== id));
@@ -512,6 +586,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     warehouses, addWarehouse, updateWarehouse, deleteWarehouse,
     stockMovements, addStockMovement,
     stockTransfers, transferStock,
+    inventorySessions, createInventorySession, updateInventorySession, commitInventorySession,
     bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount,
     bankTransactions, addBankTransaction, deleteBankTransaction,
     cashSessions, openCashSession, closeCashSession,
