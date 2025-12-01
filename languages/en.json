@@ -1,4 +1,3 @@
-
 {
     "dashboard": "Dashboard",
     "clients": "Clients",
@@ -119,6 +118,9 @@
     "search_orders": "Search by order # or client...",
     "order_details": "Order Details",
     "generate_invoice": "Generate Invoice",
+    "cancel_order": "Cancel Order",
+    "order_cancelled": "Order Cancelled",
+    "confirm_cancel": "Are you sure you want to cancel this order?",
     "delivery_notes": "Delivery Notes",
     "delivery_notes_desc": "Track shipments and delivery status.",
     "new_delivery": "New Delivery",

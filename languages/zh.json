@@ -1,4 +1,3 @@
-
 {
     "dashboard": "仪表板",
     "clients": "客户",
@@ -183,6 +182,9 @@
     "search_orders": "搜索订单号或客户...",
     "order_details": "订单详情",
     "generate_invoice": "生成发票",
+    "cancel_order": "取消订单",
+    "order_cancelled": "订单已取消",
+    "confirm_cancel": "您确定要取消此订单吗？",
     "delivery_notes": "送货单",
     "delivery_notes_desc": "跟踪发货和交付状态。",
     "new_delivery": "新送货单",
