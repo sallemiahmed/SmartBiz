@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus, XCircle } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -70,6 +70,12 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
 
   const handleValidate = () => updateStatus('pending'); // "Pending" implies Confirmed/Validated in Order context
   const handleRevertToDraft = () => updateStatus('draft');
+  
+  const handleCancelOrder = () => {
+    if (confirm(t('confirm_cancel') || "Are you sure you want to cancel this order?")) {
+        updateStatus('cancelled');
+    }
+  };
 
   const handleGenerateInvoice = () => {
     if (!selectedDoc) return;
@@ -194,6 +200,7 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     switch(status) {
       case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
       case 'pending': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'; // Validated
+      case 'cancelled': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'; // Cancelled
       case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
     }
@@ -305,6 +312,12 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('date')}</span>
                 <span className="font-medium text-gray-900 dark:text-white">{selectedDoc.date}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('status')}</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(selectedDoc.status)}`}>
+                    {t(selectedDoc.status)}
+                </span>
               </div>
 
               {/* Editable Payment Details */}
@@ -513,19 +526,35 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                                 </button>
                             </>
                         ) : (
-                            <div className="w-full flex gap-2">
-                                <button 
-                                    onClick={handleRevertToDraft}
-                                    className="flex-1 px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-200 font-medium flex items-center justify-center gap-2"
-                                >
-                                    <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
-                                </button>
-                                <button 
-                                    onClick={handleGenerateInvoice}
-                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
-                                >
-                                    <FileText className="w-4 h-4" /> {t('generate_invoice')}
-                                </button>
+                            <div className="w-full flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={handleRevertToDraft}
+                                        className="flex-1 px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-200 font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
+                                    </button>
+                                    {selectedDoc.status !== 'cancelled' && (
+                                        <button 
+                                            onClick={handleGenerateInvoice}
+                                            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                                        >
+                                            <FileText className="w-4 h-4" /> {t('generate_invoice')}
+                                        </button>
+                                    )}
+                                </div>
+                                {selectedDoc.status !== 'cancelled' ? (
+                                    <button 
+                                        onClick={handleCancelOrder}
+                                        className="w-full px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <XCircle className="w-4 h-4" /> {t('cancel_order') || 'Cancel Order'}
+                                    </button>
+                                ) : (
+                                    <div className="w-full px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg font-medium flex items-center justify-center gap-2 cursor-default opacity-80">
+                                        <XCircle className="w-4 h-4" /> {t('order_cancelled') || 'Order Cancelled'}
+                                    </div>
+                                )}
                             </div>
                         )}
                         
