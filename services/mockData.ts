@@ -83,13 +83,13 @@ export const mockInventory: Product[] = [
 
 // --- CLIENTS ---
 export const mockClients: Client[] = [
-  { id: 'c1', company: 'Tunisie Telecom', name: 'Mohamed Ali Ben Salem', email: 'mohamed.bs@tunisietelecom.tn', phone: '+216 71 000 000', status: 'active', category: 'Corporate', totalSpent: 45000.00, region: 'Tunis' },
-  { id: 'c2', company: 'Clinique Internationale', name: 'Dr. Sarah Mzali', email: 'achat@clinique-inter.tn', phone: '+216 71 111 222', status: 'active', category: 'Santé', totalSpent: 8500.00, region: 'Ariana' },
-  { id: 'c3', company: 'StartUp Factory', name: 'Mehdi Jemaa', email: 'mehdi@startupfactory.tn', phone: '+216 55 123 456', status: 'inactive', category: 'Tech', totalSpent: 0, region: 'Sousse' },
-  { id: 'c4', company: 'Banque de l\'Habitat', name: 'Direction Achat', email: 'achats@bh.tn', phone: '+216 71 333 444', status: 'active', category: 'Finance', totalSpent: 120000.00, region: 'Tunis' },
-  { id: 'c5', company: 'Groupe Délice', name: 'Fethi Tounsi', email: 'f.tounsi@delice.tn', phone: '+216 71 555 666', status: 'active', category: 'Industrie', totalSpent: 15400.00, region: 'Ben Arous' },
-  { id: 'c6', company: 'Design & Co', name: 'Leila Ben Amor', email: 'leila@designco.tn', phone: '+216 22 999 888', status: 'active', category: 'Retail', totalSpent: 2200.00, region: 'Marsa' },
-  { id: 'c7', company: 'Sahar Construction', name: 'Ahmed Trabelsi', email: 'ahmed@saharconst.tn', phone: '+216 98 777 666', status: 'active', category: 'BTP', totalSpent: 35000.00, region: 'Sfax' }
+  { id: 'c1', company: 'Tunisie Telecom', name: 'Mohamed Ali Ben Salem', email: 'mohamed.bs@tunisietelecom.tn', phone: '+216 71 000 000', status: 'active', category: 'Corporate', totalSpent: 45000.00, region: 'Tunis', address: 'Jardins du Lac 2, 1053 Tunis', taxId: '1234567/A/M/000' },
+  { id: 'c2', company: 'Clinique Internationale', name: 'Dr. Sarah Mzali', email: 'achat@clinique-inter.tn', phone: '+216 71 111 222', status: 'active', category: 'Santé', totalSpent: 8500.00, region: 'Ariana', address: 'Avenue UMA, La Soukra', taxId: '9876543/B/P/000' },
+  { id: 'c3', company: 'StartUp Factory', name: 'Mehdi Jemaa', email: 'mehdi@startupfactory.tn', phone: '+216 55 123 456', status: 'inactive', category: 'Tech', totalSpent: 0, region: 'Sousse', address: 'Technopole Sousse', taxId: '4567890/D/N/000' },
+  { id: 'c4', company: 'Banque de l\'Habitat', name: 'Direction Achat', email: 'achats@bh.tn', phone: '+216 71 333 444', status: 'active', category: 'Finance', totalSpent: 120000.00, region: 'Tunis', address: 'Avenue Mohamed V, Tunis', taxId: '1122334/K/A/000' },
+  { id: 'c5', company: 'Groupe Délice', name: 'Fethi Tounsi', email: 'f.tounsi@delice.tn', phone: '+216 71 555 666', status: 'active', category: 'Industrie', totalSpent: 15400.00, region: 'Ben Arous', address: 'Zone Industrielle Soliman', taxId: '5544332/L/P/000' },
+  { id: 'c6', company: 'Design & Co', name: 'Leila Ben Amor', email: 'leila@designco.tn', phone: '+216 22 999 888', status: 'active', category: 'Retail', totalSpent: 2200.00, region: 'Marsa', address: 'Rue Imam Moslim, La Marsa', taxId: '9988776/S/C/000' },
+  { id: 'c7', company: 'Sahar Construction', name: 'Ahmed Trabelsi', email: 'ahmed@saharconst.tn', phone: '+216 98 777 666', status: 'active', category: 'BTP', totalSpent: 35000.00, region: 'Sfax', address: 'Route de Gremda Km 4, Sfax', taxId: '2233445/F/M/000' }
 ];
 
 // --- SUPPLIERS ---

@@ -38,6 +38,8 @@ export interface Client {
   category: string;
   totalSpent: number;
   region?: string;
+  address?: string;
+  taxId?: string; // Matricule Fiscal
   customFields?: Record<string, any>;
 }
 

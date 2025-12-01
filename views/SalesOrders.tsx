@@ -11,7 +11,7 @@ interface SalesOrdersProps {
 }
 
 const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, createSalesDocument, updateInvoice, products, serviceCatalog, t, formatCurrency, settings } = useApp();
+  const { invoices, deleteInvoice, createSalesDocument, updateInvoice, products, serviceCatalog, clients, t, formatCurrency, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -58,7 +58,8 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
 
   const handlePrint = () => {
     if (selectedDoc) {
-      printInvoice(selectedDoc, settings);
+      const client = clients.find(c => c.id === selectedDoc.clientId);
+      printInvoice(selectedDoc, settings, client);
     }
   };
 
@@ -642,82 +643,89 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
               ) : (
                   <>
                     <div className="flex gap-2">
-                        {/* Validation Logic */}
-                        {selectedDoc.status === 'draft' ? (
-                            <>
-                                <button 
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center gap-2"
-                                >
-                                    <Pencil className="w-4 h-4" /> {t('edit')}
-                                </button>
-                                <button 
-                                    onClick={handleValidate}
-                                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 font-medium"
-                                >
-                                    <CheckCircle className="w-4 h-4" /> Validate
-                                </button>
-                            </>
-                        ) : (
-                            <div className="w-full flex flex-col gap-2">
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={handleRevertToDraft}
-                                        className="flex-1 px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-200 font-medium flex items-center justify-center gap-2"
-                                    >
-                                        <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
-                                    </button>
-                                    {selectedDoc.status !== 'cancelled' && (
-                                        <button 
-                                            onClick={handleGenerateInvoice}
-                                            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
-                                        >
-                                            <FileText className="w-4 h-4" /> {t('generate_invoice')}
-                                        </button>
-                                    )}
-                                </div>
-                                {selectedDoc.status !== 'cancelled' && (
-                                    <div className="flex gap-2">
-                                        {!isFullyDelivered && (
-                                            <>
-                                                <button 
-                                                    onClick={handleOpenDeliveryModal}
-                                                    className="flex-1 px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-1.5"
-                                                >
-                                                    <Truck className="w-4 h-4" /> {t('create_delivery')}
-                                                </button>
-                                                <button 
-                                                    onClick={handleAutoDelivery}
-                                                    className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-1.5"
-                                                    title={t('deliver_all')}
-                                                >
-                                                    <PackageCheck className="w-4 h-4" /> {t('deliver_all') || 'Deliver All'}
-                                                </button>
-                                            </>
-                                        )}
-                                        <button 
-                                            onClick={handleCancelOrder}
-                                            className="px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
-                                        >
-                                            <XCircle className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                )}
-                                {selectedDoc.status === 'cancelled' && (
-                                    <div className="w-full px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg font-medium flex items-center justify-center gap-2 cursor-default opacity-80">
-                                        <XCircle className="w-4 h-4" /> {t('order_cancelled') || 'Order Cancelled'}
-                                    </div>
-                                )}
-                            </div>
+                        {/* EDIT Button - Only if Draft */}
+                        {selectedDoc.status === 'draft' && (
+                            <button 
+                                onClick={() => setIsEditing(true)}
+                                className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center gap-2"
+                            >
+                                <Pencil className="w-4 h-4" /> {t('edit')}
+                            </button>
                         )}
                         
                         <button 
                             onClick={handlePrint}
                             className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                            title={t('print')}
                         >
                             <Printer className="w-4 h-4" />
                         </button>
                     </div>
+
+                    {/* DRAFT ACTIONS */}
+                    {selectedDoc.status === 'draft' && (
+                        <button 
+                            onClick={handleValidate}
+                            className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                            <CheckCircle className="w-4 h-4" /> Validate
+                        </button>
+                    )}
+
+                    {/* VALIDATED/PENDING ACTIONS */}
+                    {(selectedDoc.status === 'pending' || selectedDoc.status === 'partial' || selectedDoc.status === 'completed') && (
+                        <div className="w-full flex flex-col gap-2">
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={handleRevertToDraft}
+                                    className="flex-1 px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-200 font-medium flex items-center justify-center gap-2"
+                                >
+                                    <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
+                                </button>
+                                {selectedDoc.status !== 'cancelled' && (
+                                    <button 
+                                        onClick={handleGenerateInvoice}
+                                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                                    >
+                                        <FileText className="w-4 h-4" /> {t('generate_invoice')}
+                                    </button>
+                                )}
+                            </div>
+                            {selectedDoc.status !== 'cancelled' && (
+                                <div className="flex gap-2">
+                                    {!isFullyDelivered && (
+                                        <>
+                                            <button 
+                                                onClick={handleOpenDeliveryModal}
+                                                className="flex-1 px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-1.5"
+                                            >
+                                                <Truck className="w-4 h-4" /> {t('create_delivery')}
+                                            </button>
+                                            <button 
+                                                onClick={handleAutoDelivery}
+                                                className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-1.5"
+                                                title={t('deliver_all')}
+                                            >
+                                                <PackageCheck className="w-4 h-4" /> {t('deliver_all') || 'Deliver All'}
+                                            </button>
+                                        </>
+                                    )}
+                                    <button 
+                                        onClick={handleCancelOrder}
+                                        className="px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {selectedDoc.status === 'cancelled' && (
+                        <div className="w-full px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg font-medium flex items-center justify-center gap-2 cursor-default opacity-80">
+                            <XCircle className="w-4 h-4" /> {t('order_cancelled') || 'Order Cancelled'}
+                        </div>
+                    )}
 
                     <button 
                         onClick={() => setIsViewModalOpen(false)}

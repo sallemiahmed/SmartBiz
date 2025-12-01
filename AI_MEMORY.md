@@ -122,6 +122,7 @@ graph TD
 
 1.  **CRM (Clients):**
     *   Manage customer profiles, contact info, and track total spend.
+    *   **Fields:** Includes `taxId` (Matricule Fiscal) and `address`.
 2.  **SRM (Suppliers):**
     *   Manage vendor profiles and procurement history.
 3.  **Inventory (Stock):**
@@ -142,6 +143,7 @@ graph TD
     *   **Returns (Customer):** Manage returns from customers. Source document (Invoice/Delivery) required. Updates stock (reintegrate or quarantine).
     *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
     *   **Note:** "Issue Notes" (Bons de Sortie) module has been removed.
+    *   **Printing:** Client Orders, Invoices, and Estimates PDF generation includes Client Name, Address, Phone, and Tax ID (Matricule Fiscal).
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
     *   **Returns (Supplier):** Manage returns to suppliers. Source document (GRN/Invoice) required. Deducts stock.
@@ -163,7 +165,7 @@ Key entities defined in `types.ts`:
 
 | Entity | Key Fields | Notes |
 | :--- | :--- | :--- |
-| **Client** | `id`, `company`, `status`, `totalSpent` | Basic CRM entity. |
+| **Client** | `id`, `company`, `status`, `totalSpent`, `taxId`, `address` | Basic CRM entity with Matricule Fiscal. |
 | **Product** | `id`, `sku`, `price`, `cost`, `stock`, `warehouseStock` | `warehouseStock` is a Record<WarehouseId, Quantity>. |
 | **Invoice** | `id`, `type`, `status`, `items`, `amount`, `paymentTerms`, `paymentMethod` | **Polymorphic**: Handles Estimates, Orders, Deliveries, Invoices, and Returns based on `type`. Stores Payment info. |
 | **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, Invoices, and Returns. |
@@ -276,3 +278,5 @@ Key entities defined in `types.ts`:
 *   **Sales Orders Cancellation:** Confirmed "Cancel Order" functionality for validated orders.
 *   **Sales Orders Delivery:** Added Partial/Full delivery functionality and "Deliver All" auto-creation.
 *   **Returns Module:** Implemented Returns for Customers and Suppliers. Removed Issue Notes module.
+*   **Client Update:** Added `taxId` (Matricule Fiscal) field to Client entity.
+*   **PDF Update:** Added Client Name, Address, Phone, and Tax ID to Estimate, Order, and Invoice PDFs.

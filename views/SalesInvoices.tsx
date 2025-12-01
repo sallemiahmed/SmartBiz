@@ -10,7 +10,7 @@ interface SalesInvoicesProps {
 }
 
 const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions } = useApp();
+  const { invoices, deleteInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -79,7 +79,8 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
 
   const handlePrint = () => {
     if (selectedDoc) {
-      printInvoice(selectedDoc, settings);
+      const client = clients.find(c => c.id === selectedDoc.clientId);
+      printInvoice(selectedDoc, settings, client);
     }
   };
 

@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Eye, Trash2, X, Printer, CheckCircle, ArrowRight, Save, RotateCcw, Pencil, XCircle, FileText, PackagePlus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, PackagePlus, Save } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -11,7 +11,7 @@ interface SalesEstimatesProps {
 }
 
 const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
-  const { invoices, deleteInvoice, updateInvoice, createSalesDocument, products, t, formatCurrency, settings } = useApp();
+  const { invoices, deleteInvoice, updateInvoice, createSalesDocument, products, clients, t, formatCurrency, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -34,8 +34,6 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
            doc.clientName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  // --- Handlers ---
-
   const handleOpenModal = (doc: Invoice) => {
     setSelectedDoc(doc);
     // Reset edit state
@@ -48,7 +46,8 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
 
   const handlePrint = () => {
     if (selectedDoc) {
-      printInvoice(selectedDoc, settings);
+      const client = clients.find(c => c.id === selectedDoc.clientId);
+      printInvoice(selectedDoc, settings, client);
     }
   };
 
@@ -220,7 +219,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('estimate')} 📝</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('estimate')} 📋</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('sales_estimates_desc')}</p>
         </div>
         <button 

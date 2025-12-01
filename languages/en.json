@@ -1,3 +1,4 @@
+
 {
     "dashboard": "Dashboard",
     "clients": "Clients",
@@ -472,5 +473,6 @@
     "defect": "Defective",
     "wrong_item": "Wrong Item",
     "no_longer_needed": "No Longer Needed",
-    "action": "Action"
+    "action": "Action",
+    "tax_id": "Tax ID"
 }
