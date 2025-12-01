@@ -134,7 +134,8 @@ graph TD
         *   Includes **Payment Terms** (e.g., Net 30) and **Payment Method** (e.g., Check) selection.
         *   **Validation Workflow:** Orders can be Validated (moving to 'Pending' status) and Reverted to Draft (allowing modification of items and details).
         *   **Draft Editing:** In Draft mode, users can add Products, Services, and Custom Items (non-existent in DB), as well as modify prices, quantities, and payment conditions.
-        *   **Cancellation:** Validated orders can be cancelled. Users can switch status from 'Pending' (Validated) to 'Cancelled' via the action menu.
+        *   **Cancellation:** Validated orders can be cancelled.
+        *   **Partial Delivery:** Validated orders support creation of partial or full delivery notes. The system calculates remaining quantities and updates the order status to 'partial' or 'completed'.
     *   **Custom Items:** "L’ajout d’articles non existants dans la base permet de créer de nouveaux articles directement depuis le devis." (Adding non-existent items allows creating new items directly from the estimate).
 5.  **Purchasing:**
     *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
@@ -183,6 +184,7 @@ Key entities defined in `types.ts`:
     *   **Terms:** Must select Payment Terms and Payment Method during creation.
     *   **Revert:** Can be reverted from 'Validated' (Pending) to 'Draft' to modify elements.
     *   **Cancel:** Orders can be cancelled after validation.
+    *   **Partial Delivery:** Create Delivery Notes for partial quantities.
 3.  **Delivery:** Created from Order. **Action:** Deducts stock from specific warehouse via `addStockMovement`.
 4.  **Invoice:** Created from Order or Delivery. Records revenue.
 5.  **Payment:** Recorded against Invoice. Updates `amountPaid` and creates `BankTransaction` or `CashTransaction`.
@@ -264,4 +266,4 @@ Key entities defined in `types.ts`:
 *   **Sales Orders Workflow:** Added Validation (Draft->Pending) and Revert to Draft (Pending->Draft) with inline editing capabilities.
 *   **Sales Orders Editing:** Added support for adding Services and Custom Items (text/price) in Draft mode.
 *   **Sales Orders Cancellation:** Confirmed "Cancel Order" functionality for validated orders.
-*   **Localization:** Added translation keys for order cancellation workflow.
+*   **Sales Orders Delivery:** Added Partial/Full delivery functionality.

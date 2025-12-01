@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus, XCircle } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus, XCircle, Truck } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -25,6 +25,10 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   // Custom Item State
   const [customItem, setCustomItem] = useState({ description: '', price: 0, quantity: 1 });
   const [isAddingCustom, setIsAddingCustom] = useState(false);
+
+  // Delivery Modal State
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
+  const [deliveryQuantities, setDeliveryQuantities] = useState<Record<string, number>>({});
 
   // Filter only sales orders
   const salesOrders = invoices.filter(inv => inv.type === 'order');
@@ -102,6 +106,79 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     }, selectedDoc.items);
 
     setIsViewModalOpen(false);
+    alert(t('success'));
+  };
+
+  // --- Delivery Logic ---
+
+  const handleOpenDeliveryModal = () => {
+    if (!selectedDoc) return;
+    const initialQtys: Record<string, number> = {};
+    selectedDoc.items.forEach(item => {
+        const remaining = item.quantity - (item.fulfilledQuantity || 0);
+        initialQtys[item.id] = remaining > 0 ? remaining : 0;
+    });
+    setDeliveryQuantities(initialQtys);
+    setIsViewModalOpen(false);
+    setIsDeliveryModalOpen(true);
+  };
+
+  const handleDeliveryQtyChange = (id: string, value: string) => {
+    const qty = parseFloat(value) || 0;
+    const item = selectedDoc?.items.find(i => i.id === id);
+    if (!item) return;
+    const remaining = item.quantity - (item.fulfilledQuantity || 0);
+    // Clamp between 0 and remaining
+    const validQty = Math.max(0, Math.min(qty, remaining));
+    setDeliveryQuantities(prev => ({ ...prev, [id]: validQty }));
+  };
+
+  const handleSubmitDelivery = () => {
+    if (!selectedDoc) return;
+    
+    // Filter items to deliver
+    const itemsToDeliver = selectedDoc.items
+        .filter(item => (deliveryQuantities[item.id] || 0) > 0)
+        .map(item => ({
+            ...item,
+            quantity: deliveryQuantities[item.id]
+        }));
+
+    if (itemsToDeliver.length === 0) {
+        alert(t('select_item_deliver'));
+        return;
+    }
+
+    // 1. Create Delivery Note
+    createSalesDocument('delivery', {
+        clientId: selectedDoc.clientId,
+        clientName: selectedDoc.clientName,
+        date: new Date().toISOString().split('T')[0],
+        warehouseId: selectedDoc.warehouseId,
+        linkedDocumentId: selectedDoc.id,
+        notes: `Delivery for Order ${selectedDoc.number}`,
+        status: 'completed'
+    }, itemsToDeliver);
+
+    // 2. Update Order Fulfilled Qty & Status
+    const updatedItems = selectedDoc.items.map(item => {
+        const deliveredNow = deliveryQuantities[item.id] || 0;
+        return {
+            ...item,
+            fulfilledQuantity: (item.fulfilledQuantity || 0) + deliveredNow
+        };
+    });
+
+    const isFullyDelivered = updatedItems.every(i => (i.fulfilledQuantity || 0) >= i.quantity);
+    const newStatus = isFullyDelivered ? 'completed' : 'partial';
+
+    updateInvoice({
+        ...selectedDoc,
+        items: updatedItems,
+        status: newStatus as any
+    });
+
+    setIsDeliveryModalOpen(false);
     alert(t('success'));
   };
 
@@ -200,11 +277,14 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
     switch(status) {
       case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
       case 'pending': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'; // Validated
+      case 'partial': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'; // Partial Delivery
       case 'cancelled': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'; // Cancelled
       case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
     }
   };
+
+  const isFullyDelivered = selectedDoc?.items.every(i => (i.fulfilledQuantity || 0) >= i.quantity) || false;
 
   return (
     <div className="p-6">
@@ -468,12 +548,21 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                       ))
                   ) : (
                       selectedDoc.items.length > 0 ? (
-                        selectedDoc.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
-                            <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
-                          </div>
-                        ))
+                        selectedDoc.items.map((item, idx) => {
+                          const remaining = item.quantity - (item.fulfilledQuantity || 0);
+                          const isFullyDelivered = remaining <= 0;
+                          return (
+                            <div key={idx} className="flex justify-between items-center text-sm">
+                              <div className="flex flex-col">
+                                <span className="text-gray-600 dark:text-gray-400">{item.quantity}x {item.description}</span>
+                                <span className={`text-xs ${isFullyDelivered ? 'text-green-500' : 'text-orange-500'}`}>
+                                    {isFullyDelivered ? 'Fully Delivered' : `Remaining: ${remaining}`}
+                                </span>
+                              </div>
+                              <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                            </div>
+                          );
+                        })
                       ) : (
                         <p className="text-sm text-gray-400 italic">No items recorded</p>
                       )
@@ -543,14 +632,25 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                                         </button>
                                     )}
                                 </div>
-                                {selectedDoc.status !== 'cancelled' ? (
-                                    <button 
-                                        onClick={handleCancelOrder}
-                                        className="w-full px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
-                                    >
-                                        <XCircle className="w-4 h-4" /> {t('cancel_order') || 'Cancel Order'}
-                                    </button>
-                                ) : (
+                                {selectedDoc.status !== 'cancelled' && (
+                                    <div className="flex gap-2">
+                                        {!isFullyDelivered && (
+                                            <button 
+                                                onClick={handleOpenDeliveryModal}
+                                                className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-2"
+                                            >
+                                                <Truck className="w-4 h-4" /> {t('create_delivery')}
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={handleCancelOrder}
+                                            className="flex-1 px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
+                                        >
+                                            <XCircle className="w-4 h-4" /> {t('cancel_order') || 'Cancel Order'}
+                                        </button>
+                                    </div>
+                                )}
+                                {selectedDoc.status === 'cancelled' && (
                                     <div className="w-full px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg font-medium flex items-center justify-center gap-2 cursor-default opacity-80">
                                         <XCircle className="w-4 h-4" /> {t('order_cancelled') || 'Order Cancelled'}
                                     </div>
@@ -574,6 +674,78 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                     </button>
                   </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery Modal */}
+      {isDeliveryModalOpen && selectedDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('create_delivery_title')}</h3>
+                <p className="text-xs text-gray-500">{t('for_order')}: {selectedDoc.number}</p>
+              </div>
+              <button onClick={() => setIsDeliveryModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th className="px-3 py-2 text-left">{t('item')}</th>
+                    <th className="px-3 py-2 text-center">{t('ordered')}</th>
+                    <th className="px-3 py-2 text-center">{t('delivered')}</th>
+                    <th className="px-3 py-2 text-right">{t('deliver_now')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {selectedDoc.items.map((item) => {
+                    const fulfilled = item.fulfilledQuantity || 0;
+                    const remaining = item.quantity - fulfilled;
+                    const isFullyDelivered = remaining <= 0;
+
+                    return (
+                      <tr key={item.id} className={isFullyDelivered ? 'opacity-50' : ''}>
+                        <td className="px-3 py-3 text-gray-900 dark:text-white">
+                          <div className="font-medium">{item.description}</div>
+                        </td>
+                        <td className="px-3 py-3 text-center text-gray-500">{item.quantity}</td>
+                        <td className="px-3 py-3 text-center text-green-600">{fulfilled}</td>
+                        <td className="px-3 py-3 text-right">
+                          <input 
+                            type="number" 
+                            min="0"
+                            max={remaining}
+                            disabled={isFullyDelivered}
+                            value={deliveryQuantities[item.id] || 0}
+                            onChange={(e) => handleDeliveryQtyChange(item.id, e.target.value)}
+                            className="w-20 px-2 py-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-center focus:ring-2 focus:ring-slate-500 outline-none dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={() => setIsDeliveryModalOpen(false)}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                {t('cancel')}
+              </button>
+              <button 
+                onClick={handleSubmitDelivery}
+                className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 flex items-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                {t('confirm_delivery')}
+              </button>
             </div>
           </div>
         </div>
