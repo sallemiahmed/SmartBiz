@@ -1,143 +1,245 @@
 # AI Project Memory: SmartBiz Manager
 
 **Last Updated:** 2024-05-22
-**Project Type:** SaaS Business Management Platform (Frontend Prototype)
+**Project Type:** SaaS ERP / Business Management Platform (Frontend Prototype)
 **Tech Stack:** React 19, TypeScript, Vite, Tailwind CSS, Lucide Icons, Recharts, Google GenAI SDK.
 
-## 1. Project Summary
-SmartBiz Manager is a comprehensive, multi-module single-page application (SPA) designed to manage various business aspects including CRM, SRM, Inventory, Sales, Purchasing, Services, and Finance. It features a modern UI with dark mode support, multi-language capabilities (LTR/RTL), and an AI assistant. Currently, it operates on mock data managed via React Context.
+---
 
-## 2. File & Folder Structure
+## 1. Project Overview
 
-```text
-/
-├── index.html              # Entry HTML
-├── index.tsx               # Entry Point
-├── App.tsx                 # Main Layout & Manual Routing
-├── types.ts                # TypeScript Interfaces (Models)
-├── vite.config.ts          # Vite Configuration
-├── metadata.json           # App Metadata
-├── README.md               # Project Documentation
-├── AI_MEMORY.md            # Technical Memory (This file)
-│
-├── components/             # Reusable UI Components
-│   ├── Sidebar.tsx         # Main Navigation
-│   ├── TopBar.tsx          # Header (Search, Theme, Profile)
-│   ├── StatsCard.tsx       # Dashboard KPI Cards
-│   ├── Pagination.tsx      # Table Pagination
-│   ├── ProgressBar.tsx     # Loading Indicator
-│   ├── SearchableSelect.tsx # Custom Dropdown
-│   └── AIAssistant.tsx     # Gemini-powered Chatbot
-│
-├── context/                # State Management
-│   └── AppContext.tsx      # Global State (CRUD, Logic, Mock Data)
-│
-├── services/               # Data & External Services
-│   ├── mockData.ts         # Static Data for all modules
-│   └── translations.ts     # I18n Loader
-│
-├── utils/                  # Helper Functions
-│   ├── currencyList.ts     # Supported Currencies
-│   └── printGenerator.ts   # PDF/Print generation logic
-│
-├── views/                  # Page Views
-│   ├── App.tsx             # (Duplicate/Alternate Entry?)
-│   ├── Dashboard.tsx       # Main Analytics
-│   ├── Settings.tsx        # Config (Company, Tax, Security)
-│   ├── Reports.tsx         # Analytics Hub
-│   ├── Clients.tsx         # CRM
-│   ├── Suppliers.tsx       # SRM
-│   │
-│   ├── Sales.tsx           # Generic Sales Form (Create/Edit)
-│   ├── SalesEstimates.tsx  # Quotes List
-│   ├── SalesOrders.tsx     # SO List
-│   ├── SalesDeliveries.tsx # Delivery Notes List
-│   ├── SalesInvoices.tsx   # Sales Invoices List
-│   ├── SalesIssues.tsx     # Issue Notes List
-│   │
-│   ├── Purchases.tsx       # Generic Purchase Form (Create/Edit)
-│   ├── InternalPurchaseRequest.tsx # PR List
-│   ├── RequestForQuotation.tsx     # RFQ List
-│   ├── PurchaseOrders.tsx          # PO List
-│   ├── PurchaseDeliveries.tsx      # GRN List
-│   ├── PurchaseInvoices.tsx        # Purchase Invoices List
-│   │
-│   ├── Inventory.tsx           # Product List
-│   ├── InventoryWarehouses.tsx # Warehouse Management
-│   ├── InventoryTransfers.tsx  # Stock Movement/Transfer
-│   │
-│   ├── Services.tsx            # Generic Service Job Form
-│   ├── ServiceDashboard.tsx    # Service KPIs
-│   ├── ServiceJobs.tsx         # Repair/Job Tickets
-│   ├── ServiceCatalog.tsx      # Service Definitions
-│   ├── ServiceSales.tsx        # Service-specific Sales
-│   ├── Technicians.tsx         # Staff Management
-│   │
-│   ├── Invoices.tsx        # General Document History
-│   ├── BankManagement.tsx  # Bank Accounts & Transactions
-│   ├── CashRegister.tsx    # Petty Cash / Register Shifts
-│   └── CostAnalysis.tsx    # Profitability & COGS Analysis
-│
-└── languages/              # Localization Files
-    ├── manifest.json
-    ├── en.json, fr.json, ar.json, zh.json, he.json, ja.json
-    └── (Legacy XML files present but JSON seems active)
+**SmartBiz Manager** is a single-page application (SPA) designed as a comprehensive ERP (Enterprise Resource Planning) system. It targets small to medium businesses requiring integrated management of CRM, Inventory, Sales, Purchasing, Services, and Finance.
+
+**Key Characteristics:**
+*   **Architecture:** Client-side Monolith. Currently operates without a backend API; data is managed in React Context (`AppContext`) and initialized with mock data.
+*   **Multi-Lingual:** Built-in support for LTR (English, French) and RTL (Arabic, Hebrew) layouts.
+*   **Module-Based:** Distinct modules for different business functions, navigable via a sidebar.
+*   **AI-Enhanced:** Integrates Google Gemini for a conversational business assistant.
+
+**User Roles:**
+*   Currently implicit **Admin** access (no granular permission system implemented yet).
+
+---
+
+## 2. Technical Architecture
+
+The application follows a classic React SPA structure using Context API for global state management.
+
+### High-Level Architecture
+
+```mermaid
+flowchart LR
+    User[User Browser]
+    
+    subgraph "Frontend Application (Vite/React)"
+        Routing[Manual Routing (App.tsx)]
+        
+        subgraph "UI Layer"
+            Layout[Sidebar & TopBar]
+            Views[Views / Pages]
+            Components[Reusable Components]
+        end
+        
+        subgraph "Logic Layer"
+            Context[AppContext (Global State)]
+            Services[Mock Data & Translations]
+            Utils[Calculations & PDF Gen]
+        end
+        
+        subgraph "External Integrations"
+            GenAI[Google GenAI SDK]
+        end
+    end
+
+    User --> Routing
+    Routing --> Layout
+    Layout --> Views
+    Views --> Components
+    Views -- CRUD Actions --> Context
+    Context -- Initial Data --> Services
+    Components -- AI Prompts --> GenAI
 ```
 
-## 3. Core Architecture
+### Stack Details
+*   **Build Tool:** Vite
+*   **Framework:** React 19 (Functional Components, Hooks)
+*   **Language:** TypeScript
+*   **Styling:** Tailwind CSS (Dark mode support via `class` strategy)
+*   **State Management:** `AppContext.tsx` (Centralized state for all domains)
+*   **Routing:** Custom state-based routing in `App.tsx` (`currentView` state).
+*   **I18n:** Custom JSON loader (`services/translations.ts`).
 
-### State Management (`AppContext.tsx`)
-*   **Centralized Store**: Holds all data (`clients`, `products`, `invoices`, `stockMovements`, etc.) in React State.
-*   **Persistence**: Currently purely in-memory (resets on reload), initialized from `mockData.ts`.
-*   **Actions**: Exports CRUD functions (`addClient`, `updateInvoice`, `transferStock`, etc.) available via `useApp()` hook.
+---
 
-### Routing (`App.tsx`)
-*   **Manual Routing**: Uses a state variable `currentView` (Type: `AppView`) to conditionally render components in the main layout.
-*   **Navigation**: Handled by `Sidebar.tsx` (sets `currentView`) and internal links (e.g., "Add New" buttons).
+## 3. Domain & Modules Map
 
-### Internationalization
-*   **Dynamic Loading**: `translations.ts` fetches JSON files from `/languages/`.
-*   **RTL Support**: `App.tsx` toggles `dir="rtl"` on `<html>` based on selected language (Arabic/Hebrew).
+The ERP is divided into several high-level domains.
 
-## 4. Key Business Logic
+```mermaid
+graph TD
+    ERP[SmartBiz ERP]
+    
+    ERP --> CRM[CRM]
+    ERP --> SRM[SRM]
+    ERP --> IMM[Inventory]
+    ERP --> SCM[Sales]
+    ERP --> PCM[Purchasing]
+    ERP --> FIN[Finance]
+    ERP --> SRV[Services]
+    ERP --> REP[Reporting]
+    ERP --> SYS[Settings]
 
-### Sales Cycle
-1.  **Estimate**: Proposal stage.
-2.  **Order**: Confirmation.
-3.  **Delivery**: Deducts physical stock (via `SalesDeliveries`).
-4.  **Invoice**: Financial record (Revenue).
-5.  **Issue Note**: Manual stock deduction.
+    CRM --> Clients
+    SRM --> Suppliers
+    
+    IMM --> Products
+    IMM --> Warehouses
+    IMM --> Movements
+    
+    SCM --> Estimates
+    SCM --> Orders
+    SCM --> Deliveries
+    SCM --> SalesInvoices
+    
+    PCM --> PR[Purchase Requests]
+    PCM --> RFQ
+    PCM --> PO[Purchase Orders]
+    PCM --> GRN[Goods Receipt]
+    PCM --> PurchInvoices
+    
+    FIN --> Banking
+    FIN --> CashRegister
+    FIN --> CostAnalysis
+    
+    SRV --> Jobs[Job Cards]
+    SRV --> Techs[Technicians]
+```
 
-### Purchase Cycle
-1.  **PR (Internal Request)**: Internal approval step.
-2.  **RFQ**: Request pricing from suppliers.
-3.  **Order (PO)**: Official order to supplier.
-4.  **Delivery (GRN)**: Increases physical stock.
-5.  **Invoice**: Financial record (Expense).
+### Domain Details
 
-### Inventory Logic
-*   **Multi-Warehouse**: Stock is tracked per warehouse in `product.warehouseStock`.
-*   **Movements**: All changes (sales, purchases, transfers) are logged in `stockMovements`.
-*   **Costing**: Supports WAC (Weighted Average Cost) simulation in `CostAnalysis.tsx`.
+1.  **CRM (Clients):**
+    *   Manage customer profiles, contact info, and track total spend.
+2.  **SRM (Suppliers):**
+    *   Manage vendor profiles and procurement history.
+3.  **Inventory (Stock):**
+    *   **Multi-Warehouse:** Products track stock per warehouse (`warehouseStock`).
+    *   **Movements:** Log of all ins/outs (`StockMovement`).
+    *   **Valuation:** Weighted Average Cost (WAC) logic present in analysis.
+4.  **Sales:**
+    *   Full cycle: Quote → Order → Delivery → Invoice.
+    *   Includes "Issue Notes" for manual stock-out without invoicing.
+5.  **Purchasing:**
+    *   Full cycle: PR (Internal) → RFQ → PO → Delivery (GRN) → Invoice.
+6.  **Services:**
+    *   Job Cards for repair/maintenance.
+    *   Links Services (labor) and Products (parts).
+    *   Technician management and scheduling status.
+7.  **Finance:**
+    *   **Banking:** Accounts, Transactions (Deposit, Withdrawal, Transfer).
+    *   **Cash Register:** Shift-based cash management (Open/Close sessions).
+8.  **Settings:**
+    *   Company profile, Logo, VAT/Tax rates, Currency, Fiscal Stamp configuration.
 
-### Services Logic
-*   **Jobs**: Track repair tickets with status (Pending -> In Progress -> Completed).
-*   **Billing**: Jobs can include Services (Labor) and Parts (Products). Can be converted to Invoices.
+---
 
-## 5. UI/UX Patterns
-*   **Layout**: Fixed Sidebar (Left) + TopBar (Header) + Scrollable Content Area.
-*   **Modals**: Heavy use of overlay modals for Forms (Add/Edit) and Details views to keep context.
-*   **Tables**: Custom table implementation with `Pagination.tsx`.
-*   **Theme**: Tailwind `dark:` classes used extensively for full Dark Mode support.
+## 4. Data Model Summary
 
-## 6. Known Issues / TODOs
-*   **Persistence**: Data is lost on refresh (Mock data only).
-*   **App.tsx Duplication**: `views/App.tsx` appears to be a copy or alternate version of root `App.tsx`.
-*   **Validation**: Form validation is basic (HTML5 attributes).
-*   **Routing**: No URL history/deep linking due to manual state-based routing.
-*   **Localization**: XML files exist in `languages/` but `translations.ts` logic points to JSON.
+Key entities defined in `types.ts`:
 
-## 7. AI Capabilities
-*   **Google Gemini**: Integrated in `components/AIAssistant.tsx`.
-*   **Context**: Feeds current dashboard stats (Revenue, Expenses) to the LLM to answer business questions.
-*   **Configuration**: Requires API Key in `Settings`.
+| Entity | Key Fields | Notes |
+| :--- | :--- | :--- |
+| **Client** | `id`, `company`, `status`, `totalSpent` | Basic CRM entity. |
+| **Product** | `id`, `sku`, `price`, `cost`, `stock`, `warehouseStock` | `warehouseStock` is a Record<WarehouseId, Quantity>. |
+| **Invoice** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles Estimates, Orders, Deliveries, and Invoices based on `type`. |
+| **Purchase** | `id`, `type`, `status`, `items`, `amount`, `linkedDocumentId` | **Polymorphic**: Handles PR, RFQ, Orders, Deliveries, and Invoices. |
+| **StockMovement** | `id`, `productId`, `warehouseId`, `type`, `quantity` | Ledger for all stock changes. Types: `sale`, `purchase`, `transfer`, etc. |
+| **ServiceJob** | `id`, `ticketNumber`, `status`, `services`, `usedParts` | Tracks repair jobs. Links to `ServiceItem` and `Product`. |
+| **BankAccount** | `id`, `balance`, `currency` | Tracks liquid assets. |
+| **CashSession** | `id`, `status`, `openingBalance`, `closingBalance` | Controls cash drawer shifts. |
+
+**Important Enums/Types:**
+*   `SalesDocumentType`: 'estimate' | 'order' | 'delivery' | 'invoice' | 'issue'
+*   `PurchaseDocumentType`: 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice'
+*   `ServiceJobStatus`: 'pending' | 'in_progress' | 'completed' | 'invoiced'
+
+---
+
+## 5. Application Flows
+
+### Sales Workflow
+1.  **Estimate (Optional):** Created in `SalesEstimates`. Status: `draft` -> `sent` -> `accepted`.
+2.  **Order:** Created directly or converted from Estimate. Reserves stock conceptually (though hard reservation logic is todo).
+3.  **Delivery:** Created from Order. **Action:** Deducts stock from specific warehouse via `addStockMovement`.
+4.  **Invoice:** Created from Order or Delivery. Records revenue.
+5.  **Payment:** Recorded against Invoice. Updates `amountPaid` and creates `BankTransaction` or `CashTransaction`.
+
+### Purchase Workflow
+1.  **PR (Internal):** Staff requests items.
+2.  **RFQ:** Sent to suppliers.
+3.  **Purchase Order:** Confirmed agreement.
+4.  **Goods Receipt (GRN):** **Action:** Increases stock in specific warehouse. Updates WAC (Weighted Average Cost).
+5.  **Bill/Invoice:** Records expense.
+
+### Service Workflow
+1.  **Job Card:** Created with customer & device info.
+2.  **Diagnosis/Work:** Technician adds `Services` (Labor) and `Products` (Parts) to the job.
+3.  **Completion:** Job status set to `completed`.
+4.  **Invoicing:** Job converted to `Invoice`. Parts deducted from inventory.
+
+---
+
+## 6. Configuration & Settings
+
+*   **Global Settings (`AppSettings`):**
+    *   Stored in `AppContext`.
+    *   **Currency:** Configurable symbol/code.
+    *   **Tax:** List of `TaxRate` objects (e.g., VAT 19%).
+    *   **Fiscal Stamp:** Toggle and value.
+    *   **Localization:** Language (en, fr, ar, etc.) triggers RTL/LTR.
+    *   **Gemini API Key:** User-provided key for AI features.
+
+---
+
+## 7. Security, Permissions & Error Handling
+
+*   **Auth:** No authentication system implementation found. The app assumes an authenticated context or single-user mode.
+*   **Permissions:** No role-based access control (RBAC). All modules are accessible.
+*   **Error Handling:** Basic `console.error` and alert dialogs. `AIAssistant` has specific error handling for API keys.
+
+---
+
+## 8. Current Limitations & Technical Debt
+
+1.  **Persistence:** **CRITICAL**. Data resides solely in React Memory. Refreshing the browser resets all data to `mockData.ts`.
+2.  **Routing:** Manual `useState` routing prevents deep linking and browser history navigation (Back button doesn't work as expected).
+3.  **Performance:** `AppContext` contains ALL data and methods. This will cause re-renders of the entire app on small changes as the dataset grows.
+4.  **Validation:** Input validation is minimal (mostly HTML5 attributes).
+5.  **Type Safety:** Heavy use of `any` in some complex transformations (e.g., `Purchases.tsx` cart handling).
+
+---
+
+## 9. TODO / Roadmap
+
+*   **Persistence:** Implement `localStorage` or IndexedDB adapter in `AppContext` to survive refreshes.
+*   **Refactor Routing:** Migrate to `react-router-dom` for better navigation UX.
+*   **State Management:** Split `AppContext` into domain-specific contexts (e.g., `SalesContext`, `InventoryContext`) or use Redux/Zustand.
+*   **Validation:** Integrate `zod` or `react-hook-form`.
+*   **Dashboard:** Connect `Dashboard.tsx` charts to real context data (currently some charts might be static or partially mocked).
+
+---
+
+## 10. Diagrams Index
+
+*   **Architecture:** Section 2 (Mermaid Flowchart).
+*   **Domain Map:** Section 3 (Mermaid Graph).
+
+---
+
+## 11. Last Update
+
+**Timestamp:** 2024-05-22
+**Changelog:**
+*   Initial deep scan and creation of structure `AI_MEMORY.md`.
+*   Mapped all modules and key entity relationships.
+*   Identified polymorphic nature of `Invoice` and `Purchase` types.
+*   Documented the critical lack of persistence.
