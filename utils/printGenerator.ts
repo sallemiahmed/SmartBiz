@@ -1,7 +1,7 @@
 
-import { Invoice, Purchase, AppSettings, ServiceJob, Client } from '../types';
+import { Invoice, Purchase, AppSettings, ServiceJob } from '../types';
 
-export const printInvoice = (document: Invoice | Purchase, settings: AppSettings, entity?: Client | any) => {
+export const printInvoice = (document: Invoice | Purchase, settings: AppSettings) => {
   const isRTL = settings.language === 'ar';
   
   // Calculate Totals
@@ -22,12 +22,6 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
   // Note: Usually tax is on (Subtotal - Discount)
   const taxableAmount = Math.max(0, subtotal - discountAmount);
   const taxAmount = taxableAmount * (taxRate / 100);
-
-  // Entity Details (Client or Supplier)
-  const entityName = (document as Invoice).clientName || (document as Purchase).supplierName;
-  const entityAddress = entity?.address || entity?.region || '';
-  const entityPhone = entity?.phone || '';
-  const entityTaxId = entity?.taxId || '';
 
   const html = `
     <!DOCTYPE html>
@@ -79,10 +73,8 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
       <div class="addresses">
         <div class="address-box">
           <h3>Billed To:</h3>
-          <p><strong>${entityName}</strong></p>
-          ${entityAddress ? `<p>${entityAddress}</p>` : ''}
-          ${entityPhone ? `<p>Phone: ${entityPhone}</p>` : ''}
-          ${entityTaxId ? `<p>Matricule Fiscale: ${entityTaxId}</p>` : ''}
+          <p><strong>${(document as Invoice).clientName || (document as Purchase).supplierName}</strong></p>
+          <!-- Additional client/supplier details would go here if available -->
         </div>
         <div class="address-box" style="text-align: ${isRTL ? 'left' : 'right'};">
           ${(document as Purchase).requesterName ? `<h3>Requester:</h3><p>${(document as Purchase).requesterName}</p><p>${(document as Purchase).department || ''}</p>` : ''}
@@ -158,90 +150,88 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
 };
 
 export const printJobCard = (job: ServiceJob, settings: AppSettings) => {
-  const isRTL = settings.language === 'ar';
-  
-  const html = `
-    <!DOCTYPE html>
-    <html lang="${settings.language}" dir="${isRTL ? 'rtl' : 'ltr'}">
-    <head>
-      <meta charset="UTF-8">
-      <title>Job Card ${job.ticketNumber}</title>
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; direction: ${isRTL ? 'rtl' : 'ltr'}; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-        .logo { max-height: 60px; margin-bottom: 10px; }
-        .company-info h1 { margin: 0 0 5px; font-size: 20px; color: #2c3e50; }
-        .doc-title { text-align: ${isRTL ? 'left' : 'right'}; }
-        .doc-title h2 { margin: 0; font-size: 24px; color: #2c3e50; text-transform: uppercase; }
-        .section { margin-bottom: 20px; }
-        .section h3 { background: #f3f4f6; padding: 5px 10px; font-size: 14px; text-transform: uppercase; border-left: 4px solid #4f46e5; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .info-item label { display: block; font-size: 12px; color: #666; font-weight: bold; }
-        .info-item span { display: block; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 8px; background: #eee; font-size: 12px; }
-        td { padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; }
-        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <div class="company-info">
-          ${settings.companyLogo ? `<img src="${settings.companyLogo}" class="logo" />` : ''}
-          <h1>${settings.companyName}</h1>
-          <p>${settings.companyAddress} | ${settings.companyPhone}</p>
+    const isRTL = settings.language === 'ar';
+    // Basic Job Card Print Logic
+    const html = `
+      <!DOCTYPE html>
+      <html dir="${isRTL ? 'rtl' : 'ltr'}">
+      <head>
+        <title>Job Card ${job.ticketNumber}</title>
+        <style>
+          body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; direction: ${isRTL ? 'rtl' : 'ltr'}; }
+          .header { border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+          .section { margin-bottom: 20px; }
+          h1 { margin: 0; font-size: 24px; }
+          .logo { max-height: 60px; margin-bottom: 10px; display: block; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+          .box { border: 1px solid #ccc; padding: 10px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: ${isRTL ? 'right' : 'left'}; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            ${settings.companyLogo ? `<img src="${settings.companyLogo}" class="logo" />` : ''}
+            <h1>JOB CARD</h1>
+            <h3>${settings.companyName}</h3>
+            <p>${settings.companyAddress}</p>
+            <p>${settings.companyPhone}</p>
+          </div>
+          <div style="text-align: ${isRTL ? 'left' : 'right'};">
+            <h2>#${job.ticketNumber}</h2>
+            <p>Date: ${job.date}</p>
+          </div>
         </div>
-        <div class="doc-title">
-          <h2>Job Card</h2>
-          <p>#${job.ticketNumber}</p>
-          <p>Date: ${job.date}</p>
+
+        <div class="grid">
+          <div class="box">
+            <strong>Client Details:</strong><br>
+            ${job.clientName}<br>
+            <!-- Add address if available from context lookup -->
+          </div>
+          <div class="box">
+            <strong>Device Info:</strong><br>
+            ${job.deviceInfo}<br>
+            <strong>Technician:</strong> ${job.technicianName || 'Unassigned'}<br>
+            <strong>Priority:</strong> ${job.priority.toUpperCase()}
+          </div>
         </div>
-      </div>
 
-      <div class="section">
-        <h3>Client & Device Information</h3>
-        <div class="info-grid">
-          <div class="info-item"><label>Client Name</label><span>${job.clientName}</span></div>
-          <div class="info-item"><label>Device Info</label><span>${job.deviceInfo}</span></div>
-          <div class="info-item"><label>Priority</label><span>${job.priority.toUpperCase()}</span></div>
-          <div class="info-item"><label>Technician</label><span>${job.technicianName || 'Unassigned'}</span></div>
+        <div class="section">
+          <strong>Problem Description:</strong>
+          <p>${job.problemDescription || 'N/A'}</p>
         </div>
-      </div>
 
-      <div class="section">
-        <h3>Reported Issue</h3>
-        <p>${job.problemDescription}</p>
-      </div>
+        <div class="section">
+          <strong>Resolution Notes:</strong>
+          <p>${job.resolutionNotes || '____________________________________________________'}</p>
+        </div>
 
-      <div class="section">
-        <h3>Services & Parts</h3>
-        <table>
-          <thead><tr><th>Description</th><th>Type</th><th style="text-align:right">Price</th></tr></thead>
-          <tbody>
-            ${job.services.map(s => `<tr><td>${s.name}</td><td>Service</td><td style="text-align:right">${s.price.toFixed(2)}</td></tr>`).join('')}
-            ${job.usedParts.map(p => `<tr><td>${p.name} (x${p.quantity})</td><td>Part</td><td style="text-align:right">${(p.price * p.quantity).toFixed(2)}</td></tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
+        <div class="section">
+          <strong>Services & Parts:</strong>
+          <table>
+            <thead><tr><th>Item</th><th>Type</th><th>Qty</th></tr></thead>
+            <tbody>
+              ${job.services.map(s => `<tr><td>${s.name}</td><td>Service</td><td>1</td></tr>`).join('')}
+              ${job.usedParts.map(p => `<tr><td>${p.name}</td><td>Part</td><td>${p.quantity}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
 
-      <div class="section">
-        <h3>Resolution Notes</h3>
-        <p>${job.resolutionNotes || 'No resolution notes yet.'}</p>
-      </div>
-
-      <div class="footer">
-        <p>Signature (Client) __________________________</p>
-        <p>Signature (Technician) __________________________</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  }
+        <div class="section" style="margin-top: 50px; display: flex; justify-content: space-between;">
+          <div>Technician Signature: __________________</div>
+          <div>Client Signature: __________________</div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
 };

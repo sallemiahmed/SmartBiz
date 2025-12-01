@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
@@ -20,7 +19,7 @@ import PurchaseInvoices from './PurchaseInvoices';
 import SalesEstimates from './SalesEstimates';
 import SalesDeliveries from './SalesDeliveries';
 import SalesInvoices from './SalesInvoices';
-import Returns from './Returns';
+import SalesIssues from './SalesIssues';
 import RequestForQuotation from './RequestForQuotation';
 import InternalPurchaseRequest from './InternalPurchaseRequest';
 import Services from './Services';
@@ -121,11 +120,11 @@ function AppContent() {
     if (currentView === 'sales-invoice-create' as AppView) {
       return <Sales mode="invoice" />;
     }
-    if (currentView === 'sales-return') {
-      return <Returns mode="client" onAddNew={() => handleNavigate('sales-return-create' as AppView)} />;
+    if (currentView === 'sales-issue') {
+      return <SalesIssues onAddNew={() => handleNavigate('sales-issue-create' as AppView)} />;
     }
-    if (currentView === 'sales-return-create' as AppView) {
-      return <Returns mode="client" isCreating={true} onCancel={() => handleNavigate('sales-return' as AppView)} />;
+    if (currentView === 'sales-issue-create' as AppView) {
+      return <Sales mode="issue" />;
     }
 
     // --- Purchases Routing ---
@@ -158,12 +157,6 @@ function AppContent() {
     }
     if (currentView === 'purchases-invoice-create' as AppView) {
       return <Purchases mode="invoice" />;
-    }
-    if (currentView === 'purchases-return') {
-        return <Returns mode="supplier" onAddNew={() => handleNavigate('purchases-return-create' as AppView)} />;
-    }
-    if (currentView === 'purchases-return-create' as AppView) {
-        return <Returns mode="supplier" isCreating={true} onCancel={() => handleNavigate('purchases-return' as AppView)} />;
     }
 
     // Fallbacks
