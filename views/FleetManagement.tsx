@@ -55,7 +55,7 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
   const upcomingMaintenance = fleetMaintenances.filter(m => m.status === 'scheduled').length;
   const activeMissions = fleetMissions.filter(m => m.status === 'in_progress').length;
 
-  const totalFleetCost = [...fleetMaintenances, ...fleetExpenses].reduce((acc, m) => acc + (m.hasOwnProperty('cost') ? (m as any).cost : m.amount), 0);
+  const totalFleetCost = [...fleetMaintenances, ...fleetExpenses].reduce((acc, m) => acc + ('cost' in m ? m.cost : m.amount), 0);
 
   const filteredVehicles = vehicles.filter(v => 
     v.make.toLowerCase().includes(searchTerm.toLowerCase()) || 

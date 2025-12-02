@@ -240,7 +240,7 @@ const Reports: React.FC = () => {
       .reduce((acc, i) => acc + i.amount, 0);
       
     const returns = invoices
-      .filter(i => i.type === 'credit' && isDateInRange(i.date))
+      .filter(i => i.type === 'return' && isDateInRange(i.date))
       .reduce((acc, i) => acc + i.amount, 0);
       
     const netSales = totalSales - returns;

@@ -682,42 +682,38 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
                                 >
                                     <RotateCcw className="w-4 h-4" /> {t('revert_draft')}
                                 </button>
-                                {selectedDoc.status !== 'cancelled' && (
-                                    <button 
-                                        onClick={handleGenerateInvoice}
-                                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
-                                    >
-                                        <FileText className="w-4 h-4" /> {t('generate_invoice')}
-                                    </button>
-                                )}
+                                <button 
+                                    onClick={handleGenerateInvoice}
+                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                                >
+                                    <FileText className="w-4 h-4" /> {t('generate_invoice')}
+                                </button>
                             </div>
-                            {selectedDoc.status !== 'cancelled' && (
-                                <div className="flex gap-2">
-                                    {!isFullyDelivered && (
-                                        <>
-                                            <button 
-                                                onClick={handleOpenDeliveryModal}
-                                                className="flex-1 px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-1.5"
-                                            >
-                                                <Truck className="w-4 h-4" /> {t('create_delivery')}
-                                            </button>
-                                            <button 
-                                                onClick={handleAutoDelivery}
-                                                className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-1.5"
-                                                title={t('deliver_all')}
-                                            >
-                                                <PackageCheck className="w-4 h-4" /> {t('deliver_all') || 'Deliver All'}
-                                            </button>
-                                        </>
-                                    )}
-                                    <button 
-                                        onClick={handleCancelOrder}
-                                        className="px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
-                                    >
-                                        <XCircle className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
+                            <div className="flex gap-2">
+                                {!isFullyDelivered && (
+                                    <>
+                                        <button 
+                                            onClick={handleOpenDeliveryModal}
+                                            className="flex-1 px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium flex items-center justify-center gap-1.5"
+                                        >
+                                            <Truck className="w-4 h-4" /> {t('create_delivery')}
+                                        </button>
+                                        <button 
+                                            onClick={handleAutoDelivery}
+                                            className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-1.5"
+                                            title={t('deliver_all')}
+                                        >
+                                            <PackageCheck className="w-4 h-4" /> {t('deliver_all') || 'Deliver All'}
+                                        </button>
+                                    </>
+                                )}
+                                <button 
+                                    onClick={handleCancelOrder}
+                                    className="px-4 py-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 font-medium flex items-center justify-center gap-2"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     )}
                     
