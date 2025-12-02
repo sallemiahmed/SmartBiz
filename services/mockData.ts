@@ -3,7 +3,7 @@ import {
   Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
   BankAccount, BankTransaction, CashSession, CashTransaction, Technician, 
   ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission, 
-  FleetMaintenance, FleetExpense, FleetDocument
+  FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll, LeaveRequest, ExpenseReport
 } from '../types';
 
 export const getDate = (offset: number) => {
@@ -94,3 +94,29 @@ export const mockFleetMissions: FleetMission[] = [
 export const mockFleetMaintenance: FleetMaintenance[] = [];
 export const mockFleetExpenses: FleetExpense[] = [];
 export const mockFleetDocuments: FleetDocument[] = [];
+
+// HR MOCK DATA
+export const mockEmployees: Employee[] = [
+  { id: 'e1', firstName: 'Mohamed', lastName: 'Salah', email: 'mohamed.s@smartbiz.tn', phone: '55123456', position: 'Sales Manager', department: 'Sales', hireDate: '2022-01-15', status: 'active', salary: 2500 },
+  { id: 'e2', firstName: 'Fatima', lastName: 'Ben Ali', email: 'fatima.b@smartbiz.tn', phone: '22654321', position: 'HR Specialist', department: 'Human Resources', hireDate: '2023-03-01', status: 'active', salary: 1800 },
+  { id: 'e3', firstName: 'Karim', lastName: 'Gharbi', email: 'karim.g@smartbiz.tn', phone: '98765432', position: 'Technician', department: 'Service', hireDate: '2021-11-10', status: 'on_leave', salary: 1600 }
+];
+
+export const mockContracts: Contract[] = [
+  { id: 'c1', employeeId: 'e1', employeeName: 'Mohamed Salah', type: 'CDI', startDate: '2022-01-15', status: 'active' },
+  { id: 'c2', employeeId: 'e2', employeeName: 'Fatima Ben Ali', type: 'CDD', startDate: '2023-03-01', endDate: '2024-02-28', status: 'active' },
+];
+
+export const mockPayroll: Payroll[] = [
+  { id: 'p1', employeeId: 'e1', employeeName: 'Mohamed Salah', month: '2024-05', baseSalary: 2500, bonuses: 200, deductions: 50, netSalary: 2650, status: 'paid', paymentDate: '2024-05-30' },
+  { id: 'p2', employeeId: 'e2', employeeName: 'Fatima Ben Ali', month: '2024-05', baseSalary: 1800, bonuses: 0, deductions: 0, netSalary: 1800, status: 'draft' }
+];
+
+export const mockLeaves: LeaveRequest[] = [
+  { id: 'l1', employeeId: 'e3', employeeName: 'Karim Gharbi', type: 'Paid Leave', startDate: getDate(-2), endDate: getDate(2), days: 5, status: 'approved' },
+  { id: 'l2', employeeId: 'e1', employeeName: 'Mohamed Salah', type: 'Sick Leave', startDate: getDate(-10), endDate: getDate(-9), days: 2, status: 'approved' }
+];
+
+export const mockExpenses: ExpenseReport[] = [
+  { id: 'ex1', employeeId: 'e1', employeeName: 'Mohamed Salah', date: getDate(-3), type: 'Transport', amount: 45, description: 'Taxi to Client Meeting', status: 'pending' }
+];

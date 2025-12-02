@@ -5,6 +5,7 @@ export type AppView =
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
+  | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses'
   | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
   | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
@@ -304,9 +305,9 @@ export interface FleetMission {
   vehicleName: string;
   driverName: string;
   startDate: string;
-  startTime: string;
+  startTime?: string;
   endDate: string;
-  endTime: string;
+  endTime?: string;
   destination: string;
   status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
   startMileage?: number;
@@ -339,6 +340,68 @@ export interface FleetDocument {
   type: 'insurance' | 'registration' | 'inspection' | 'other';
   number: string;
   expiryDate: string;
+}
+
+// HR Interfaces
+export interface Employee {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  position: string;
+  department: string;
+  hireDate: string;
+  status: 'active' | 'inactive' | 'on_leave';
+  salary: number;
+  photo?: string;
+}
+
+export interface Contract {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  type: 'CDI' | 'CDD' | 'Stage' | 'Internship';
+  startDate: string;
+  endDate?: string;
+  status: 'active' | 'expired' | 'terminated';
+}
+
+export interface Payroll {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  month: string; // YYYY-MM
+  baseSalary: number;
+  bonuses: number;
+  deductions: number;
+  netSalary: number;
+  status: 'draft' | 'paid';
+  paymentDate?: string;
+}
+
+export interface LeaveRequest {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  type: 'Paid Leave' | 'Sick Leave' | 'Unpaid' | 'Remote';
+  startDate: string;
+  endDate: string;
+  days: number;
+  status: 'pending' | 'approved' | 'rejected';
+  reason?: string;
+}
+
+export interface ExpenseReport {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  type: 'Transport' | 'Food' | 'Accommodation' | 'Other';
+  amount: number;
+  description: string;
+  status: 'pending' | 'approved' | 'reimbursed' | 'rejected';
+  receipt?: string;
 }
 
 export interface TaxRate {

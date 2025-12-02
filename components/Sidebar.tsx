@@ -17,7 +17,8 @@ import {
   Wallet,
   Calculator,
   Wrench,
-  Car
+  Car,
+  Briefcase
 } from 'lucide-react';
 import { AppView } from '../types';
 import { useApp } from '../context/AppContext';
@@ -118,6 +119,20 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'purchases-delivery', labelKey: 'supplier_delivery', hasAction: true },
         { id: 'purchases-invoice', labelKey: 'supplier_invoice' },
         { id: 'purchases-return', labelKey: 'supplier_returns', hasAction: true },
+      ]
+    },
+    {
+      id: 'hr',
+      labelKey: 'Human Resources',
+      icon: Briefcase,
+      emoji: '👥',
+      subItems: [
+          { id: 'hr-dashboard', labelKey: 'Dashboard' },
+          { id: 'hr-employees', labelKey: 'Employees' },
+          { id: 'hr-contracts', labelKey: 'Contracts' },
+          { id: 'hr-payroll', labelKey: 'Payroll' },
+          { id: 'hr-leave', labelKey: 'Leave & Time' },
+          { id: 'hr-expenses', labelKey: 'Expense Reports' }
       ]
     },
     {

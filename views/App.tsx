@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
@@ -8,6 +9,7 @@ import Clients from './Clients';
 import Inventory from './Inventory';
 import InventoryWarehouses from './InventoryWarehouses';
 import InventoryTransfers from './InventoryTransfers';
+import InventoryAudit from './InventoryAudit';
 import Invoices from './Invoices';
 import Suppliers from './Suppliers';
 import Sales from './Sales';
@@ -20,6 +22,7 @@ import SalesEstimates from './SalesEstimates';
 import SalesDeliveries from './SalesDeliveries';
 import SalesInvoices from './SalesInvoices';
 import SalesIssues from './SalesIssues';
+import Returns from './Returns';
 import RequestForQuotation from './RequestForQuotation';
 import InternalPurchaseRequest from './InternalPurchaseRequest';
 import Services from './Services';
@@ -28,6 +31,8 @@ import ServiceDashboard from './ServiceDashboard';
 import ServiceCatalog from './ServiceCatalog'; 
 import ServiceSales from './ServiceSales';
 import Technicians from './Technicians'; 
+import FleetManagement from './FleetManagement';
+import HumanResources from './HumanResources';
 import Reports from './Reports';
 import Settings from './Settings';
 import BankManagement from './BankManagement'; 
@@ -120,11 +125,11 @@ function AppContent() {
     if (currentView === 'sales-invoice-create' as AppView) {
       return <Sales mode="invoice" />;
     }
-    if (currentView === 'sales-issue') {
-      return <SalesIssues onAddNew={() => handleNavigate('sales-issue-create' as AppView)} />;
+    if (currentView === 'sales-return') {
+      return <Returns mode="client" onAddNew={() => handleNavigate('sales-return-create' as AppView)} />;
     }
-    if (currentView === 'sales-issue-create' as AppView) {
-      return <Sales mode="issue" />;
+    if (currentView === 'sales-return-create' as AppView) {
+      return <Returns mode="client" isCreating={true} onCancel={() => handleNavigate('sales-return' as AppView)} />;
     }
 
     // --- Purchases Routing ---
@@ -158,6 +163,12 @@ function AppContent() {
     if (currentView === 'purchases-invoice-create' as AppView) {
       return <Purchases mode="invoice" />;
     }
+    if (currentView === 'purchases-return') {
+        return <Returns mode="supplier" onAddNew={() => handleNavigate('purchases-return-create' as AppView)} />;
+    }
+    if (currentView === 'purchases-return-create' as AppView) {
+        return <Returns mode="supplier" isCreating={true} onCancel={() => handleNavigate('purchases-return' as AppView)} />;
+    }
 
     // Fallbacks
     if (currentView.startsWith('sales')) {
@@ -181,6 +192,15 @@ function AppContent() {
         if (mode === 'products') return <Inventory />;
         if (mode === 'warehouses') return <InventoryWarehouses />;
         if (mode === 'transfers') return <InventoryTransfers />;
+        if (mode === 'audit') return <InventoryAudit />;
+    }
+    
+    if (currentView.startsWith('fleet')) {
+        return <FleetManagement view={currentView} />;
+    }
+    
+    if (currentView.startsWith('hr')) {
+        return <HumanResources view={currentView} />;
     }
 
     if (currentView.startsWith('banking')) {
