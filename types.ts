@@ -1,19 +1,15 @@
 
 export type AppView = 
-  | 'dashboard' 
-  | 'clients' 
-  | 'suppliers' 
-  | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' | 'sales-issue' | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
-  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return' | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
-  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-jobs-create' | 'services-sales' | 'services-catalog' | 'services-technicians'
+  | 'dashboard' | 'clients' | 'suppliers' | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' | 'sales-issue' 
+  | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return'
+  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
-  | 'invoices' 
-  | 'banking' | 'banking-accounts' | 'banking-transactions'
-  | 'cash_register' 
-  | 'cost_analysis' 
-  | 'reports' 
-  | 'settings' | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
+  | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
+  | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
+  | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
+  | 'services-jobs-create'
+  | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
 
 export interface Client {
   id: string;
@@ -33,11 +29,18 @@ export interface Supplier {
   id: string;
   company: string;
   contactName: string;
-  category: string;
   email: string;
   phone: string;
   status: 'active' | 'inactive';
+  category: string;
   totalPurchased: number;
+}
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  location: string;
+  isDefault?: boolean;
 }
 
 export interface Product {
@@ -54,6 +57,9 @@ export interface Product {
   image?: string;
 }
 
+export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'return' | 'issue';
+export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return';
+
 export interface InvoiceItem {
   id: string;
   description: string;
@@ -63,8 +69,6 @@ export interface InvoiceItem {
   historicalCost?: number;
 }
 
-export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'return' | 'issue';
-
 export interface Invoice {
   id: string;
   number: string;
@@ -72,30 +76,28 @@ export interface Invoice {
   clientId: string;
   clientName: string;
   date: string;
-  dueDate?: string;
   amount: number;
   amountPaid?: number;
-  status: 'draft' | 'sent' | 'viewed' | 'accepted' | 'rejected' | 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled' | 'completed' | 'processed';
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'pending' | 'partial' | 'paid' | 'overdue' | 'completed' | 'cancelled' | 'processed';
   currency: string;
   exchangeRate: number;
   items: InvoiceItem[];
-  warehouseId?: string;
+  warehouseId: string;
+  taxRate: number;
+  subtotal: number;
+  fiscalStamp?: number;
+  dueDate?: string;
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
-  taxRate?: number;
-  subtotal?: number;
   discount?: number;
   discountType?: 'percent' | 'amount';
   discountValue?: number;
-  fiscalStamp?: number;
   linkedDocumentId?: string;
   returnReason?: string;
   stockAction?: 'reintegrate' | 'quarantine';
   salespersonName?: string;
 }
-
-export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return';
 
 export interface Purchase {
   id: string;
@@ -103,34 +105,27 @@ export interface Purchase {
   type: PurchaseDocumentType;
   supplierId: string;
   supplierName: string;
-  requesterName?: string; // For PR
-  department?: string; // For PR
+  requesterName?: string;
+  department?: string;
   date: string;
-  deadline?: string; // For RFQ
+  deadline?: string;
   amount: number;
   amountPaid?: number;
-  status: 'draft' | 'pending' | 'sent' | 'responded' | 'accepted' | 'rejected' | 'received' | 'completed' | 'partial' | 'approved' | 'processed';
+  status: 'pending' | 'approved' | 'rejected' | 'sent' | 'responded' | 'accepted' | 'completed' | 'partial' | 'received' | 'processed';
   currency: string;
   exchangeRate: number;
   items: InvoiceItem[];
-  warehouseId?: string;
+  warehouseId: string;
+  subtotal: number;
+  taxRate?: number;
+  additionalCosts?: number;
+  fiscalStamp?: number;
   paymentTerms?: string;
   paymentMethod?: string;
   notes?: string;
-  taxRate?: number;
-  subtotal?: number;
-  additionalCosts?: number;
-  fiscalStamp?: number;
   linkedDocumentId?: string;
   returnReason?: string;
   stockAction?: 'reintegrate' | 'quarantine';
-}
-
-export interface Warehouse {
-  id: string;
-  name: string;
-  location: string;
-  isDefault?: boolean;
 }
 
 export interface StockMovement {
@@ -161,28 +156,6 @@ export interface StockTransfer {
   notes?: string;
 }
 
-export interface InventoryItem {
-  productId: string;
-  productName: string;
-  sku: string;
-  systemQty: number;
-  physicalQty: number;
-  variance: number;
-  cost: number;
-}
-
-export interface InventorySession {
-  id: string;
-  reference: string;
-  date: string;
-  warehouseId: string;
-  warehouseName: string;
-  status: 'in_progress' | 'completed';
-  categoryFilter: string;
-  items: InventoryItem[];
-  notes?: string;
-}
-
 export interface BankAccount {
   id: string;
   name: string;
@@ -199,7 +172,7 @@ export interface BankTransaction {
   date: string;
   description: string;
   amount: number;
-  type: 'deposit' | 'withdrawal' | 'transfer' | 'payment' | 'fee';
+  type: 'deposit' | 'payment' | 'transfer' | 'fee' | 'withdrawal';
   status: 'pending' | 'cleared' | 'reconciled';
 }
 
@@ -251,12 +224,13 @@ export interface ServiceJob {
   technicianName?: string;
   deviceInfo: string;
   problemDescription: string;
-  resolutionNotes?: string;
   estimatedCost: number;
   services: { serviceId: string; name: string; price: number }[];
   usedParts: { productId: string; name: string; quantity: number; price: number }[];
-  rating?: number;
+  resolutionNotes?: string;
   resolutionHours?: number;
+  rating?: number;
+  linkedMissionId?: string; 
 }
 
 export interface ServiceSaleItem {
@@ -288,6 +262,85 @@ export interface ServiceSale {
   notes?: string;
 }
 
+export interface InventoryItem {
+  productId: string;
+  productName: string;
+  sku: string;
+  systemQty: number;
+  physicalQty: number;
+  variance: number;
+  cost: number;
+}
+
+export interface InventorySession {
+  id: string;
+  reference: string;
+  date: string;
+  warehouseId: string;
+  warehouseName: string;
+  status: 'in_progress' | 'completed';
+  categoryFilter: string;
+  items: InventoryItem[];
+  notes: string;
+}
+
+export interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  plate: string;
+  year: number;
+  status: 'available' | 'in_use' | 'maintenance';
+  fuelType: 'Diesel' | 'Petrol' | 'Hybrid' | 'Electric';
+  mileage: number;
+  technicalCheckExpiry?: string;
+  insuranceExpiry?: string;
+  image?: string;
+}
+
+export interface FleetMission {
+  id: string;
+  vehicleId: string;
+  vehicleName: string;
+  driverName: string;
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
+  destination: string;
+  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
+  startMileage?: number;
+  endMileage?: number;
+  purpose?: string;
+}
+
+export interface FleetMaintenance {
+  id: string;
+  vehicleId: string;
+  date: string;
+  type: 'regular' | 'repair' | 'inspection';
+  description: string;
+  cost: number;
+  status: 'scheduled' | 'completed';
+}
+
+export interface FleetExpense {
+  id: string;
+  vehicleId: string;
+  date: string;
+  type: 'fuel' | 'insurance' | 'tax' | 'other';
+  description: string;
+  amount: number;
+}
+
+export interface FleetDocument {
+  id: string;
+  vehicleId: string;
+  type: 'insurance' | 'registration' | 'inspection' | 'other';
+  number: string;
+  expiryDate: string;
+}
+
 export interface TaxRate {
   id: string;
   name: string;
@@ -309,65 +362,8 @@ export interface AppSettings {
   fiscalStampValue: number;
   taxRates: TaxRate[];
   customFields: {
-    clients: { id: string; key: string; label: string; type: 'text' | 'number' | 'boolean'; required?: boolean }[];
-    suppliers: { id: string; key: string; label: string; type: 'text' | 'number' | 'boolean'; required?: boolean }[];
+    clients: any[];
+    suppliers: any[];
   };
   companyVatId?: string;
-}
-
-export interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  plate: string;
-  year: number;
-  status: 'available' | 'in_use' | 'maintenance';
-  fuelType: 'Diesel' | 'Petrol' | 'Hybrid' | 'Electric';
-  mileage: number;
-  insuranceExpiry?: string;
-  technicalCheckExpiry?: string;
-  image?: string;
-}
-
-export interface FleetMission {
-  id: string;
-  vehicleId: string;
-  vehicleName: string;
-  driverName: string;
-  startDate: string;
-  startTime?: string;
-  endDate: string;
-  endTime?: string;
-  startMileage?: number;
-  endMileage?: number;
-  destination: string;
-  purpose?: string;
-  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
-}
-
-export interface FleetMaintenance {
-  id: string;
-  vehicleId: string;
-  date: string;
-  type: 'routine' | 'repair' | 'inspection' | 'tire_change';
-  description: string;
-  cost: number;
-  status: 'scheduled' | 'completed';
-}
-
-export interface FleetExpense {
-  id: string;
-  vehicleId: string;
-  date: string;
-  type: 'fuel' | 'insurance' | 'tax' | 'other';
-  amount: number;
-  description: string;
-}
-
-export interface FleetDocument {
-  id: string;
-  vehicleId: string;
-  type: 'insurance' | 'registration' | 'inspection' | 'other';
-  number: string;
-  expiryDate?: string;
 }

@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Car, MapPin, Calendar, Settings, Plus, Search, 
   Filter, Wrench, FileText, Trash2, Pencil, X, Fuel, User, ArrowRight, CheckCircle,
-  DollarSign, File, AlertCircle
+  DollarSign, File, AlertCircle, Link as LinkIcon
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument } from '../types';
@@ -14,7 +14,7 @@ interface FleetManagementProps {
 
 const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
   const { 
-    vehicles, fleetMissions, fleetMaintenances, fleetExpenses, fleetDocuments,
+    vehicles, fleetMissions, fleetMaintenances, fleetExpenses, fleetDocuments, serviceJobs,
     addVehicle, updateVehicle, deleteVehicle, 
     addFleetMission, updateFleetMission, deleteFleetMission,
     addFleetMaintenance, deleteFleetMaintenance,
@@ -254,11 +254,14 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
                           <th className="px-6 py-3">Route</th>
                           <th className="px-6 py-3">Dates</th>
                           <th className="px-6 py-3">Status</th>
+                          <th className="px-6 py-3">Linked Job</th>
                           <th className="px-6 py-3 text-right">Action</th>
                       </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {fleetMissions.map(m => (
+                      {fleetMissions.map(m => {
+                          const linkedJob = serviceJobs.find(j => j.linkedMissionId === m.id);
+                          return (
                           <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                               <td className="px-6 py-3 font-medium text-gray-900 dark:text-white">{m.vehicleName}</td>
                               <td className="px-6 py-3">{m.driverName}</td>
@@ -278,12 +281,22 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
                                       {m.status}
                                   </span>
                               </td>
+                              <td className="px-6 py-3">
+                                  {linkedJob ? (
+                                      <span className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-mono bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded w-fit">
+                                          <LinkIcon className="w-3 h-3" />
+                                          {linkedJob.ticketNumber}
+                                      </span>
+                                  ) : (
+                                      <span className="text-gray-400 text-xs">-</span>
+                                  )}
+                              </td>
                               <td className="px-6 py-3 text-right">
                                   <button onClick={() => deleteFleetMission(m.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
                               </td>
                           </tr>
-                      ))}
-                      {fleetMissions.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-gray-500">No missions logged.</td></tr>}
+                      )})}
+                      {fleetMissions.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-gray-500">No missions logged.</td></tr>}
                   </tbody>
               </table>
           </div>

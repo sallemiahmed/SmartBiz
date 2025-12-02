@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ServiceJob } from '../types';
-import { ArrowLeft, Save, User, Wrench, Package, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, User, Wrench, Package, Plus, Trash2, MapPin } from 'lucide-react';
 import SearchableSelect from '../components/SearchableSelect';
 
 interface ServicesProps {
@@ -11,7 +11,7 @@ interface ServicesProps {
 }
 
 const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }) => {
-    const { addServiceJob, clients, technicians, products, formatCurrency, t } = useApp();
+    const { addServiceJob, clients, technicians, products, fleetMissions, formatCurrency, t } = useApp();
     const [formData, setFormData] = useState<Partial<ServiceJob>>({
         status: 'pending',
         priority: 'medium',
@@ -71,7 +71,8 @@ const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }
             problemDescription: formData.problemDescription || '',
             estimatedCost: (formData.usedParts || []).reduce((acc, part) => acc + (part.price * part.quantity), 0),
             services: [],
-            usedParts: formData.usedParts || []
+            usedParts: formData.usedParts || [],
+            linkedMissionId: formData.linkedMissionId
         };
         addServiceJob(newJob);
         onCancel();
@@ -152,6 +153,26 @@ const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }
                                 </select>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Mission Link */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">Link to Fleet Mission (Optional)</label>
+                        <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <select 
+                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                onChange={e => setFormData({...formData, linkedMissionId: e.target.value})}
+                            >
+                                <option value="">Select a Mission...</option>
+                                {fleetMissions.map(m => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.vehicleName} - {m.destination} ({m.startDate})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">If this job requires a specific vehicle trip.</p>
                     </div>
 
                     <div>
