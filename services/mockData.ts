@@ -1,76 +1,89 @@
 
 import { 
-  FleetMission, Client, Supplier, Product, Invoice, Purchase, Warehouse, 
-  StockMovement, BankAccount, BankTransaction, CashSession, CashTransaction,
-  Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession,
-  Vehicle, FleetMaintenance, FleetExpense, FleetDocument
+  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
+  BankAccount, BankTransaction, CashSession, CashTransaction, Technician, 
+  ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission, 
+  FleetMaintenance, FleetExpense, FleetDocument
 } from '../types';
 
-const getDate = (daysOffset: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + daysOffset);
-  return d.toISOString().split('T')[0];
+export const getDate = (offset: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return date.toISOString().split('T')[0];
 };
 
 export const mockClients: Client[] = [
-  { id: '1', name: 'John Doe', company: 'Tech Corp', email: 'john@techcorp.com', phone: '+216 12345678', status: 'active', category: 'Corporate', totalSpent: 1500 },
-  { id: '2', name: 'Jane Smith', company: 'Retail LLC', email: 'jane@retail.com', phone: '+216 87654321', status: 'active', category: 'Retail', totalSpent: 500 }
+  { id: '1', company: 'TechSolutions Inc.', name: 'John Doe', email: 'john@techsolutions.com', phone: '+216 20 123 456', status: 'active', category: 'Corporate', totalSpent: 12500, address: 'Lac 1, Tunis' },
+  { id: '2', company: 'Global Trade Ltd.', name: 'Sarah Smith', email: 'sarah@globaltrade.com', phone: '+216 21 654 321', status: 'active', category: 'Corporate', totalSpent: 8900, address: 'Sfax, Tunisia' },
+  { id: '3', company: 'Retail Hub', name: 'Mike Brown', email: 'mike@retailhub.com', phone: '+216 22 987 654', status: 'inactive', category: 'Retail', totalSpent: 2300 }
 ];
 
 export const mockSuppliers: Supplier[] = [
-  { id: 's1', company: 'Global Parts', contactName: 'Mike Ross', email: 'mike@globalparts.com', phone: '+216 22334455', status: 'active', category: 'Electronics', totalPurchased: 5000 }
-];
-
-export const mockInventory: Product[] = [
-  { id: 'p1', name: 'Laptop Pro', sku: 'LAP-001', category: 'Electronics', price: 2500, cost: 1800, stock: 15, warehouseStock: { 'w1': 10, 'w2': 5 }, status: 'in_stock', marginPercent: 28 },
-  { id: 'p2', name: 'Wireless Mouse', sku: 'ACC-002', category: 'Accessories', price: 50, cost: 25, stock: 50, warehouseStock: { 'w1': 50 }, status: 'in_stock', marginPercent: 50 }
+  { id: 's1', company: 'ElectroParts Dist', contactName: 'Ali Ben Salah', email: 'ali@electroparts.tn', phone: '+216 50 111 222', status: 'active', category: 'Electronics', totalPurchased: 45000 },
+  { id: 's2', company: 'Office Supplies Co', contactName: 'Mouna Kallel', email: 'mouna@supplies.tn', phone: '+216 55 333 444', status: 'active', category: 'Stationery', totalPurchased: 5600 }
 ];
 
 export const mockWarehouses: Warehouse[] = [
-  { id: 'w1', name: 'Main Warehouse', location: 'Tunis', isDefault: true },
-  { id: 'w2', name: 'Sfax Branch', location: 'Sfax' }
+  { id: 'wh1', name: 'Main Warehouse', location: 'Tunis', isDefault: true },
+  { id: 'wh2', name: 'Sfax Depot', location: 'Sfax' }
+];
+
+export const mockInventory: Product[] = [
+  { id: 'p1', name: 'Laptop Pro X1', sku: 'LAP-001', category: 'Electronics', price: 2500, cost: 1800, stock: 15, warehouseStock: { 'wh1': 10, 'wh2': 5 }, status: 'in_stock', marginPercent: 28 },
+  { id: 'p2', name: 'Wireless Mouse', sku: 'ACC-002', category: 'Accessories', price: 45, cost: 20, stock: 50, warehouseStock: { 'wh1': 50 }, status: 'in_stock', marginPercent: 55 },
+  { id: 'p3', name: 'Office Chair', sku: 'FUR-003', category: 'Furniture', price: 350, cost: 200, stock: 5, warehouseStock: { 'wh1': 5 }, status: 'low_stock', marginPercent: 42 }
 ];
 
 export const mockInvoices: Invoice[] = [
-  { 
-    id: 'inv1', number: 'INV-2024-001', type: 'invoice', clientId: '1', clientName: 'Tech Corp', 
-    date: getDate(-2), amount: 2500, currency: 'TND', exchangeRate: 1, status: 'paid', 
-    items: [{ id: 'p1', description: 'Laptop Pro', quantity: 1, price: 2500 }], 
-    subtotal: 2500 
-  }
+  { id: 'inv1', number: 'INV-001', type: 'invoice', clientId: '1', clientName: 'TechSolutions Inc.', date: getDate(-5), amount: 5045, amountPaid: 5045, status: 'paid', currency: 'TND', exchangeRate: 1, items: [{id: 'p1', description: 'Laptop Pro X1', quantity: 2, price: 2500}, {id: 'p2', description: 'Wireless Mouse', quantity: 1, price: 45}], warehouseId: 'wh1', taxRate: 19, subtotal: 5045, fiscalStamp: 1 },
+  { id: 'inv2', number: 'INV-002', type: 'invoice', clientId: '2', clientName: 'Global Trade Ltd.', date: getDate(-2), amount: 350, amountPaid: 0, status: 'pending', currency: 'TND', exchangeRate: 1, items: [{id: 'p3', description: 'Office Chair', quantity: 1, price: 350}], warehouseId: 'wh1', taxRate: 19, subtotal: 350, fiscalStamp: 1 },
+  { id: 'ord1', number: 'ORD-001', type: 'order', clientId: '1', clientName: 'TechSolutions Inc.', date: getDate(-1), amount: 2500, status: 'pending', currency: 'TND', exchangeRate: 1, items: [{id: 'p1', description: 'Laptop Pro X1', quantity: 1, price: 2500}], warehouseId: 'wh1', taxRate: 19, subtotal: 2500 }
 ];
 
 export const mockPurchases: Purchase[] = [
-  {
-    id: 'po1', number: 'PO-2024-001', type: 'order', supplierId: 's1', supplierName: 'Global Parts',
-    date: getDate(-10), amount: 5000, currency: 'TND', exchangeRate: 1, status: 'completed',
-    items: [{ id: 'p1', description: 'Laptop Pro', quantity: 5, price: 1000 }],
-    subtotal: 5000
-  }
+  { id: 'po1', number: 'PO-001', type: 'order', supplierId: 's1', supplierName: 'ElectroParts Dist', date: getDate(-10), amount: 18000, status: 'completed', currency: 'TND', exchangeRate: 1, items: [{id: 'p1', description: 'Laptop Pro X1', quantity: 10, price: 1800}], warehouseId: 'wh1', subtotal: 18000, taxRate: 19 },
+  { id: 'pr1', number: 'PR-001', type: 'pr', supplierId: '', supplierName: '', requesterName: 'John Admin', department: 'IT', date: getDate(0), amount: 0, status: 'pending', currency: 'TND', exchangeRate: 1, items: [{id: 'temp', description: 'Server Rack', quantity: 1, price: 0}], warehouseId: 'wh1', subtotal: 0 }
 ];
 
-export const mockStockMovements: StockMovement[] = [];
-export const mockBankAccounts: BankAccount[] = [
-  { id: 'b1', name: 'Main Business', bankName: 'BIAT', accountNumber: '123456789', currency: 'TND', balance: 15000, type: 'checking' }
+export const mockStockMovements: StockMovement[] = [
+  { id: 'sm1', productId: 'p1', productName: 'Laptop Pro X1', warehouseId: 'wh1', warehouseName: 'Main Warehouse', date: getDate(-10), quantity: 10, type: 'purchase', unitCost: 1800 }
 ];
-export const mockBankTransactions: BankTransaction[] = [];
+
+export const mockBankAccounts: BankAccount[] = [
+  { id: 'ba1', name: 'Main Checking', bankName: 'BIAT', accountNumber: '1234567890', type: 'checking', currency: 'TND', balance: 45000 }
+];
+
+export const mockBankTransactions: BankTransaction[] = [
+  { id: 'tx1', accountId: 'ba1', date: getDate(-2), description: 'Invoice Payment INV-001', amount: 5045, type: 'deposit', status: 'cleared' }
+];
+
 export const mockCashSessions: CashSession[] = [
   { id: 'cs1', openedBy: 'Admin', startTime: getDate(0) + 'T08:00:00', openingBalance: 500, expectedBalance: 500, status: 'open' }
 ];
+
 export const mockCashTransactions: CashTransaction[] = [];
+
 export const mockTechnicians: Technician[] = [
-  { id: 't1', name: 'Ali Tounsi', specialty: 'Hardware', phone: '555-0101', status: 'available' }
+  { id: 't1', name: 'Rami J', specialty: 'Hardware Repair', status: 'available', phone: '22333444' },
+  { id: 't2', name: 'Salma K', specialty: 'Software/OS', status: 'busy', phone: '55666777' }
 ];
+
 export const mockServiceCatalog: ServiceItem[] = [
-  { id: 'srv1', name: 'Screen Replacement', description: 'Replace broken screen', basePrice: 150, durationMinutes: 60 }
+  { id: 'srv1', name: 'Laptop Screen Repair', description: 'Replace broken screen', basePrice: 150, durationMinutes: 60 },
+  { id: 'srv2', name: 'OS Installation', description: 'Windows/Linux/MacOS Install', basePrice: 50, durationMinutes: 45 }
 ];
-export const mockServiceJobs: ServiceJob[] = [];
+
+export const mockServiceJobs: ServiceJob[] = [
+  { id: 'job1', ticketNumber: 'JOB-1001', clientId: '1', clientName: 'TechSolutions Inc.', date: getDate(-2), status: 'in_progress', priority: 'high', technicianId: 't1', technicianName: 'Rami J', deviceInfo: 'Dell XPS 13', problemDescription: 'Screen flickering', estimatedCost: 150, services: [{serviceId: 'srv1', name: 'Laptop Screen Repair', price: 150}], usedParts: [] }
+];
+
 export const mockServiceSales: ServiceSale[] = [];
+
 export const mockInventorySessions: InventorySession[] = [];
 
 export const mockVehicles: Vehicle[] = [
-  { id: 'v1', make: 'Peugeot', model: 'Partner', year: 2020, plate: '215 TN 1234', fuelType: 'Diesel', mileage: 45000, status: 'available', insuranceExpiry: getDate(180), technicalCheckExpiry: getDate(200) },
-  { id: 'v2', make: 'Citroen', model: 'Berlingo', year: 2021, plate: '220 TN 5678', fuelType: 'Diesel', mileage: 28000, status: 'in_use', insuranceExpiry: getDate(30), technicalCheckExpiry: getDate(365) }
+  { id: 'v1', make: 'Peugeot', model: 'Partner', plate: '190 TN 1234', year: 2020, status: 'available', fuelType: 'Diesel', mileage: 120000, technicalCheckExpiry: getDate(30), insuranceExpiry: getDate(60) },
+  { id: 'v2', make: 'Citroen', model: 'Berlingo', plate: '205 TN 5678', year: 2022, status: 'in_use', fuelType: 'Diesel', mileage: 45000, technicalCheckExpiry: getDate(120), insuranceExpiry: getDate(120) }
 ];
 
 export const mockFleetMissions: FleetMission[] = [
