@@ -31,6 +31,7 @@ import ServiceDashboard from './views/ServiceDashboard';
 import ServiceCatalog from './views/ServiceCatalog'; 
 import ServiceSales from './views/ServiceSales';
 import Technicians from './views/Technicians'; 
+import FleetManagement from './views/FleetManagement';
 import Reports from './views/Reports';
 import Settings from './views/Settings';
 import BankManagement from './views/BankManagement'; 
@@ -191,6 +192,10 @@ function AppContent() {
         if (mode === 'warehouses') return <InventoryWarehouses />;
         if (mode === 'transfers') return <InventoryTransfers />;
         if (mode === 'audit') return <InventoryAudit />;
+    }
+    
+    if (currentView.startsWith('fleet')) {
+        return <FleetManagement view={currentView} />;
     }
 
     if (currentView.startsWith('banking')) {

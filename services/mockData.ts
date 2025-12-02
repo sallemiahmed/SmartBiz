@@ -1,5 +1,5 @@
 
-import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession } from '../types';
+import { Client, Supplier, Product, Invoice, Purchase, BankAccount, BankTransaction, CashSession, CashTransaction, Warehouse, StockTransfer, StockMovement, Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument } from '../types';
 
 const currentYear = new Date().getFullYear();
 const today = new Date();
@@ -17,6 +17,8 @@ const getTimestamp = (offsetDays: number, hour: number = 10) => {
     d.setHours(hour, 0, 0, 0);
     return d.toISOString();
 };
+
+// ... (Previous mock data for Warehouses, Inventory, Clients, Suppliers, Invoices, Purchases, Banking, Cash, Services, StockMovements, InventorySessions)
 
 // --- WAREHOUSES ---
 export const mockWarehouses: Warehouse[] = [
@@ -81,7 +83,6 @@ export const mockInventory: Product[] = [
   }
 ];
 
-// --- CLIENTS ---
 export const mockClients: Client[] = [
   { id: 'c1', company: 'Tunisie Telecom', name: 'Mohamed Ali Ben Salem', email: 'mohamed.bs@tunisietelecom.tn', phone: '+216 71 000 000', status: 'active', category: 'Corporate', totalSpent: 45000.00, region: 'Tunis', address: 'Jardins du Lac 2, 1053 Tunis', taxId: '1234567/A/M/000' },
   { id: 'c2', company: 'Clinique Internationale', name: 'Dr. Sarah Mzali', email: 'achat@clinique-inter.tn', phone: '+216 71 111 222', status: 'active', category: 'Santé', totalSpent: 8500.00, region: 'Ariana', address: 'Avenue UMA, La Soukra', taxId: '9876543/B/P/000' },
@@ -92,7 +93,6 @@ export const mockClients: Client[] = [
   { id: 'c7', company: 'Sahar Construction', name: 'Ahmed Trabelsi', email: 'ahmed@saharconst.tn', phone: '+216 98 777 666', status: 'active', category: 'BTP', totalSpent: 35000.00, region: 'Sfax', address: 'Route de Gremda Km 4, Sfax', taxId: '2233445/F/M/000' }
 ];
 
-// --- SUPPLIERS ---
 export const mockSuppliers: Supplier[] = [
   { id: 's1', company: 'MyTek Informatique', contactName: 'Service Pro', email: 'pro@mytek.tn', phone: '+216 36 010 010', category: 'Matériel Info', status: 'active', totalPurchased: 150000.00 },
   { id: 's2', company: 'Tunisianet', contactName: 'Amine S.', email: 'commercial@tunisianet.com.tn', phone: '+216 31 320 320', category: 'Électronique', status: 'active', totalPurchased: 25000.00 },
@@ -101,9 +101,7 @@ export const mockSuppliers: Supplier[] = [
   { id: 's5', company: 'Auto Pièces Tunisie', contactName: 'Ridha', email: 'ridha@autopieces.tn', phone: '+216 20 202 020', category: 'Pièces Rechange', status: 'active', totalPurchased: 12000.00 }
 ];
 
-// --- INVOICES (SALES) ---
 export const mockInvoices: Invoice[] = [
-  // Paid Invoices (Past)
   { 
     id: 'inv1', number: 'FAC-2024-001', type: 'invoice', clientId: 'c1', clientName: 'Tunisie Telecom', 
     date: getDate(-30), dueDate: getDate(-15), amount: 12500.00, status: 'paid', 
@@ -122,7 +120,6 @@ export const mockInvoices: Invoice[] = [
     items: [ { id: 'p3', description: 'Imprimante Epson', quantity: 5, price: 650 } ],
     warehouseId: 'w2', subtotal: 3250, taxRate: 19
   },
-  // Active Invoices
   { 
     id: 'inv4', number: 'FAC-2024-004', type: 'invoice', clientId: 'c1', clientName: 'Tunisie Telecom', 
     date: getDate(-2), dueDate: getDate(28), amount: 8900.00, status: 'pending',
@@ -135,7 +132,6 @@ export const mockInvoices: Invoice[] = [
     items: [ { id: 'p1', description: 'HP EliteBook', quantity: 4, price: 3200 }, { id: 'p4', description: 'Souris Logitech', quantity: 8, price: 325 } ],
     warehouseId: 'w1', subtotal: 15400, taxRate: 19
   },
-  // Estimates
   { 
     id: 'est1', number: 'DEV-24-101', type: 'estimate', clientId: 'c3', clientName: 'StartUp Factory', 
     date: getDate(-1), dueDate: getDate(14), amount: 28000.00, status: 'draft',
@@ -148,14 +144,12 @@ export const mockInvoices: Invoice[] = [
     items: [ { id: 'p3', description: 'Imprimantes', quantity: 5, price: 650 }, { id: 'p8', description: 'Logiciels', quantity: 5, price: 450 } ],
     warehouseId: 'w1', subtotal: 5500
   },
-  // Orders
   { 
     id: 'ord1', number: 'BC-24-055', type: 'order', clientId: 'c2', clientName: 'Clinique Internationale', 
     date: getDate(-5), amount: 4500.00, status: 'pending',
     items: [ { id: 'p6', description: 'Chaise Bureau', quantity: 10, price: 450 } ],
     warehouseId: 'w2', subtotal: 4500
   },
-  // Deliveries
   { 
     id: 'del1', number: 'BL-24-882', type: 'delivery', clientId: 'c4', clientName: 'Banque de l\'Habitat', 
     date: getDate(-20), amount: 0, status: 'completed',
@@ -164,7 +158,6 @@ export const mockInvoices: Invoice[] = [
   }
 ];
 
-// --- PURCHASES ---
 export const mockPurchases: Purchase[] = [
   {
     id: 'po1', number: 'ACH-24-001', type: 'invoice', supplierId: 's1', supplierName: 'MyTek Informatique',
@@ -201,7 +194,6 @@ export const mockPurchases: Purchase[] = [
   }
 ];
 
-// --- BANKING & CASH ---
 export const mockBankAccounts: BankAccount[] = [
   { id: 'ba1', name: 'Compte Courant', bankName: 'BIAT', accountNumber: '08 000 12345 67890 12', currency: 'TND', type: 'checking', balance: 125400.50 },
   { id: 'ba2', name: 'Compte Épargne', bankName: 'Attijari Bank', accountNumber: '04 111 22233 44455 66', currency: 'TND', type: 'savings', balance: 45000.00 },
@@ -227,7 +219,6 @@ export const mockCashTransactions: CashTransaction[] = [
   { id: 'ctx3', sessionId: 'cs2', date: getTimestamp(-1, 14), type: 'sale', amount: 1200.00, description: 'Grande Vente Cash' },
 ];
 
-// --- SERVICES ---
 export const mockTechnicians: Technician[] = [
   { id: 'tech1', name: 'Sami Ben Amor', specialty: 'Réparation Matériel', status: 'available', phone: '+216 50 111 111' },
   { id: 'tech2', name: 'Leila Trabelsi', specialty: 'Logiciel & Réseau', status: 'busy', phone: '+216 52 222 222' },
@@ -318,7 +309,6 @@ export const mockServiceSales: ServiceSale[] = [
   }
 ];
 
-// --- STOCK MOVEMENTS ---
 export const mockStockMovements: StockMovement[] = [
   { id: 'sm1', productId: 'p1', productName: 'HP EliteBook', warehouseId: 'w1', warehouseName: 'Dépôt Principal', date: getDate(-30), quantity: 50, type: 'initial', reference: 'INIT', notes: 'Stock Initial', unitCost: 2500 },
   { id: 'sm2', productId: 'p1', productName: 'HP EliteBook', warehouseId: 'w1', warehouseName: 'Dépôt Principal', date: getDate(-29), quantity: -10, type: 'sale', reference: 'FAC-2024-001', notes: 'Vente', unitCost: 2500 },
@@ -327,7 +317,6 @@ export const mockStockMovements: StockMovement[] = [
 
 export const mockStockTransfers: StockTransfer[] = [];
 
-// --- INVENTORY SESSIONS ---
 export const mockInventorySessions: InventorySession[] = [
   {
     id: 'inv-sess-001',
@@ -341,4 +330,31 @@ export const mockInventorySessions: InventorySession[] = [
     ],
     notes: 'Annual Audit'
   }
+];
+
+// --- FLEET ---
+export const mockVehicles: Vehicle[] = [
+  { id: 'v1', make: 'Peugeot', model: 'Partner', year: 2021, plate: '220 TN 4587', fuelType: 'Diesel', status: 'available', mileage: 45000, image: 'https://images.unsplash.com/photo-1625231373782-6c86d423065a?auto=format&fit=crop&w=300&q=80', technicalCheckExpiry: getDate(180) },
+  { id: 'v2', make: 'Citroen', model: 'Berlingo', year: 2022, plate: '228 TN 1123', fuelType: 'Diesel', status: 'in_use', mileage: 28000, image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=300&q=80', technicalCheckExpiry: getDate(240) },
+  { id: 'v3', make: 'Fiat', model: 'Fiorino', year: 2019, plate: '205 TN 9988', fuelType: 'Petrol', status: 'maintenance', mileage: 110000, image: 'https://images.unsplash.com/photo-1566008885218-90abf9200ddb?auto=format&fit=crop&w=300&q=80', technicalCheckExpiry: getDate(-5) }
+];
+
+export const mockFleetMissions: FleetMission[] = [
+  { id: 'm1', vehicleId: 'v2', vehicleName: 'Citroen Berlingo', driverName: 'Ahmed Tounsi', startDate: getDate(-1), endDate: getDate(1), destination: 'Sfax', status: 'in_progress', startMileage: 27500 },
+  { id: 'm2', vehicleId: 'v1', vehicleName: 'Peugeot Partner', driverName: 'Sami Ben Amor', startDate: getDate(-5), endDate: getDate(-4), destination: 'Bizerte', status: 'completed', startMileage: 44200, endMileage: 44500 }
+];
+
+export const mockFleetMaintenance: FleetMaintenance[] = [
+  { id: 'fmt1', vehicleId: 'v3', date: getDate(0), type: 'routine', description: 'Vidange & Filtres', cost: 250, provider: 'Garage Total', status: 'completed' },
+  { id: 'fmt2', vehicleId: 'v1', date: getDate(-30), type: 'tire_change', description: '4 Pneus Neufs', cost: 1200, provider: 'Pneu Service', status: 'completed' }
+];
+
+export const mockFleetExpenses: FleetExpense[] = [
+    { id: 'fe1', vehicleId: 'v1', date: getDate(-2), type: 'fuel', amount: 120, description: 'Plein Diesel', mileage: 44800 },
+    { id: 'fe2', vehicleId: 'v2', date: getDate(-10), type: 'insurance', amount: 850, description: 'Assurance Annuelle' },
+];
+
+export const mockFleetDocuments: FleetDocument[] = [
+    { id: 'fd1', vehicleId: 'v1', type: 'insurance', number: 'POL-123456', expiryDate: getDate(300) },
+    { id: 'fd2', vehicleId: 'v1', type: 'registration', number: 'CG-220-4587', expiryDate: getDate(3650) },
 ];

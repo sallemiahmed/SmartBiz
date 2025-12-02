@@ -368,5 +368,22 @@
   "defect": "Défectueux",
   "wrong_item": "Mauvais article",
   "no_longer_needed": "Plus nécessaire",
-  "action": "Action"
+  "action": "Action",
+  "fleet_management": "Gestion de Parc Auto",
+  "vehicles": "Véhicules",
+  "missions": "Missions",
+  "maintenance": "Entretien",
+  "add_vehicle": "Ajouter Véhicule",
+  "new_mission": "Nouvelle Mission",
+  "log_maintenance": "Noter Entretien",
+  "plate": "Immatriculation",
+  "model": "Modèle",
+  "driver": "Conducteur",
+  "mileage": "Kilométrage",
+  "fuel_type": "Carburant",
+  "insurance_expiry": "Éch. Assurance",
+  "tech_check_expiry": "Éch. Contrôle Tech.",
+  "in_use": "En Utilisation",
+  "out_of_service": "Hors Service",
+  "costs_expenses": "Coûts & Dépenses"
 }

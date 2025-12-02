@@ -16,7 +16,8 @@ import {
   Landmark,
   Wallet,
   Calculator,
-  Wrench
+  Wrench,
+  Car
 } from 'lucide-react';
 import { AppView } from '../types';
 import { useApp } from '../context/AppContext';
@@ -142,6 +143,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'inventory-warehouses', labelKey: 'warehouses' },
         { id: 'inventory-transfers', labelKey: 'stock_transfers' },
         { id: 'inventory-audit', labelKey: 'stock_audit' },
+      ]
+    },
+    { 
+      id: 'fleet', 
+      labelKey: 'fleet_management', 
+      icon: Car, 
+      emoji: '🚗',
+      subItems: [
+        { id: 'fleet-dashboard', labelKey: 'dashboard_overview' },
+        { id: 'fleet-vehicles', labelKey: 'vehicles' },
+        { id: 'fleet-missions', labelKey: 'missions' },
+        { id: 'fleet-maintenance', labelKey: 'maintenance' },
+        { id: 'fleet-costs', labelKey: 'costs_expenses' },
       ]
     },
     { id: 'invoices', labelKey: 'documents', icon: FileStack, emoji: '🧮' },

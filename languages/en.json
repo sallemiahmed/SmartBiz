@@ -475,5 +475,22 @@
     "wrong_item": "Wrong Item",
     "no_longer_needed": "No Longer Needed",
     "action": "Action",
-    "tax_id": "Tax ID"
+    "tax_id": "Tax ID",
+    "fleet_management": "Fleet Management",
+    "vehicles": "Vehicles",
+    "missions": "Missions",
+    "maintenance": "Maintenance",
+    "add_vehicle": "Add Vehicle",
+    "new_mission": "New Mission",
+    "log_maintenance": "Log Maintenance",
+    "plate": "License Plate",
+    "model": "Model",
+    "driver": "Driver",
+    "mileage": "Mileage",
+    "fuel_type": "Fuel Type",
+    "insurance_expiry": "Ins. Expiry",
+    "tech_check_expiry": "Tech. Check Exp.",
+    "in_use": "In Use",
+    "out_of_service": "Out of Service",
+    "costs_expenses": "Costs & Expenses"
 }

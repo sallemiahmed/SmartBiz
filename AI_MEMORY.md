@@ -9,7 +9,7 @@
 
 ## 1. Project Overview
 
-**SmartBiz Manager** is a single-page application (SPA) designed as a comprehensive ERP (Enterprise Resource Planning) system. It targets small to medium businesses requiring integrated management of CRM, Inventory, Sales, Purchasing, Services, and Finance.
+**SmartBiz Manager** is a single-page application (SPA) designed as a comprehensive ERP (Enterprise Resource Planning) system. It targets small to medium businesses requiring integrated management of CRM, Inventory, Sales, Purchasing, Services, Finance, and Fleet.
 
 **Key Characteristics:**
 *   **Architecture:** Client-side Monolith. Currently operates without a backend API; data is managed in React Context (`AppContext`) and initialized with mock data.
@@ -87,6 +87,7 @@ graph TD
     ERP --> PCM[Purchasing]
     ERP --> FIN[Finance]
     ERP --> SRV[Services]
+    ERP --> FLT[Fleet]
     ERP --> REP[Reporting]
     ERP --> SYS[Settings]
 
@@ -117,6 +118,10 @@ graph TD
     
     SRV --> Jobs[Job Cards]
     SRV --> Techs[Technicians]
+
+    FLT --> Vehicles
+    FLT --> Missions
+    FLT --> Maintenance
 ```
 
 ### Domain Details
@@ -156,7 +161,11 @@ graph TD
 7.  **Finance:**
     *   **Banking:** Accounts, Transactions (Deposit, Withdrawal, Transfer).
     *   **Cash Register:** Shift-based cash management (Open/Close sessions).
-8.  **Settings:**
+8.  **Fleet Management:**
+    *   **Vehicles**: Tracking of car make, model, license plate, fuel type, and status (Available, In Use, Maintenance).
+    *   **Missions**: Assignment of drivers and vehicles to specific trips/dates.
+    *   **Maintenance**: Logging of service/repairs and associated costs.
+9.  **Settings:**
     *   Company profile, Logo, VAT/Tax rates, Currency, Fiscal Stamp configuration.
 
 ---
@@ -176,11 +185,15 @@ Key entities defined in `types.ts`:
 | **ServiceJob** | `id`, `ticketNumber`, `status`, `services`, `usedParts` | Tracks repair jobs. Links to `ServiceItem` and `Product`. |
 | **BankAccount** | `id`, `balance`, `currency` | Tracks liquid assets. |
 | **CashSession** | `id`, `status`, `openingBalance`, `closingBalance` | Controls cash drawer shifts. |
+| **Vehicle** | `id`, `plate`, `status`, `mileage`, `fuelType` | Fleet entity. |
+| **FleetMission** | `id`, `vehicleId`, `driverName`, `startDate`, `endDate` | Tracks vehicle usage. |
+| **FleetMaintenance** | `id`, `vehicleId`, `type`, `cost`, `date` | Tracks vehicle service history. |
 
 **Important Enums/Types:**
 *   `SalesDocumentType`: 'estimate' | 'order' | 'delivery' | 'invoice' | 'credit' | 'return'
 *   `PurchaseDocumentType`: 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return'
 *   `ServiceJobStatus`: 'pending' | 'in_progress' | 'completed' | 'invoiced'
+*   `VehicleStatus`: 'available' | 'in_use' | 'maintenance' | 'out_of_service'
 
 ---
 
@@ -209,7 +222,7 @@ Key entities defined in `types.ts`:
 5.  **Bill/Invoice:** Records expense.
 6.  **Return:** Created from Purchase Invoice/GRN. **Action:** Decreases stock.
 
-### Inventory Audit Workflow (New)
+### Inventory Audit Workflow
 1.  **Create Session:** Select warehouse and category filter. System snapshots current "theoretical" stock.
 2.  **Count:** User enters physical quantities. System highlights variance in real-time.
 3.  **Save:** Progress can be saved without committing.
@@ -291,3 +304,4 @@ Key entities defined in `types.ts`:
 *   **Client Update:** Added `taxId` (Matricule Fiscal) field to Client entity.
 *   **PDF Update:** Added Client Name, Address, Phone, and Tax ID to Estimate, Order, and Invoice PDFs.
 *   **Inventory Audit:** Added `InventoryAudit` module for stocktaking and adjustments, including printing support.
+*   **Fleet Management:** Added comprehensive module for managing vehicles, missions, and maintenance.

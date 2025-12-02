@@ -9,6 +9,7 @@ export type AppView =
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-jobs-create' | 'services-sales' | 'services-catalog' | 'services-technicians'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
+  | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
   | 'invoices' 
   | 'banking' | 'banking-accounts' | 'banking-transactions'
   | 'cash_register' 
@@ -18,6 +19,68 @@ export type AppView =
 
 export type SalesDocumentType = 'estimate' | 'order' | 'delivery' | 'invoice' | 'credit' | 'return';
 export type PurchaseDocumentType = 'pr' | 'rfq' | 'order' | 'delivery' | 'invoice' | 'return';
+export type VehicleStatus = 'available' | 'in_use' | 'maintenance' | 'out_of_service';
+
+export interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  plate: string;
+  vin?: string;
+  fuelType: 'Petrol' | 'Diesel' | 'Electric' | 'Hybrid';
+  status: VehicleStatus;
+  mileage: number;
+  image?: string;
+  insuranceExpiry?: string;
+  technicalCheckExpiry?: string; // Contrôle technique
+}
+
+export interface FleetMission {
+  id: string;
+  vehicleId: string;
+  vehicleName: string; // Snapshot
+  driverName: string;
+  startDate: string;
+  endDate: string;
+  startMileage?: number;
+  endMileage?: number;
+  destination: string;
+  purpose?: string;
+  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
+}
+
+export interface FleetMaintenance {
+  id: string;
+  vehicleId: string;
+  date: string;
+  type: 'routine' | 'repair' | 'inspection' | 'tire_change';
+  description: string;
+  cost: number;
+  provider?: string; // Garage/Service Center
+  mileageAtService?: number;
+  status: 'scheduled' | 'completed';
+}
+
+export interface FleetExpense {
+  id: string;
+  vehicleId: string;
+  date: string;
+  type: 'fuel' | 'insurance' | 'tax' | 'maintenance' | 'other';
+  amount: number;
+  description: string;
+  mileage?: number; // for fuel tracking efficiency
+}
+
+export interface FleetDocument {
+  id: string;
+  vehicleId: string;
+  type: 'insurance' | 'registration' | 'inspection' | 'other';
+  number: string; // Policy Number, etc.
+  expiryDate?: string;
+  fileUrl?: string;
+  notes?: string;
+}
 
 export interface InvoiceItem {
   id: string;
@@ -28,6 +91,7 @@ export interface InvoiceItem {
   historicalCost?: number; // for cost analysis
 }
 
+// ... (rest of the file remains the same)
 export interface Client {
   id: string;
   company: string;
