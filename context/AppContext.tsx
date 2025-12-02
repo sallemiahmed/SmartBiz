@@ -6,7 +6,8 @@ import {
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
-  Employee, Contract, Payroll, LeaveRequest, ExpenseReport
+  Employee, Contract, Payroll, LeaveRequest, ExpenseReport,
+  MaintenanceContract, ContactInteraction
 } from '../types';
 import { 
   mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, 
@@ -14,7 +15,8 @@ import {
   mockCashSessions, mockCashTransactions, mockTechnicians, mockServiceCatalog,
   mockServiceJobs, mockServiceSales, mockInventorySessions, mockVehicles, mockFleetMissions, 
   mockFleetMaintenance, mockFleetExpenses, mockFleetDocuments,
-  mockEmployees, mockContracts, mockPayroll, mockLeaves, mockExpenses
+  mockEmployees, mockContracts, mockPayroll, mockLeaves, mockExpenses,
+  mockMaintenanceContracts, mockContactInteractions
 } from '../services/mockData';
 import { loadTranslations } from '../services/translations';
 
@@ -96,6 +98,15 @@ interface AppContextType {
   serviceSales: ServiceSale[];
   addServiceSale: (sale: ServiceSale) => void;
   deleteServiceSale: (id: string) => void;
+  
+  // Maintenance CRM
+  maintenanceContracts: MaintenanceContract[];
+  addMaintenanceContract: (contract: MaintenanceContract) => void;
+  updateMaintenanceContract: (contract: MaintenanceContract) => void;
+  deleteMaintenanceContract: (id: string) => void;
+  
+  contactInteractions: ContactInteraction[];
+  addContactInteraction: (interaction: ContactInteraction) => void;
 
   // Fleet Management
   vehicles: Vehicle[];
@@ -200,6 +211,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [serviceCatalog, setServiceCatalog] = useState<ServiceItem[]>(mockServiceCatalog);
   const [serviceJobs, setServiceJobs] = useState<ServiceJob[]>(mockServiceJobs);
   const [serviceSales, setServiceSales] = useState<ServiceSale[]>(mockServiceSales);
+  const [maintenanceContracts, setMaintenanceContracts] = useState<MaintenanceContract[]>(mockMaintenanceContracts);
+  const [contactInteractions, setContactInteractions] = useState<ContactInteraction[]>(mockContactInteractions);
   
   // Fleet
   const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
@@ -365,6 +378,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteServiceJob = (id: string) => setServiceJobs(prev => prev.filter(j => j.id !== id));
   const addServiceSale = (sale: ServiceSale) => setServiceSales(prev => [sale, ...prev]);
   const deleteServiceSale = (id: string) => setServiceSales(prev => prev.filter(s => s.id !== id));
+  
+  // Maintenance CRM
+  const addMaintenanceContract = (contract: MaintenanceContract) => setMaintenanceContracts(prev => [...prev, contract]);
+  const updateMaintenanceContract = (contract: MaintenanceContract) => setMaintenanceContracts(prev => prev.map(c => c.id === contract.id ? contract : c));
+  const deleteMaintenanceContract = (id: string) => setMaintenanceContracts(prev => prev.filter(c => c.id !== id));
+  const addContactInteraction = (interaction: ContactInteraction) => setContactInteractions(prev => [interaction, ...prev]);
+
   const addVehicle = (vehicle: Vehicle) => setVehicles(prev => [...prev, vehicle]);
   const updateVehicle = (vehicle: Vehicle) => setVehicles(prev => prev.map(v => v.id === vehicle.id ? vehicle : v));
   const deleteVehicle = (id: string) => setVehicles(prev => prev.filter(v => v.id !== id));
@@ -423,6 +443,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     serviceCatalog, addServiceItem, updateServiceItem, deleteServiceItem,
     serviceJobs, addServiceJob, updateServiceJob, deleteServiceJob,
     serviceSales, addServiceSale, deleteServiceSale,
+    maintenanceContracts, addMaintenanceContract, updateMaintenanceContract, deleteMaintenanceContract,
+    contactInteractions, addContactInteraction,
     vehicles, addVehicle, updateVehicle, deleteVehicle,
     fleetMissions, addFleetMission, updateFleetMission, deleteFleetMission,
     fleetMaintenances, addFleetMaintenance, deleteFleetMaintenance,

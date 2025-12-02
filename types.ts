@@ -2,7 +2,7 @@
 export type AppView = 
   | 'dashboard' | 'clients' | 'suppliers' | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' | 'sales-issue' 
   | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return'
-  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians'
+  | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians' | 'services-crm'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
   | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses'
@@ -24,6 +24,7 @@ export interface Client {
   address?: string;
   taxId?: string;
   customFields?: Record<string, any>;
+  zone?: string; // Geographic zone
 }
 
 export interface Supplier {
@@ -261,6 +262,28 @@ export interface ServiceSale {
   taxAmount: number;
   total: number;
   notes?: string;
+}
+
+export interface MaintenanceContract {
+  id: string;
+  clientId: string;
+  title: string;
+  type: 'preventive' | 'corrective' | 'full';
+  startDate: string;
+  endDate: string;
+  visitsPerYear: number;
+  slaResponseHours: number;
+  status: 'active' | 'expired' | 'pending';
+  value: number;
+}
+
+export interface ContactInteraction {
+  id: string;
+  clientId: string;
+  date: string;
+  type: 'call' | 'email' | 'meeting' | 'note';
+  summary: string;
+  contactPerson?: string;
 }
 
 export interface InventoryItem {

@@ -31,6 +31,7 @@ import ServiceDashboard from './ServiceDashboard';
 import ServiceCatalog from './ServiceCatalog'; 
 import ServiceSales from './ServiceSales';
 import Technicians from './Technicians'; 
+import MaintenanceCRM from './MaintenanceCRM';
 import FleetManagement from './FleetManagement';
 import HumanResources from './HumanResources';
 import Reports from './Reports';
@@ -83,6 +84,9 @@ function AppContent() {
     // --- Services Routing ---
     if (currentView === 'services' || currentView === 'services-dashboard') {
         return <ServiceDashboard />;
+    }
+    if (currentView === 'services-crm') {
+        return <MaintenanceCRM />;
     }
     if (currentView === 'services-jobs') {
         return <ServiceJobs onAddNew={() => handleNavigate('services-jobs-create' as AppView)} />;

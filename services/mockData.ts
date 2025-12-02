@@ -3,7 +3,8 @@ import {
   Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
   BankAccount, BankTransaction, CashSession, CashTransaction, Technician, 
   ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission, 
-  FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll, LeaveRequest, ExpenseReport
+  FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll, 
+  LeaveRequest, ExpenseReport, MaintenanceContract, ContactInteraction
 } from '../types';
 
 export const getDate = (offset: number) => {
@@ -13,9 +14,9 @@ export const getDate = (offset: number) => {
 };
 
 export const mockClients: Client[] = [
-  { id: '1', company: 'TechSolutions Inc.', name: 'John Doe', email: 'john@techsolutions.com', phone: '+216 20 123 456', status: 'active', category: 'Corporate', totalSpent: 12500, address: 'Lac 1, Tunis' },
-  { id: '2', company: 'Global Trade Ltd.', name: 'Sarah Smith', email: 'sarah@globaltrade.com', phone: '+216 21 654 321', status: 'active', category: 'Corporate', totalSpent: 8900, address: 'Sfax, Tunisia' },
-  { id: '3', company: 'Retail Hub', name: 'Mike Brown', email: 'mike@retailhub.com', phone: '+216 22 987 654', status: 'inactive', category: 'Retail', totalSpent: 2300 }
+  { id: '1', company: 'TechSolutions Inc.', name: 'John Doe', email: 'john@techsolutions.com', phone: '+216 20 123 456', status: 'active', category: 'Corporate', totalSpent: 12500, address: 'Lac 1, Tunis', zone: 'North' },
+  { id: '2', company: 'Global Trade Ltd.', name: 'Sarah Smith', email: 'sarah@globaltrade.com', phone: '+216 21 654 321', status: 'active', category: 'Corporate', totalSpent: 8900, address: 'Sfax, Tunisia', zone: 'South' },
+  { id: '3', company: 'Retail Hub', name: 'Mike Brown', email: 'mike@retailhub.com', phone: '+216 22 987 654', status: 'inactive', category: 'Retail', totalSpent: 2300, zone: 'Center' }
 ];
 
 export const mockSuppliers: Supplier[] = [
@@ -119,4 +120,14 @@ export const mockLeaves: LeaveRequest[] = [
 
 export const mockExpenses: ExpenseReport[] = [
   { id: 'ex1', employeeId: 'e1', employeeName: 'Mohamed Salah', date: getDate(-3), type: 'Transport', amount: 45, description: 'Taxi to Client Meeting', status: 'pending' }
+];
+
+// Maint. CRM Mock Data
+export const mockMaintenanceContracts: MaintenanceContract[] = [
+    { id: 'mc1', clientId: '1', title: 'Annual Gold Support', type: 'full', startDate: '2024-01-01', endDate: '2024-12-31', visitsPerYear: 4, slaResponseHours: 4, status: 'active', value: 5000 }
+];
+
+export const mockContactInteractions: ContactInteraction[] = [
+    { id: 'ci1', clientId: '1', date: getDate(-5), type: 'call', summary: 'Discussed upgrade options for server.', contactPerson: 'John Doe' },
+    { id: 'ci2', clientId: '1', date: getDate(-2), type: 'email', summary: 'Sent quote for new printers.', contactPerson: 'Admin' }
 ];

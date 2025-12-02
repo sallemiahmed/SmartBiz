@@ -122,6 +122,20 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       ]
     },
     {
+      id: 'services',
+      labelKey: 'services',
+      icon: Wrench,
+      emoji: '🛠️',
+      subItems: [
+        { id: 'services-dashboard', labelKey: 'service_dashboard' },
+        { id: 'services-crm', labelKey: 'Contact Maint.' },
+        { id: 'services-jobs', labelKey: 'job_cards', hasAction: true },
+        { id: 'services-sales', labelKey: 'service_sales' }, 
+        { id: 'services-catalog', labelKey: 'service_catalog' },
+        { id: 'services-technicians', labelKey: 'technicians' }
+      ]
+    },
+    {
       id: 'hr',
       labelKey: 'Human Resources',
       icon: Briefcase,
@@ -133,19 +147,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
           { id: 'hr-payroll', labelKey: 'Payroll' },
           { id: 'hr-leave', labelKey: 'Leave & Time' },
           { id: 'hr-expenses', labelKey: 'Expense Reports' }
-      ]
-    },
-    {
-      id: 'services',
-      labelKey: 'services',
-      icon: Wrench,
-      emoji: '🛠️',
-      subItems: [
-        { id: 'services-dashboard', labelKey: 'service_dashboard' },
-        { id: 'services-jobs', labelKey: 'job_cards', hasAction: true },
-        { id: 'services-sales', labelKey: 'service_sales' }, 
-        { id: 'services-catalog', labelKey: 'service_catalog' },
-        { id: 'services-technicians', labelKey: 'technicians' }
       ]
     },
     { 
