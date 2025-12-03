@@ -502,7 +502,7 @@ const HRSettings: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {payrollElements.map(element => (
+            {(payrollElements || []).map(element => (
               <tr key={element.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                   {element.code}
