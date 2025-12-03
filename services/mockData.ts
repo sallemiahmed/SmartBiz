@@ -1,10 +1,11 @@
 
-import { 
-  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
-  BankAccount, BankTransaction, CashSession, CashTransaction, Technician, 
-  ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission, 
-  FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll, 
-  LeaveRequest, ExpenseReport, MaintenanceContract, ContactInteraction
+import {
+  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
+  BankAccount, BankTransaction, CashSession, CashTransaction, Technician,
+  ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission,
+  FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll,
+  LeaveRequest, ExpenseReport, MaintenanceContract, ContactInteraction,
+  Department, Position
 } from '../types';
 
 export const getDate = (offset: number) => {
@@ -216,6 +217,24 @@ export const mockFleetExpenses: FleetExpense[] = [];
 export const mockFleetDocuments: FleetDocument[] = [];
 
 // --- HR ---
+export const mockDepartments: Department[] = [
+  { id: 'dept1', name: 'Direction', code: 'DIR', managerId: 'e1', description: 'Direction Générale' },
+  { id: 'dept2', name: 'RH', code: 'HR', managerId: 'e2', description: 'Ressources Humaines' },
+  { id: 'dept3', name: 'Logistique', code: 'LOG', description: 'Logistique et Transport' },
+  { id: 'dept4', name: 'Technique', code: 'TECH', description: 'Service Technique' },
+  { id: 'dept5', name: 'Commercial', code: 'COM', description: 'Service Commercial' },
+  { id: 'dept6', name: 'Finance', code: 'FIN', description: 'Finance et Comptabilité' }
+];
+
+export const mockPositions: Position[] = [
+  { id: 'pos1', title: 'Directeur Général', code: 'DG', departmentId: 'dept1', level: 'executive', description: 'Direction générale de l\'entreprise' },
+  { id: 'pos2', title: 'Responsable RH', code: 'RH-MGR', departmentId: 'dept2', level: 'manager', description: 'Gestion des ressources humaines' },
+  { id: 'pos3', title: 'Chauffeur / Coursier', code: 'LOG-DRV', departmentId: 'dept3', level: 'junior', description: 'Transport et livraison' },
+  { id: 'pos4', title: 'Technicien Senior', code: 'TECH-SR', departmentId: 'dept4', level: 'senior', description: 'Maintenance et interventions techniques' },
+  { id: 'pos5', title: 'Commercial Senior', code: 'COM-SR', departmentId: 'dept5', level: 'senior', description: 'Vente et développement commercial' },
+  { id: 'pos6', title: 'Comptable', code: 'FIN-ACC', departmentId: 'dept6', level: 'mid', description: 'Comptabilité et finances' }
+];
+
 export const mockEmployees: Employee[] = [
   { id: 'e1', firstName: 'Mohamed', lastName: 'Ben Ali', email: 'mohamed@smartbiz.tn', phone: '20 123 123', position: 'Directeur Général', department: 'Direction', hireDate: '2015-01-01', status: 'active', salary: 4500 },
   { id: 'e2', firstName: 'Sarra', lastName: 'Trabelsi', email: 'sarra@smartbiz.tn', phone: '55 654 321', position: 'Responsable RH', department: 'RH', hireDate: '2018-05-15', status: 'active', salary: 2800 },

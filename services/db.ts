@@ -9,12 +9,13 @@ import {
   ContactInteraction, AppSettings, Department, Position, Attendance, Timesheet,
   LeavePolicy, PerformanceReview, ReviewCycle
 } from '../types';
-import { 
-  mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, 
+import {
+  mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases,
   mockWarehouses, mockStockMovements, mockBankAccounts, mockBankTransactions,
-  mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs, 
-  mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll, 
-  mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions
+  mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs,
+  mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll,
+  mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions,
+  mockDepartments, mockPositions
 } from './mockData';
 
 export class SmartBizDatabase extends Dexie {
@@ -142,6 +143,8 @@ export const seedDatabase = async (defaultSettings: AppSettings) => {
             await db.contactInteractions.bulkAdd(mockContactInteractions);
             await db.vehicles.bulkAdd(mockVehicles);
             await db.fleetMissions.bulkAdd(mockFleetMissions);
+            await db.departments.bulkAdd(mockDepartments);
+            await db.positions.bulkAdd(mockPositions);
             await db.employees.bulkAdd(mockEmployees);
             await db.contracts.bulkAdd(mockContracts);
             await db.payrolls.bulkAdd(mockPayroll);
