@@ -73,8 +73,8 @@ export class SmartBizDatabase extends Dexie {
   settings!: Table<AppSettings>;
 
   constructor() {
-    // Renamed database to force fresh seeding for the new Tunisian dataset
-    super('SmartBizTunisieDB');
+    // Renamed database to force fresh seeding for the new Tunisian dataset with HR enhancements
+    super('SmartBizTunisieDB_v2');
     (this as any).version(1).stores({
       clients: 'id, company, name, status',
       suppliers: 'id, company, status',
