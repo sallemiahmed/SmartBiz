@@ -64,14 +64,17 @@ const HRLeave: React.FC = () => {
     return employees
       .filter(emp => emp.status === 'active')
       .map(emp => {
-        // Calculate working days since hire date
+        // Calculate months worked since hire date
         const hireDate = new Date(emp.hireDate);
         const today = new Date();
-        const diffTime = Math.abs(today.getTime() - hireDate.getTime());
-        const workingDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-        // Days accrued: Working days × 1.25
-        const daysAccrued = Math.floor(workingDays * 1.25);
+        // Calculate the number of months between hire date and today
+        const yearsDiff = today.getFullYear() - hireDate.getFullYear();
+        const monthsDiff = today.getMonth() - hireDate.getMonth();
+        const monthsWorked = yearsDiff * 12 + monthsDiff;
+
+        // Days accrued: Months worked × 1.25
+        const daysAccrued = Math.floor(monthsWorked * 1.25);
 
         // Days taken (approved leaves only)
         const daysTaken = leaves
@@ -85,7 +88,7 @@ const HRLeave: React.FC = () => {
           employeeId: emp.id,
           employeeName: `${emp.firstName} ${emp.lastName}`,
           department: emp.department,
-          workingDays,
+          monthsWorked,
           daysAccrued,
           daysTaken,
           daysRemaining
@@ -301,7 +304,7 @@ const HRLeave: React.FC = () => {
                   {t('department') || 'Département'}
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  {t('working_days') || 'Jours Travaillés'}
+                  {t('months_worked') || 'Mois Travaillés'}
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   {t('days_accrued') || 'Jours Acquis'}
@@ -332,7 +335,7 @@ const HRLeave: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span className="text-sm text-gray-900 dark:text-white font-medium">
-                      {balance.workingDays}
+                      {balance.monthsWorked}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
