@@ -5,7 +5,7 @@ export type AppView =
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians' | 'services-crm'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
-  | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses' | 'hr-performance'
+  | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses' | 'hr-performance' | 'hr-attendance' | 'hr-settings'
   | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
   | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
@@ -366,28 +366,87 @@ export interface FleetDocument {
 }
 
 // HR Interfaces
+
+// Core HR entities
+export interface Department {
+  id: string;
+  name: string;
+  code: string;
+  managerId?: string;
+  description?: string;
+}
+
+export interface Position {
+  id: string;
+  title: string;
+  code: string;
+  departmentId: string;
+  level: 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'director' | 'executive';
+  description?: string;
+}
+
 export interface Employee {
   id: string;
+  matricule: string; // Employee number
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   position: string;
+  positionId?: string;
   department: string;
+  departmentId?: string;
+  managerId?: string;
+  site?: string; // Office location
   hireDate: string;
-  status: 'active' | 'inactive' | 'on_leave';
+  birthDate?: string;
+  nationality?: string;
+  address?: string;
+  status: 'active' | 'inactive' | 'on_leave' | 'terminated';
   salary: number;
   photo?: string;
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  documents?: {
+    id: string;
+    type: 'id' | 'passport' | 'contract' | 'certificate' | 'other';
+    name: string;
+    uploadDate: string;
+    expiryDate?: string;
+    fileUrl?: string;
+  }[];
+  customFields?: Record<string, any>;
 }
 
 export interface Contract {
   id: string;
   employeeId: string;
   employeeName: string;
-  type: 'CDI' | 'CDD' | 'Stage' | 'Internship';
+  type: 'CDI' | 'CDD' | 'Stage' | 'Internship' | 'Freelance' | 'Part-time';
   startDate: string;
   endDate?: string;
-  status: 'active' | 'expired' | 'terminated';
+  trialPeriodEnd?: string;
+  status: 'draft' | 'active' | 'suspended' | 'expired' | 'terminated';
+  baseSalary: number;
+  currency: string;
+  workingHours: number; // per week
+  bonuses?: {
+    type: string;
+    amount: number;
+    frequency: 'monthly' | 'quarterly' | 'annual' | 'one-time';
+  }[];
+  benefits?: string[];
+  signedDate?: string;
+  fileUrl?: string;
+  amendments?: {
+    id: string;
+    date: string;
+    description: string;
+    fileUrl?: string;
+  }[];
 }
 
 export interface Payroll {
@@ -420,11 +479,71 @@ export interface ExpenseReport {
   employeeId: string;
   employeeName: string;
   date: string;
-  type: 'Transport' | 'Food' | 'Accommodation' | 'Other';
+  type: 'Transport' | 'Food' | 'Accommodation' | 'Mileage' | 'Other';
   amount: number;
   description: string;
   status: 'pending' | 'approved' | 'reimbursed' | 'rejected';
   receipt?: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  reimbursedDate?: string;
+  items?: {
+    id: string;
+    date: string;
+    category: string;
+    amount: number;
+    description: string;
+    receipt?: string;
+  }[];
+}
+
+// Time & Attendance
+export interface Attendance {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  checkIn?: string;  // HH:MM
+  checkOut?: string; // HH:MM
+  breakDuration?: number; // minutes
+  totalHours?: number;
+  status: 'present' | 'absent' | 'late' | 'half_day' | 'remote';
+  notes?: string;
+}
+
+export interface Timesheet {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  weekStarting: string; // YYYY-MM-DD (Monday)
+  weekEnding: string;
+  entries: {
+    date: string;
+    regularHours: number;
+    overtimeHours: number;
+    projectId?: string;
+    projectName?: string;
+    task?: string;
+    notes?: string;
+  }[];
+  totalRegular: number;
+  totalOvertime: number;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  submittedDate?: string;
+  approvedBy?: string;
+  approvedDate?: string;
+}
+
+// Leave Policies
+export interface LeavePolicy {
+  id: string;
+  name: string;
+  type: string; // 'annual', 'sick', 'maternity', etc.
+  daysPerYear: number;
+  maxCarryover?: number;
+  requiresApproval: boolean;
+  paidLeave: boolean;
+  description?: string;
 }
 
 // HR Performance Interfaces
@@ -460,6 +579,202 @@ export interface TaxRate {
   name: string;
   rate: number;
   isDefault?: boolean;
+}
+
+// Extended HR Interfaces
+
+// Payroll Run & Payslip
+export interface PayrollElement {
+  id: string;
+  code: string;
+  name: string;
+  type: 'earning' | 'deduction' | 'benefit';
+  formula?: string; // Expression formula or fixed amount
+  isSystemGenerated?: boolean;
+}
+
+export interface PayrollRun {
+  id: string;
+  reference: string;
+  periodStart: string; // YYYY-MM-DD
+  periodEnd: string;
+  status: 'draft' | 'calculated' | 'validated' | 'paid' | 'closed';
+  totalGross: number;
+  totalNet: number;
+  totalDeductions: number;
+  employeesCount: number;
+  createdBy: string;
+  createdDate: string;
+  closedDate?: string;
+  paymentDate?: string;
+  notes?: string;
+}
+
+export interface Payslip {
+  id: string;
+  runId: string;
+  employeeId: string;
+  employeeName: string;
+  employeeMatricule: string;
+  periodStart: string;
+  periodEnd: string;
+  baseSalary: number;
+  workDays: number;
+  workedDays: number;
+  earnings: {
+    elementId: string;
+    name: string;
+    amount: number;
+    taxable: boolean;
+  }[];
+  deductions: {
+    elementId: string;
+    name: string;
+    amount: number;
+    type: 'social' | 'tax' | 'other';
+  }[];
+  grossSalary: number;
+  totalDeductions: number;
+  netSalary: number;
+  status: 'draft' | 'final';
+  pdfUrl?: string;
+  generatedDate: string;
+}
+
+// Shifts & Schedules
+export interface Shift {
+  id: string;
+  name: string;
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
+  breakDuration: number; // minutes
+  isActive: boolean;
+}
+
+export interface ShiftAssignment {
+  id: string;
+  employeeId: string;
+  shiftId: string;
+  date: string; // YYYY-MM-DD
+  status: 'scheduled' | 'confirmed' | 'cancelled';
+}
+
+// Onboarding & Offboarding
+export interface OnboardingTask {
+  id: string;
+  title: string;
+  description: string;
+  assigneeRole: 'hr' | 'manager' | 'employee' | 'it';
+  dueInDays: number; // Days from hire date
+  completed: boolean;
+  completedDate?: string;
+  completedBy?: string;
+  requiresDocument?: boolean;
+  documentUrl?: string;
+}
+
+export interface OnboardingChecklist {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  startDate: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  tasks: OnboardingTask[];
+  completionPercentage: number;
+  notes?: string;
+}
+
+export interface OffboardingChecklist {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  lastWorkingDate: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  tasks: OnboardingTask[];
+  exitInterview?: {
+    conducted: boolean;
+    date?: string;
+    feedback?: string;
+  };
+  completionPercentage: number;
+  notes?: string;
+}
+
+// Document Management
+export interface EmployeeDocument {
+  id: string;
+  employeeId: string;
+  type: 'id' | 'passport' | 'contract' | 'certificate' | 'medical' | 'rib' | 'other';
+  name: string;
+  uploadDate: string;
+  expiryDate?: string;
+  version: number;
+  fileUrl?: string;
+  uploadedBy: string;
+  status: 'active' | 'expired' | 'archived';
+}
+
+// Goals & Objectives (OKR)
+export interface Objective {
+  id: string;
+  employeeId: string;
+  title: string;
+  description: string;
+  weight: number; // percentage
+  startDate: string;
+  endDate: string;
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  progress: number; // 0-100
+  keyResults: {
+    id: string;
+    description: string;
+    target: number;
+    current: number;
+    unit: string;
+  }[];
+}
+
+// Audit Log
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  action: 'create' | 'update' | 'delete' | 'approve' | 'reject' | 'export' | 'view_sensitive';
+  resource: string; // e.g., 'employee', 'payroll', 'contract'
+  resourceId: string;
+  before?: any;
+  after?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  notes?: string;
+}
+
+// HR Settings
+export interface HRSettings {
+  id: string;
+  // Leave Policies
+  leaveYearStart: string; // MM-DD
+  carryoverAllowed: boolean;
+  maxCarryoverDays: number;
+  // Payroll
+  payrollFrequency: 'weekly' | 'bi-weekly' | 'monthly';
+  payrollCutoffDay: number; // Day of month
+  paymentDay: number; // Day of month
+  defaultWorkingDaysPerWeek: number;
+  overtimeRateMultiplier: number; // e.g., 1.5
+  // Working Hours
+  standardWorkingHoursPerDay: number;
+  standardWorkingHoursPerWeek: number;
+  weekendDays: string[]; // ['saturday', 'sunday']
+  // Compliance
+  dataRetentionYears: number;
+  anonymizeOnExit: boolean;
+  requireTwoFactorForSalaryAccess: boolean;
+  // Notifications
+  alertDocumentExpiryDays: number;
+  alertTrialPeriodEndDays: number;
+  alertContractEndDays: number;
 }
 
 export interface AppSettings {

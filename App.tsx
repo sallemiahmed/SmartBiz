@@ -27,16 +27,26 @@ import RequestForQuotation from './views/RequestForQuotation';
 import InternalPurchaseRequest from './views/InternalPurchaseRequest';
 import Services from './views/Services';
 import ServiceJobs from './views/ServiceJobs';
-import ServiceDashboard from './views/ServiceDashboard'; 
-import ServiceCatalog from './views/ServiceCatalog'; 
+import ServiceDashboard from './views/ServiceDashboard';
+import ServiceCatalog from './views/ServiceCatalog';
 import ServiceSales from './views/ServiceSales';
-import Technicians from './views/Technicians'; 
+import Technicians from './views/Technicians';
+import MaintenanceCRM from './views/MaintenanceCRM';
 import FleetManagement from './views/FleetManagement';
 import Reports from './views/Reports';
 import Settings from './views/Settings';
-import BankManagement from './views/BankManagement'; 
-import CashRegister from './views/CashRegister'; 
+import BankManagement from './views/BankManagement';
+import CashRegister from './views/CashRegister';
 import CostAnalysis from './views/CostAnalysis';
+import HRDashboard from './views/HRDashboard';
+import HREmployees from './views/HREmployees';
+import HRContracts from './views/HRContracts';
+import HRLeave from './views/HRLeave';
+import HRPayroll from './views/HRPayroll';
+import HRAttendance from './views/HRAttendance';
+import HRExpenses from './views/HRExpenses';
+import HRPerformance from './views/HRPerformance';
+import HRSettings from './views/HRSettings';
 import { AppView } from './types';
 import { AppProvider, useApp } from './context/AppContext';
 
@@ -48,7 +58,7 @@ function AppContent() {
   
   const { settings, setIsLoading } = useApp();
 
-  const handleNavigate = (view: AppView) => {
+  const handleNavigate = React.useCallback((view: AppView) => {
     if (view !== currentView) {
       setIsLoading(true);
       setTimeout(() => {
@@ -56,7 +66,7 @@ function AppContent() {
         setTimeout(() => setIsLoading(false), 200);
       }, 100);
     }
-  };
+  }, [currentView, setIsLoading]);
 
   useEffect(() => {
     if (isDark) {
@@ -79,9 +89,13 @@ function AppContent() {
   const toggleTheme = () => setIsDark(!isDark);
 
   const renderView = () => {
+
     // --- Services Routing ---
     if (currentView === 'services' || currentView === 'services-dashboard') {
         return <ServiceDashboard />;
+    }
+    if (currentView === 'services-crm') {
+        return <MaintenanceCRM />;
     }
     if (currentView === 'services-jobs') {
         return <ServiceJobs onAddNew={() => handleNavigate('services-jobs-create' as AppView)} />;
@@ -202,6 +216,44 @@ function AppContent() {
       return <BankManagement view={currentView} />;
     }
 
+    // --- HR Routing ---
+    if (currentView.startsWith('hr')) {
+      if (currentView === 'hr' || currentView === 'hr-dashboard') {
+        return <HRDashboard />;
+      }
+      if (currentView === 'hr-employees') {
+        return <HREmployees />;
+      }
+      if (currentView === 'hr-contracts') {
+        return <HRContracts />;
+      }
+      if (currentView === 'hr-leave') {
+        return <HRLeave />;
+      }
+      if (currentView === 'hr-payroll') {
+        return <HRPayroll />;
+      }
+      if (currentView === 'hr-attendance') {
+        return <HRAttendance />;
+      }
+      if (currentView === 'hr-expenses') {
+        return <HRExpenses />;
+      }
+      if (currentView === 'hr-performance') {
+        return <HRPerformance />;
+      }
+      if (currentView === 'hr-settings') {
+        return <HRSettings />;
+      }
+      // Fallback for unknown HR views
+      return (
+        <div className="p-12 text-center">
+          <h2 className="text-xl font-bold text-gray-400">Module RH en construction 🚧</h2>
+          <p className="text-gray-500 mt-2">La vue {currentView} sera disponible prochainement</p>
+        </div>
+      );
+    }
+
     switch (currentView) {
       case 'dashboard':
         return <Dashboard />;
@@ -249,7 +301,7 @@ function AppContent() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {renderView()}
           
-          {!currentView.startsWith('sales') && !currentView.startsWith('purchases') && !currentView.startsWith('settings') && !currentView.startsWith('services') && (
+          {!currentView.startsWith('sales') && !currentView.startsWith('purchases') && !currentView.startsWith('settings') && !currentView.startsWith('services') && !currentView.startsWith('hr') && (
             <footer className="p-6 text-center text-xs text-gray-400 dark:text-gray-600">
               &copy; 2024 SmartBiz Manager SaaS. All rights reserved. v1.0.0
             </footer>

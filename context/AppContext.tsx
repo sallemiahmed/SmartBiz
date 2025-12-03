@@ -1,16 +1,30 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { 
-  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
+import {
+  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
   StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
   Employee, Contract, Payroll, LeaveRequest, ExpenseReport,
-  MaintenanceContract, ContactInteraction
+  MaintenanceContract, ContactInteraction, Department, Position,
+  Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle,
+  PayrollRun, Payslip, PayrollElement, Shift, ShiftAssignment,
+  OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings
 } from '../types';
-import { db, seedDatabase } from '../services/db';
+// import { db, seedDatabase } from '../services/db'; // DISABLED - using mock data only
 import { loadTranslations } from '../services/translations';
+import {
+  mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases,
+  mockWarehouses, mockStockMovements, mockBankAccounts, mockBankTransactions,
+  mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs,
+  mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll,
+  mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions,
+  mockDepartments, mockPositions, mockPayrollRuns, mockPayslips, mockPayrollElements,
+  mockShifts, mockShiftAssignments, mockAttendances, mockTimesheets, mockLeavePolicies,
+  mockPerformanceReviews, mockReviewCycles, mockObjectives, mockOnboardingChecklists,
+  mockOffboardingChecklists, mockAuditLogs, mockHRSettings
+} from '../services/mockData';
 
 interface AppContextType {
   clients: Client[];
@@ -146,6 +160,63 @@ interface AppContextType {
   addExpenseReport: (expense: ExpenseReport) => void;
   updateExpenseReport: (expense: ExpenseReport) => void;
 
+  // Extended HR
+  payrollRuns: PayrollRun[];
+  addPayrollRun: (run: PayrollRun) => void;
+  updatePayrollRun: (run: PayrollRun) => void;
+
+  payslips: Payslip[];
+  addPayslip: (payslip: Payslip) => void;
+
+  payrollElements: PayrollElement[];
+  addPayrollElement: (element: PayrollElement) => void;
+  updatePayrollElement: (element: PayrollElement) => void;
+  deletePayrollElement: (id: string) => void;
+
+  shifts: Shift[];
+  addShift: (shift: Shift) => void;
+  updateShift: (shift: Shift) => void;
+  deleteShift: (id: string) => void;
+
+  shiftAssignments: ShiftAssignment[];
+  addShiftAssignment: (assignment: ShiftAssignment) => void;
+  deleteShiftAssignment: (id: string) => void;
+
+  addAttendance: (attendance: Attendance) => void;
+  updateAttendance: (attendance: Attendance) => void;
+
+  addTimesheet: (timesheet: Timesheet) => void;
+  updateTimesheet: (timesheet: Timesheet) => void;
+
+  addLeavePolicy: (policy: LeavePolicy) => void;
+  updateLeavePolicy: (policy: LeavePolicy) => void;
+  deleteLeavePolicy: (id: string) => void;
+
+  addPerformanceReview: (review: PerformanceReview) => void;
+  updatePerformanceReview: (review: PerformanceReview) => void;
+
+  addReviewCycle: (cycle: ReviewCycle) => void;
+  updateReviewCycle: (cycle: ReviewCycle) => void;
+
+  objectives: Objective[];
+  addObjective: (objective: Objective) => void;
+  updateObjective: (objective: Objective) => void;
+  deleteObjective: (id: string) => void;
+
+  onboardingChecklists: OnboardingChecklist[];
+  addOnboardingChecklist: (checklist: OnboardingChecklist) => void;
+  updateOnboardingChecklist: (checklist: OnboardingChecklist) => void;
+
+  offboardingChecklists: OffboardingChecklist[];
+  addOffboardingChecklist: (checklist: OffboardingChecklist) => void;
+  updateOffboardingChecklist: (checklist: OffboardingChecklist) => void;
+
+  auditLogs: AuditLog[];
+  addAuditLog: (log: AuditLog) => void;
+
+  hrSettings: HRSettings | null;
+  updateHRSettings: (settings: HRSettings) => void;
+
   settings: AppSettings;
   setSettings: (settings: AppSettings) => void;
 
@@ -154,7 +225,7 @@ interface AppContextType {
 
   stats: { revenue: number; expenses: number; profit: number };
   chartData: any[];
-  
+
   formatCurrency: (amount: number, currency?: string) => string;
   t: (key: string) => string;
 }
@@ -214,66 +285,73 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [fleetDocuments, setFleetDocuments] = useState<FleetDocument[]>([]);
   
   // HR
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [leavePolicies, setLeavePolicies] = useState<LeavePolicy[]>([]);
   const [expenses, setExpenses] = useState<ExpenseReport[]>([]);
+  const [attendances, setAttendances] = useState<Attendance[]>([]);
+  const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
+  const [performanceReviews, setPerformanceReviews] = useState<PerformanceReview[]>([]);
+  const [reviewCycles, setReviewCycles] = useState<ReviewCycle[]>([]);
 
   const [settings, setSettingsState] = useState<AppSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [translations, setTranslations] = useState<Record<string, string>>({});
 
-  // --- DB LOADING & INITIALIZATION ---
+  // --- MOCK DATA LOADING (IndexedDB disabled) ---
   useEffect(() => {
-    const init = async () => {
-        try {
-            setIsLoading(true);
-            // Seed if empty
-            await seedDatabase(defaultSettings);
+    console.log('Loading mock data directly (IndexedDB disabled)...');
+    try {
+      setIsLoading(true);
 
-            // Load Settings
-            const savedSettings = await db.settings.get('config');
-            if (savedSettings) setSettingsState(savedSettings as AppSettings);
+      // Load mock data directly into state
+      setClients(mockClients);
+      setSuppliers(mockSuppliers);
+      setProducts(mockInventory);
+      setInvoices(mockInvoices);
+      setPurchases(mockPurchases);
+      setWarehouses(mockWarehouses);
+      setStockMovements(mockStockMovements);
+      setStockTransfers([]);
+      setInventorySessions([]);
+      setBankAccounts(mockBankAccounts);
+      setBankTransactions(mockBankTransactions);
+      setCashSessions(mockCashSessions);
+      setCashTransactions([]);
+      setTechnicians(mockTechnicians);
+      setServiceCatalog(mockServiceCatalog);
+      setServiceJobs(mockServiceJobs);
+      setServiceSales([]);
+      setMaintenanceContracts(mockMaintenanceContracts);
+      setContactInteractions(mockContactInteractions);
+      setVehicles(mockVehicles);
+      setFleetMissions(mockFleetMissions);
+      setFleetMaintenances([]);
+      setFleetExpenses([]);
+      setFleetDocuments([]);
+      setDepartments(mockDepartments);
+      setPositions(mockPositions);
+      setEmployees(mockEmployees);
+      setContracts(mockContracts);
+      setPayrolls(mockPayroll);
+      setLeaves(mockLeaves);
+      setLeavePolicies([]);
+      setExpenses(mockExpenses);
+      setAttendances([]);
+      setTimesheets([]);
+      setPerformanceReviews([]);
+      setReviewCycles([]);
 
-            // Load All Tables
-            setClients(await db.clients.toArray());
-            setSuppliers(await db.suppliers.toArray());
-            setProducts(await db.products.toArray());
-            setInvoices(await db.invoices.toArray());
-            setPurchases(await db.purchases.toArray());
-            setWarehouses(await db.warehouses.toArray());
-            setStockMovements(await db.stockMovements.toArray());
-            setStockTransfers(await db.stockTransfers.toArray());
-            setInventorySessions(await db.inventorySessions.toArray());
-            setBankAccounts(await db.bankAccounts.toArray());
-            setBankTransactions(await db.bankTransactions.toArray());
-            setCashSessions(await db.cashSessions.toArray());
-            setCashTransactions(await db.cashTransactions.toArray());
-            setTechnicians(await db.technicians.toArray());
-            setServiceCatalog(await db.serviceCatalog.toArray());
-            setServiceJobs(await db.serviceJobs.toArray());
-            setServiceSales(await db.serviceSales.toArray());
-            setMaintenanceContracts(await db.maintenanceContracts.toArray());
-            setContactInteractions(await db.contactInteractions.toArray());
-            setVehicles(await db.vehicles.toArray());
-            setFleetMissions(await db.fleetMissions.toArray());
-            setFleetMaintenances(await db.fleetMaintenances.toArray());
-            setFleetExpenses(await db.fleetExpenses.toArray());
-            setFleetDocuments(await db.fleetDocuments.toArray());
-            setEmployees(await db.employees.toArray());
-            setContracts(await db.contracts.toArray());
-            setPayrolls(await db.payrolls.toArray());
-            setLeaves(await db.leaves.toArray());
-            setExpenses(await db.expenses.toArray());
-
-        } catch (error) {
-            console.error("Failed to load DB", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    init();
+      console.log('Mock data loaded successfully!');
+    } catch (error) {
+      console.error("Failed to load mock data", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -284,7 +362,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const setSettings = (newSettings: AppSettings) => {
     setSettingsState(newSettings);
-    db.settings.put({ ...newSettings, id: 'config' } as any);
+    // db.settings.put({ ...newSettings, id: 'config' } as any); // DISABLED - no persistence
+    console.log('Settings updated (in-memory only, no persistence):', newSettings);
   };
 
   const formatCurrency = (amount: number, currency: string = settings.currency) => {
@@ -298,55 +377,56 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- CRUD Functions (Persisted to DB and Updated Locally) ---
 
   const addClient = async (client: Client) => {
-      await db.clients.add(client);
+      // await db.clients.add(client);
       setClients(prev => [...prev, client]);
   };
   const updateClient = async (client: Client) => {
-      await db.clients.put(client);
+      // await db.clients.put(client);
       setClients(prev => prev.map(c => c.id === client.id ? client : c));
   };
   const deleteClient = async (id: string) => {
-      await db.clients.delete(id);
+      // await db.clients.delete(id);
       setClients(prev => prev.filter(c => c.id !== id));
   };
 
   const addSupplier = async (supplier: Supplier) => {
-      await db.suppliers.add(supplier);
+      // await db.suppliers.add(supplier);
       setSuppliers(prev => [...prev, supplier]);
   };
   const updateSupplier = async (supplier: Supplier) => {
-      await db.suppliers.put(supplier);
+      // await db.suppliers.put(supplier);
       setSuppliers(prev => prev.map(s => s.id === supplier.id ? supplier : s));
   };
   const deleteSupplier = async (id: string) => {
-      await db.suppliers.delete(id);
+      // await db.suppliers.delete(id);
       setSuppliers(prev => prev.filter(s => s.id !== id));
   };
 
   const addProduct = async (product: Product) => {
-      await db.products.add(product);
+      // await db.products.add(product);
       setProducts(prev => [...prev, product]);
   };
   const addProducts = async (newProducts: Product[]) => {
-      await db.products.bulkAdd(newProducts);
+      // await db.products.bulkAdd(newProducts);
       setProducts(prev => [...prev, ...newProducts]);
   };
   const updateProduct = async (product: Product) => {
-      await db.products.put(product);
+      // await db.products.put(product);
       setProducts(prev => prev.map(p => p.id === product.id ? product : p));
   };
   const deleteProduct = async (id: string) => {
-      await db.products.delete(id);
+      // await db.products.delete(id);
       setProducts(prev => prev.filter(p => p.id !== id));
   };
 
   const addStockMovement = async (movement: StockMovement) => {
-      await db.stockMovements.add(movement);
+      // await db.stockMovements.add(movement);
       setStockMovements(prev => [movement, ...prev]);
       
       if (movement.productId) {
           // Fetch fresh product to avoid stale state closure issues
-          const product = await db.products.get(movement.productId);
+          // const product = await db.products.get(movement.productId); // DISABLED
+          const product = products.find(p => p.id === movement.productId);
           if (product) {
                const newStock = product.stock + movement.quantity;
                const newWhStock = { ...product.warehouseStock };
@@ -357,7 +437,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                    newCost = totalValue / newStock;
                }
                const updatedProduct = { ...product, stock: newStock, warehouseStock: newWhStock, cost: newCost };
-               await db.products.put(updatedProduct);
+               // await db.products.put(updatedProduct);
                setProducts(prev => prev.map(p => p.id === product.id ? updatedProduct : p));
           }
       }
@@ -405,11 +485,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateInvoice = async (invoice: Invoice) => {
-      await db.invoices.put(invoice);
+      // await db.invoices.put(invoice);
       setInvoices(prev => prev.map(i => i.id === invoice.id ? invoice : i));
   };
   const deleteInvoice = async (id: string) => {
-      await db.invoices.delete(id);
+      // await db.invoices.delete(id);
       setInvoices(prev => prev.filter(i => i.id !== id));
   };
 
@@ -492,24 +572,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updatePurchase = async (purchase: Purchase) => {
-      await db.purchases.put(purchase);
+      // await db.purchases.put(purchase);
       setPurchases(prev => prev.map(p => p.id === purchase.id ? purchase : p));
   };
   const deletePurchase = async (id: string) => {
-      await db.purchases.delete(id);
+      // await db.purchases.delete(id);
       setPurchases(prev => prev.filter(p => p.id !== id));
   };
 
   const addWarehouse = async (wh: Warehouse) => {
-      await db.warehouses.add(wh);
+      // await db.warehouses.add(wh);
       setWarehouses(prev => [...prev, wh]);
   };
   const updateWarehouse = async (wh: Warehouse) => {
-      await db.warehouses.put(wh);
+      // await db.warehouses.put(wh);
       setWarehouses(prev => prev.map(w => w.id === wh.id ? wh : w));
   };
   const deleteWarehouse = async (id: string) => {
-      await db.warehouses.delete(id);
+      // await db.warehouses.delete(id);
       setWarehouses(prev => prev.filter(w => w.id !== id));
   };
 
@@ -549,12 +629,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const items: InventoryItem[] = products.map(p => ({ productId: p.id, productName: p.name, sku: p.sku, systemQty: p.warehouseStock[warehouseId] || 0, physicalQty: p.warehouseStock[warehouseId] || 0, variance: 0, cost: p.cost }));
       const newSession: InventorySession = { id: `inv-sess-${Date.now()}`, reference: `INV-${Date.now()}`, date: new Date().toISOString().split('T')[0], warehouseId: warehouseId, warehouseName: warehouses.find(w=>w.id===warehouseId)?.name || 'Unknown', status: 'in_progress', categoryFilter: data.categoryFilter || 'All', items: items, notes: data.notes || '' };
       
-      await db.inventorySessions.add(newSession);
+      // await db.inventorySessions.add(newSession);
       setInventorySessions(prev => [newSession, ...prev]);
   };
 
   const updateInventorySession = async (session: InventorySession) => {
-      await db.inventorySessions.put(session);
+      // await db.inventorySessions.put(session);
       setInventorySessions(prev => prev.map(s => s.id === session.id ? session : s));
   };
 
@@ -581,20 +661,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addBankAccount = async (acc: BankAccount) => {
-      await db.bankAccounts.add(acc);
+      // await db.bankAccounts.add(acc);
       setBankAccounts(prev => [...prev, acc]);
   };
   const updateBankAccount = async (acc: BankAccount) => {
-      await db.bankAccounts.put(acc);
+      // await db.bankAccounts.put(acc);
       setBankAccounts(prev => prev.map(a => a.id === acc.id ? acc : a));
   };
   const deleteBankAccount = async (id: string) => {
-      await db.bankAccounts.delete(id);
+      // await db.bankAccounts.delete(id);
       setBankAccounts(prev => prev.filter(a => a.id !== id));
   };
 
   const addBankTransaction = async (tx: BankTransaction) => {
-      await db.bankTransactions.add(tx);
+      // await db.bankTransactions.add(tx);
       setBankTransactions(prev => [tx, ...prev]);
       
       const account = bankAccounts.find(a => a.id === tx.accountId);
@@ -607,7 +687,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteBankTransaction = async (id: string) => {
        const tx = bankTransactions.find(t => t.id === id);
        if (tx) {
-           await db.bankTransactions.delete(id);
+           // await db.bankTransactions.delete(id);
            setBankTransactions(prev => prev.filter(t => t.id !== id));
            // Revert balance
            const account = bankAccounts.find(a => a.id === tx.accountId);
@@ -619,7 +699,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const openCashSession = async (openingBalance: number) => {
       const newSession: CashSession = { id: `cs-${Date.now()}`, openedBy: 'Current User', startTime: new Date().toISOString(), openingBalance, expectedBalance: openingBalance, status: 'open' };
-      await db.cashSessions.add(newSession);
+      // await db.cashSessions.add(newSession);
       setCashSessions(prev => [newSession, ...prev]);
   };
 
@@ -627,193 +707,223 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const session = cashSessions.find(s => s.status === 'open');
       if (session) {
           const updated = { ...session, status: 'closed' as const, closingBalance, endTime: new Date().toISOString(), notes };
-          await db.cashSessions.put(updated);
+          // await db.cashSessions.put(updated);
           setCashSessions(prev => prev.map(s => s.id === session.id ? updated : s));
       }
   };
 
   const addCashTransaction = async (tx: CashTransaction) => {
-      await db.cashTransactions.add(tx);
+      // await db.cashTransactions.add(tx);
       setCashTransactions(prev => [tx, ...prev]);
       
       const session = cashSessions.find(s => s.id === tx.sessionId);
       if (session) {
           const updated = { ...session, expectedBalance: session.expectedBalance + tx.amount };
-          await db.cashSessions.put(updated);
+          // await db.cashSessions.put(updated);
           setCashSessions(prev => prev.map(s => s.id === session.id ? updated : s));
       }
   };
 
   const addTechnician = async (tech: Technician) => {
-      await db.technicians.add(tech);
+      // await db.technicians.add(tech);
       setTechnicians(prev => [...prev, tech]);
   };
   const updateTechnician = async (tech: Technician) => {
-      await db.technicians.put(tech);
+      // await db.technicians.put(tech);
       setTechnicians(prev => prev.map(t => t.id === tech.id ? tech : t));
   };
   const deleteTechnician = async (id: string) => {
-      await db.technicians.delete(id);
+      // await db.technicians.delete(id);
       setTechnicians(prev => prev.filter(t => t.id !== id));
   };
 
   const addServiceItem = async (item: ServiceItem) => {
-      await db.serviceCatalog.add(item);
+      // await db.serviceCatalog.add(item);
       setServiceCatalog(prev => [...prev, item]);
   };
   const updateServiceItem = async (item: ServiceItem) => {
-      await db.serviceCatalog.put(item);
+      // await db.serviceCatalog.put(item);
       setServiceCatalog(prev => prev.map(i => i.id === item.id ? item : i));
   };
   const deleteServiceItem = async (id: string) => {
-      await db.serviceCatalog.delete(id);
+      // await db.serviceCatalog.delete(id);
       setServiceCatalog(prev => prev.filter(i => i.id !== id));
   };
 
   const addServiceJob = async (job: ServiceJob) => {
-      await db.serviceJobs.add(job);
+      // await db.serviceJobs.add(job);
       setServiceJobs(prev => [job, ...prev]);
   };
   const updateServiceJob = async (job: ServiceJob) => {
-      await db.serviceJobs.put(job);
+      // await db.serviceJobs.put(job);
       setServiceJobs(prev => prev.map(j => j.id === job.id ? job : j));
   };
   const deleteServiceJob = async (id: string) => {
-      await db.serviceJobs.delete(id);
+      // await db.serviceJobs.delete(id);
       setServiceJobs(prev => prev.filter(j => j.id !== id));
   };
 
   const addServiceSale = async (sale: ServiceSale) => {
-      await db.serviceSales.add(sale);
+      // await db.serviceSales.add(sale);
       setServiceSales(prev => [sale, ...prev]);
   };
   const deleteServiceSale = async (id: string) => {
-      await db.serviceSales.delete(id);
+      // await db.serviceSales.delete(id);
       setServiceSales(prev => prev.filter(s => s.id !== id));
   };
 
   const addVehicle = async (vehicle: Vehicle) => {
-      await db.vehicles.add(vehicle);
+      // await db.vehicles.add(vehicle);
       setVehicles(prev => [...prev, vehicle]);
   };
   const updateVehicle = async (vehicle: Vehicle) => {
-      await db.vehicles.put(vehicle);
+      // await db.vehicles.put(vehicle);
       setVehicles(prev => prev.map(v => v.id === vehicle.id ? vehicle : v));
   };
   const deleteVehicle = async (id: string) => {
-      await db.vehicles.delete(id);
+      // await db.vehicles.delete(id);
       setVehicles(prev => prev.filter(v => v.id !== id));
   };
 
   const addFleetMission = async (mission: FleetMission) => {
-      await db.fleetMissions.add(mission);
+      // await db.fleetMissions.add(mission);
       setFleetMissions(prev => [...prev, mission]);
   };
   const updateFleetMission = async (mission: FleetMission) => {
-      await db.fleetMissions.put(mission);
+      // await db.fleetMissions.put(mission);
       setFleetMissions(prev => prev.map(m => m.id === mission.id ? mission : m));
   };
   const deleteFleetMission = async (id: string) => {
-      await db.fleetMissions.delete(id);
+      // await db.fleetMissions.delete(id);
       setFleetMissions(prev => prev.filter(m => m.id !== id));
   };
 
   const addFleetMaintenance = async (maintenance: FleetMaintenance) => {
-      await db.fleetMaintenances.add(maintenance);
+      // await db.fleetMaintenances.add(maintenance);
       setFleetMaintenances(prev => [...prev, maintenance]);
   };
   const deleteFleetMaintenance = async (id: string) => {
-      await db.fleetMaintenances.delete(id);
+      // await db.fleetMaintenances.delete(id);
       setFleetMaintenances(prev => prev.filter(m => m.id !== id));
   };
 
   const addFleetExpense = async (expense: FleetExpense) => {
-      await db.fleetExpenses.add(expense);
+      // await db.fleetExpenses.add(expense);
       setFleetExpenses(prev => [...prev, expense]);
   };
   const deleteFleetExpense = async (id: string) => {
-      await db.fleetExpenses.delete(id);
+      // await db.fleetExpenses.delete(id);
       setFleetExpenses(prev => prev.filter(e => e.id !== id));
   };
 
   const addFleetDocument = async (doc: FleetDocument) => {
-      await db.fleetDocuments.add(doc);
+      // await db.fleetDocuments.add(doc);
       setFleetDocuments(prev => [...prev, doc]);
   };
   const deleteFleetDocument = async (id: string) => {
-      await db.fleetDocuments.delete(id);
+      // await db.fleetDocuments.delete(id);
       setFleetDocuments(prev => prev.filter(d => d.id !== id));
   };
 
   // HR Functions
+
+  // Departments
+  const addDepartment = async (dept: Department) => {
+      // await db.departments.add(dept);
+      setDepartments(prev => [...prev, dept]);
+  };
+  const updateDepartment = async (dept: Department) => {
+      // await db.departments.put(dept);
+      setDepartments(prev => prev.map(d => d.id === dept.id ? dept : d));
+  };
+  const deleteDepartment = async (id: string) => {
+      // await db.departments.delete(id);
+      setDepartments(prev => prev.filter(d => d.id !== id));
+  };
+
+  // Positions
+  const addPosition = async (pos: Position) => {
+      // await db.positions.add(pos);
+      setPositions(prev => [...prev, pos]);
+  };
+  const updatePosition = async (pos: Position) => {
+      // await db.positions.put(pos);
+      setPositions(prev => prev.map(p => p.id === pos.id ? pos : p));
+  };
+  const deletePosition = async (id: string) => {
+      // await db.positions.delete(id);
+      setPositions(prev => prev.filter(p => p.id !== id));
+  };
+
+  // Employees
   const addEmployee = async (emp: Employee) => {
-      await db.employees.add(emp);
+      // await db.employees.add(emp);
       setEmployees(prev => [...prev, emp]);
   };
   const updateEmployee = async (emp: Employee) => {
-      await db.employees.put(emp);
+      // await db.employees.put(emp);
       setEmployees(prev => prev.map(e => e.id === emp.id ? emp : e));
   };
   const deleteEmployee = async (id: string) => {
-      await db.employees.delete(id);
+      // await db.employees.delete(id);
       setEmployees(prev => prev.filter(e => e.id !== id));
   };
 
   const addContract = async (contract: Contract) => {
-      await db.contracts.add(contract);
+      // await db.contracts.add(contract);
       setContracts(prev => [...prev, contract]);
   };
   const updateContract = async (contract: Contract) => {
-      await db.contracts.put(contract);
+      // await db.contracts.put(contract);
       setContracts(prev => prev.map(c => c.id === contract.id ? contract : c));
   };
   const deleteContract = async (id: string) => {
-      await db.contracts.delete(id);
+      // await db.contracts.delete(id);
       setContracts(prev => prev.filter(c => c.id !== id));
   };
 
   const addPayroll = async (payroll: Payroll) => {
-      await db.payrolls.add(payroll);
+      // await db.payrolls.add(payroll);
       setPayrolls(prev => [...prev, payroll]);
   };
   const updatePayroll = async (payroll: Payroll) => {
-      await db.payrolls.put(payroll);
+      // await db.payrolls.put(payroll);
       setPayrolls(prev => prev.map(p => p.id === payroll.id ? payroll : p));
   };
 
   const addLeaveRequest = async (leave: LeaveRequest) => {
-      await db.leaves.add(leave);
+      // await db.leaves.add(leave);
       setLeaves(prev => [...prev, leave]);
   };
   const updateLeaveRequest = async (leave: LeaveRequest) => {
-      await db.leaves.put(leave);
+      // await db.leaves.put(leave);
       setLeaves(prev => prev.map(l => l.id === leave.id ? leave : l));
   };
 
   const addExpenseReport = async (expense: ExpenseReport) => {
-      await db.expenses.add(expense);
+      // await db.expenses.add(expense);
       setExpenses(prev => [...prev, expense]);
   };
   const updateExpenseReport = async (expense: ExpenseReport) => {
-      await db.expenses.put(expense);
+      // await db.expenses.put(expense);
       setExpenses(prev => prev.map(e => e.id === expense.id ? expense : e));
   };
 
   // Maintenance CRM
   const addMaintenanceContract = async (contract: MaintenanceContract) => {
-      await db.maintenanceContracts.add(contract);
+      // await db.maintenanceContracts.add(contract);
       setMaintenanceContracts(prev => [...prev, contract]);
   };
   const updateMaintenanceContract = async (contract: MaintenanceContract) => {
-      await db.maintenanceContracts.put(contract);
+      // await db.maintenanceContracts.put(contract);
       setMaintenanceContracts(prev => prev.map(c => c.id === contract.id ? contract : c));
   };
   const deleteMaintenanceContract = async (id: string) => {
-      await db.maintenanceContracts.delete(id);
+      // await db.maintenanceContracts.delete(id);
       setMaintenanceContracts(prev => prev.filter(c => c.id !== id));
   };
   const addContactInteraction = async (interaction: ContactInteraction) => {
-      await db.contactInteractions.add(interaction);
+      // await db.contactInteractions.add(interaction);
       setContactInteractions(prev => [interaction, ...prev]);
   };
 
@@ -869,11 +979,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     fleetExpenses, addFleetExpense, deleteFleetExpense,
     fleetDocuments, addFleetDocument, deleteFleetDocument,
     // HR
+    departments, addDepartment, updateDepartment, deleteDepartment,
+    positions, addPosition, updatePosition, deletePosition,
     employees, addEmployee, updateEmployee, deleteEmployee,
     contracts, addContract, updateContract, deleteContract,
     payrolls, addPayroll, updatePayroll,
     leaves, addLeaveRequest, updateLeaveRequest,
+    leavePolicies,
     expenses, addExpenseReport, updateExpenseReport,
+    attendances, timesheets, performanceReviews, reviewCycles,
     settings, setSettings,
     isLoading, setIsLoading,
     stats, chartData, formatCurrency, t

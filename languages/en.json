@@ -502,5 +502,15 @@
     "payroll_headcount_trend": "Payroll & Headcount Trend",
     "department_distribution": "Department Distribution",
     "pending_leave_requests": "Pending Leave Requests",
-    "expiring_contracts": "Expiring Contracts"
+    "expiring_contracts": "Expiring Contracts",
+    "service_crm": "Contact Maintenance",
+    "hr": "Human Resources",
+    "employees": "Employees",
+    "contracts": "Contracts",
+    "payroll": "Payroll",
+    "leave_time": "Leave & Time",
+    "expense_reports": "Expense Reports",
+    "stock_audit": "Stock Inventory",
+    "attendance": "Attendance",
+    "hr_settings": "HR Settings"
 }

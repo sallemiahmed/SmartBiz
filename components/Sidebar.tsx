@@ -128,29 +128,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       emoji: '🛠️',
       subItems: [
         { id: 'services-dashboard', labelKey: 'service_dashboard' },
-        { id: 'services-crm', labelKey: 'Contact Maint.' },
+        { id: 'services-crm', labelKey: 'service_crm' },
         { id: 'services-jobs', labelKey: 'job_cards', hasAction: true },
-        { id: 'services-sales', labelKey: 'service_sales' }, 
+        { id: 'services-sales', labelKey: 'service_sales' },
         { id: 'services-catalog', labelKey: 'service_catalog' },
         { id: 'services-technicians', labelKey: 'technicians' }
       ]
     },
     {
-      id: 'hr',
-      labelKey: 'Human Resources',
-      icon: Briefcase,
-      emoji: '👥',
-      subItems: [
-          { id: 'hr-dashboard', labelKey: 'hr_dashboard' },
-          { id: 'hr-employees', labelKey: 'Employees' },
-          { id: 'hr-contracts', labelKey: 'Contracts' },
-          { id: 'hr-payroll', labelKey: 'Payroll' },
-          { id: 'hr-leave', labelKey: 'Leave & Time' },
-          { id: 'hr-expenses', labelKey: 'Expense Reports' },
-          { id: 'hr-performance', labelKey: 'performance' }
-      ]
-    },
-    { 
       id: 'inventory', 
       labelKey: 'inventory', 
       icon: Package, 
@@ -162,10 +147,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'inventory-audit', labelKey: 'stock_audit' },
       ]
     },
-    { 
-      id: 'fleet', 
-      labelKey: 'fleet_management', 
-      icon: Car, 
+    {
+      id: 'fleet',
+      labelKey: 'fleet_management',
+      icon: Car,
       emoji: '🚗',
       subItems: [
         { id: 'fleet-dashboard', labelKey: 'dashboard_overview' },
@@ -173,6 +158,23 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'fleet-missions', labelKey: 'missions' },
         { id: 'fleet-maintenance', labelKey: 'maintenance' },
         { id: 'fleet-costs', labelKey: 'costs_expenses' },
+      ]
+    },
+    {
+      id: 'hr',
+      labelKey: 'human_resources',
+      icon: Briefcase,
+      emoji: '👔',
+      subItems: [
+        { id: 'hr-dashboard', labelKey: 'hr_dashboard' },
+        { id: 'hr-employees', labelKey: 'employees' },
+        { id: 'hr-contracts', labelKey: 'contracts' },
+        { id: 'hr-payroll', labelKey: 'payroll' },
+        { id: 'hr-attendance', labelKey: 'time_attendance' },
+        { id: 'hr-leave', labelKey: 'leave_management' },
+        { id: 'hr-expenses', labelKey: 'expense_reports' },
+        { id: 'hr-performance', labelKey: 'performance' },
+        { id: 'hr-settings', labelKey: 'hr_settings' },
       ]
     },
     { id: 'invoices', labelKey: 'documents', icon: FileStack, emoji: '🧮' },

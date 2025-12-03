@@ -1,19 +1,21 @@
 
 import Dexie, { Table } from 'dexie';
-import { 
-  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
-  StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction, 
-  Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession, 
-  Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument, 
-  Employee, Contract, Payroll, LeaveRequest, ExpenseReport, MaintenanceContract, 
-  ContactInteraction, AppSettings
+import {
+  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
+  StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
+  Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession,
+  Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
+  Employee, Contract, Payroll, LeaveRequest, ExpenseReport, MaintenanceContract,
+  ContactInteraction, AppSettings, Department, Position, Attendance, Timesheet,
+  LeavePolicy, PerformanceReview, ReviewCycle
 } from '../types';
-import { 
-  mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases, 
+import {
+  mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases,
   mockWarehouses, mockStockMovements, mockBankAccounts, mockBankTransactions,
-  mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs, 
-  mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll, 
-  mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions
+  mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs,
+  mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll,
+  mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions,
+  mockDepartments, mockPositions
 } from './mockData';
 
 export class SmartBizDatabase extends Dexie {
@@ -54,18 +56,25 @@ export class SmartBizDatabase extends Dexie {
   fleetDocuments!: Table<FleetDocument>;
 
   // HR
+  departments!: Table<Department>;
+  positions!: Table<Position>;
   employees!: Table<Employee>;
   contracts!: Table<Contract>;
   payrolls!: Table<Payroll>;
   leaves!: Table<LeaveRequest>;
+  leavePolicies!: Table<LeavePolicy>;
   expenses!: Table<ExpenseReport>;
+  attendances!: Table<Attendance>;
+  timesheets!: Table<Timesheet>;
+  performanceReviews!: Table<PerformanceReview>;
+  reviewCycles!: Table<ReviewCycle>;
 
   // Settings
   settings!: Table<AppSettings>;
 
   constructor() {
-    // Renamed database to force fresh seeding for the new Tunisian dataset
-    super('SmartBizTunisieDB');
+    // Renamed database to force fresh seeding for the new Tunisian dataset with HR enhancements
+    super('SmartBizTunisieDB_v2');
     (this as any).version(1).stores({
       clients: 'id, company, name, status',
       suppliers: 'id, company, status',
@@ -91,11 +100,19 @@ export class SmartBizDatabase extends Dexie {
       fleetMaintenances: 'id, vehicleId, date',
       fleetExpenses: 'id, vehicleId, date',
       fleetDocuments: 'id, vehicleId, type',
-      employees: 'id, lastName, department, status',
-      contracts: 'id, employeeId, status',
-      payrolls: 'id, employeeId, month',
+      // HR Tables
+      departments: 'id, name, code, managerId',
+      positions: 'id, title, code, departmentId',
+      employees: 'id, matricule, lastName, department, status, managerId',
+      contracts: 'id, employeeId, status, startDate, endDate',
+      payrolls: 'id, employeeId, month, status',
       leaves: 'id, employeeId, status, startDate',
-      expenses: 'id, employeeId, status',
+      leavePolicies: 'id, name, type',
+      expenses: 'id, employeeId, status, date',
+      attendances: 'id, employeeId, date, status',
+      timesheets: 'id, employeeId, weekStarting, status',
+      performanceReviews: 'id, employeeId, cycleId, status',
+      reviewCycles: 'id, name, status',
       settings: 'id' // We will use a fixed ID 'config' for settings
     });
   }
@@ -126,6 +143,8 @@ export const seedDatabase = async (defaultSettings: AppSettings) => {
             await db.contactInteractions.bulkAdd(mockContactInteractions);
             await db.vehicles.bulkAdd(mockVehicles);
             await db.fleetMissions.bulkAdd(mockFleetMissions);
+            await db.departments.bulkAdd(mockDepartments);
+            await db.positions.bulkAdd(mockPositions);
             await db.employees.bulkAdd(mockEmployees);
             await db.contracts.bulkAdd(mockContracts);
             await db.payrolls.bulkAdd(mockPayroll);
