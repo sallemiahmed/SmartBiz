@@ -366,28 +366,87 @@ export interface FleetDocument {
 }
 
 // HR Interfaces
+
+// Core HR entities
+export interface Department {
+  id: string;
+  name: string;
+  code: string;
+  managerId?: string;
+  description?: string;
+}
+
+export interface Position {
+  id: string;
+  title: string;
+  code: string;
+  departmentId: string;
+  level: 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'director' | 'executive';
+  description?: string;
+}
+
 export interface Employee {
   id: string;
+  matricule: string; // Employee number
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   position: string;
+  positionId?: string;
   department: string;
+  departmentId?: string;
+  managerId?: string;
+  site?: string; // Office location
   hireDate: string;
-  status: 'active' | 'inactive' | 'on_leave';
+  birthDate?: string;
+  nationality?: string;
+  address?: string;
+  status: 'active' | 'inactive' | 'on_leave' | 'terminated';
   salary: number;
   photo?: string;
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  documents?: {
+    id: string;
+    type: 'id' | 'passport' | 'contract' | 'certificate' | 'other';
+    name: string;
+    uploadDate: string;
+    expiryDate?: string;
+    fileUrl?: string;
+  }[];
+  customFields?: Record<string, any>;
 }
 
 export interface Contract {
   id: string;
   employeeId: string;
   employeeName: string;
-  type: 'CDI' | 'CDD' | 'Stage' | 'Internship';
+  type: 'CDI' | 'CDD' | 'Stage' | 'Internship' | 'Freelance' | 'Part-time';
   startDate: string;
   endDate?: string;
-  status: 'active' | 'expired' | 'terminated';
+  trialPeriodEnd?: string;
+  status: 'draft' | 'active' | 'suspended' | 'expired' | 'terminated';
+  baseSalary: number;
+  currency: string;
+  workingHours: number; // per week
+  bonuses?: {
+    type: string;
+    amount: number;
+    frequency: 'monthly' | 'quarterly' | 'annual' | 'one-time';
+  }[];
+  benefits?: string[];
+  signedDate?: string;
+  fileUrl?: string;
+  amendments?: {
+    id: string;
+    date: string;
+    description: string;
+    fileUrl?: string;
+  }[];
 }
 
 export interface Payroll {
@@ -420,11 +479,71 @@ export interface ExpenseReport {
   employeeId: string;
   employeeName: string;
   date: string;
-  type: 'Transport' | 'Food' | 'Accommodation' | 'Other';
+  type: 'Transport' | 'Food' | 'Accommodation' | 'Mileage' | 'Other';
   amount: number;
   description: string;
   status: 'pending' | 'approved' | 'reimbursed' | 'rejected';
   receipt?: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  reimbursedDate?: string;
+  items?: {
+    id: string;
+    date: string;
+    category: string;
+    amount: number;
+    description: string;
+    receipt?: string;
+  }[];
+}
+
+// Time & Attendance
+export interface Attendance {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  checkIn?: string;  // HH:MM
+  checkOut?: string; // HH:MM
+  breakDuration?: number; // minutes
+  totalHours?: number;
+  status: 'present' | 'absent' | 'late' | 'half_day' | 'remote';
+  notes?: string;
+}
+
+export interface Timesheet {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  weekStarting: string; // YYYY-MM-DD (Monday)
+  weekEnding: string;
+  entries: {
+    date: string;
+    regularHours: number;
+    overtimeHours: number;
+    projectId?: string;
+    projectName?: string;
+    task?: string;
+    notes?: string;
+  }[];
+  totalRegular: number;
+  totalOvertime: number;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  submittedDate?: string;
+  approvedBy?: string;
+  approvedDate?: string;
+}
+
+// Leave Policies
+export interface LeavePolicy {
+  id: string;
+  name: string;
+  type: string; // 'annual', 'sick', 'maternity', etc.
+  daysPerYear: number;
+  maxCarryover?: number;
+  requiresApproval: boolean;
+  paidLeave: boolean;
+  description?: string;
 }
 
 // HR Performance Interfaces
