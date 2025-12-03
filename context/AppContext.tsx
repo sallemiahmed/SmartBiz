@@ -1,13 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { 
-  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement, 
+import {
+  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
   StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
   Employee, Contract, Payroll, LeaveRequest, ExpenseReport,
-  MaintenanceContract, ContactInteraction
+  MaintenanceContract, ContactInteraction, Department, Position,
+  Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle
 } from '../types';
 import { db, seedDatabase } from '../services/db';
 import { loadTranslations } from '../services/translations';
@@ -214,11 +215,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [fleetDocuments, setFleetDocuments] = useState<FleetDocument[]>([]);
   
   // HR
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [leavePolicies, setLeavePolicies] = useState<LeavePolicy[]>([]);
   const [expenses, setExpenses] = useState<ExpenseReport[]>([]);
+  const [attendances, setAttendances] = useState<Attendance[]>([]);
+  const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
+  const [performanceReviews, setPerformanceReviews] = useState<PerformanceReview[]>([]);
+  const [reviewCycles, setReviewCycles] = useState<ReviewCycle[]>([]);
 
   const [settings, setSettingsState] = useState<AppSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
@@ -261,11 +269,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setFleetMaintenances(await db.fleetMaintenances.toArray());
             setFleetExpenses(await db.fleetExpenses.toArray());
             setFleetDocuments(await db.fleetDocuments.toArray());
+            setDepartments(await db.departments.toArray());
+            setPositions(await db.positions.toArray());
             setEmployees(await db.employees.toArray());
             setContracts(await db.contracts.toArray());
             setPayrolls(await db.payrolls.toArray());
             setLeaves(await db.leaves.toArray());
+            setLeavePolicies(await db.leavePolicies.toArray());
             setExpenses(await db.expenses.toArray());
+            setAttendances(await db.attendances.toArray());
+            setTimesheets(await db.timesheets.toArray());
+            setPerformanceReviews(await db.performanceReviews.toArray());
+            setReviewCycles(await db.reviewCycles.toArray());
 
         } catch (error) {
             console.error("Failed to load DB", error);
@@ -746,6 +761,36 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // HR Functions
+
+  // Departments
+  const addDepartment = async (dept: Department) => {
+      await db.departments.add(dept);
+      setDepartments(prev => [...prev, dept]);
+  };
+  const updateDepartment = async (dept: Department) => {
+      await db.departments.put(dept);
+      setDepartments(prev => prev.map(d => d.id === dept.id ? dept : d));
+  };
+  const deleteDepartment = async (id: string) => {
+      await db.departments.delete(id);
+      setDepartments(prev => prev.filter(d => d.id !== id));
+  };
+
+  // Positions
+  const addPosition = async (pos: Position) => {
+      await db.positions.add(pos);
+      setPositions(prev => [...prev, pos]);
+  };
+  const updatePosition = async (pos: Position) => {
+      await db.positions.put(pos);
+      setPositions(prev => prev.map(p => p.id === pos.id ? pos : p));
+  };
+  const deletePosition = async (id: string) => {
+      await db.positions.delete(id);
+      setPositions(prev => prev.filter(p => p.id !== id));
+  };
+
+  // Employees
   const addEmployee = async (emp: Employee) => {
       await db.employees.add(emp);
       setEmployees(prev => [...prev, emp]);
@@ -869,11 +914,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     fleetExpenses, addFleetExpense, deleteFleetExpense,
     fleetDocuments, addFleetDocument, deleteFleetDocument,
     // HR
+    departments, addDepartment, updateDepartment, deleteDepartment,
+    positions, addPosition, updatePosition, deletePosition,
     employees, addEmployee, updateEmployee, deleteEmployee,
     contracts, addContract, updateContract, deleteContract,
     payrolls, addPayroll, updatePayroll,
     leaves, addLeaveRequest, updateLeaveRequest,
+    leavePolicies,
     expenses, addExpenseReport, updateExpenseReport,
+    attendances, timesheets, performanceReviews, reviewCycles,
     settings, setSettings,
     isLoading, setIsLoading,
     stats, chartData, formatCurrency, t
