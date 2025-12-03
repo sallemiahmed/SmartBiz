@@ -614,6 +614,25 @@ export interface PayrollRun {
   notes?: string;
 }
 
+export interface OvertimeDetails {
+  regularHours: number;
+  dayOvertimeHours: number; // 1.25x
+  nightOvertimeHours: number; // 1.5x
+  holidayOvertimeHours: number; // 2.0x
+  hourlyRate: number;
+  dayOvertimePay: number;
+  nightOvertimePay: number;
+  holidayOvertimePay: number;
+  totalOvertimePay: number;
+}
+
+export interface TaxBracket {
+  bracket: string;
+  amount: number;
+  rate: number;
+  tax: number;
+}
+
 export interface Payslip {
   id: string;
   runId: string;
@@ -622,24 +641,77 @@ export interface Payslip {
   employeeMatricule: string;
   periodStart: string;
   periodEnd: string;
+
+  // Informations famille
+  numberOfChildren?: number;
+  maritalStatus?: 'single' | 'married' | 'divorced' | 'widowed';
+
+  // Salaire et heures
   baseSalary: number;
   workDays: number;
   workedDays: number;
+  absenceDays?: number;
+
+  // Heures supplémentaires détaillées
+  overtimeDetails?: OvertimeDetails;
+
+  // Composantes du salaire brut
   earnings: {
     elementId: string;
     name: string;
     amount: number;
     taxable: boolean;
   }[];
+
+  // Salaire brut = Base + Primes + HS + Avantages imposables
+  grossSalary: number;
+
+  // Cotisations sociales (employé)
+  cnssEmployee: number; // 9.18%
+  cnssEmployeeRate: number; // 0.0918
+
+  // Base imposable IRPP
+  professionalExpenseAllowance: number; // 10% de (Brut - CNSS)
+  childrenAllowance: number; // 300 DT/enfant/an
+  spouseAllowance?: number; // Si conjoint non salarié
+  totalAllowances: number;
+  taxableBase: number; // Brut - CNSS - Abattements
+
+  // IRPP détaillé par tranches
+  irppBrackets?: TaxBracket[];
+  irppTotal: number;
+
+  // CSS (Contribution Sociale Solidaire)
+  css: number; // 1%
+  cssRate: number; // 0.01
+
+  // Autres retenues
   deductions: {
     elementId: string;
     name: string;
     amount: number;
     type: 'social' | 'tax' | 'other';
   }[];
-  grossSalary: number;
+
+  // Totaux
   totalDeductions: number;
-  netSalary: number;
+  netSalaryBeforeAdvances: number; // Brut - CNSS - IRPP - CSS
+  advances?: number; // Avances sur salaire
+  otherDeductions?: number;
+  netSalary: number; // Net à payer final
+
+  // Cotisations patronales (informatif)
+  cnssEmployer?: number; // 16.57%
+  cnssEmployerRate?: number; // 0.1657
+  tfp?: number; // Taxe Formation Professionnelle 1%
+  tfpRate?: number; // 0.01
+  foprolos?: number; // 2%
+  foprolosRate?: number; // 0.02
+  totalEmployerContributions?: number;
+
+  // Coût total employeur
+  totalEmployerCost?: number; // Brut + Cotisations patronales
+
   status: 'draft' | 'final';
   pdfUrl?: string;
   generatedDate: string;
