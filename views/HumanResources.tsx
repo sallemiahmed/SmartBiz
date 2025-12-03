@@ -7,6 +7,8 @@ import HRPayroll from './hr/HRPayroll';
 import HRLeave from './hr/HRLeave';
 import HRExpenses from './hr/HRExpenses';
 import HRPerformance from './hr/HRPerformance';
+import HRSettings from './hr/HRSettings';
+import HRAttendance from './hr/HRAttendance';
 
 interface HumanResourcesProps {
   view?: string;
@@ -46,6 +48,10 @@ const HumanResources: React.FC<HumanResourcesProps> = ({ view }) => {
       return <HRExpenses />;
     case 'performance':
       return <HRPerformance />;
+    case 'attendance':
+      return <HRAttendance />;
+    case 'settings':
+      return <HRSettings />;
     default:
       console.warn('[HumanResources] Unknown tab:', activeTab, '- defaulting to dashboard');
       return <HRDashboard />;
