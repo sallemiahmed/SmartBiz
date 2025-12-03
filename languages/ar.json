@@ -569,5 +569,17 @@
   "new_leave_request": "طلب إجازة جديد",
   "select_employee": "اختر موظف...",
   "days_approved": "أيام موافق عليها",
-  "no_employees": "لا يوجد موظفون نشطون"
+  "no_employees": "لا يوجد موظفون نشطون",
+  "bonuses": "المكافآت",
+  "marital_status": "الحالة الاجتماعية",
+  "benefits": "المزايا",
+  "number_of_children": "عدد الأطفال",
+  "single": "أعزب",
+  "married": "متزوج",
+  "divorced": "مطلق",
+  "widowed": "أرمل",
+  "select_marital_status": "اختر الحالة الاجتماعية...",
+  "on_leave": "في إجازة",
+  "select_department": "اختر القسم...",
+  "edit_employee": "تعديل الموظف"
 }

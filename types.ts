@@ -404,6 +404,10 @@ export interface Employee {
   address?: string;
   status: 'active' | 'inactive' | 'on_leave' | 'terminated';
   salary: number;
+  bonuses?: number; // Primes
+  maritalStatus?: 'single' | 'married' | 'divorced' | 'widowed'; // Situation familiale
+  benefits?: string; // Avantages
+  numberOfChildren?: number; // Nombre d'enfants
   photo?: string;
   emergencyContact?: {
     name: string;

@@ -569,5 +569,17 @@
   "new_leave_request": "New Leave Request",
   "select_employee": "Select employee...",
   "days_approved": "Days Approved",
-  "no_employees": "No active employees"
+  "no_employees": "No active employees",
+  "bonuses": "Bonuses",
+  "marital_status": "Marital Status",
+  "benefits": "Benefits",
+  "number_of_children": "Number of Children",
+  "single": "Single",
+  "married": "Married",
+  "divorced": "Divorced",
+  "widowed": "Widowed",
+  "select_marital_status": "Select marital status...",
+  "on_leave": "On Leave",
+  "select_department": "Select department...",
+  "edit_employee": "Edit Employee"
 }
