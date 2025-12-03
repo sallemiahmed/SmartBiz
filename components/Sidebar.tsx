@@ -136,23 +136,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       ]
     },
     {
-      id: 'hr',
-      labelKey: 'hr',
-      icon: Briefcase,
-      emoji: '👥',
-      subItems: [
-          { id: 'hr-dashboard', labelKey: 'hr_dashboard' },
-          { id: 'hr-employees', labelKey: 'employees' },
-          { id: 'hr-contracts', labelKey: 'contracts' },
-          { id: 'hr-payroll', labelKey: 'payroll' },
-          { id: 'hr-leave', labelKey: 'leave_time' },
-          { id: 'hr-expenses', labelKey: 'expense_reports' },
-          { id: 'hr-performance', labelKey: 'performance' },
-          { id: 'hr-attendance', labelKey: 'attendance' },
-          { id: 'hr-settings', labelKey: 'hr_settings' }
-      ]
-    },
-    { 
       id: 'inventory', 
       labelKey: 'inventory', 
       icon: Package, 
