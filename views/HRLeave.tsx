@@ -59,6 +59,41 @@ const HRLeave: React.FC = () => {
     return { total, pending, approved, rejected, totalDaysApproved };
   }, [leaves]);
 
+  // Calculate leave balance per employee
+  const employeeBalances = useMemo(() => {
+    return employees
+      .filter(emp => emp.status === 'active')
+      .map(emp => {
+        // Calculate working days since hire date
+        const hireDate = new Date(emp.hireDate);
+        const today = new Date();
+        const diffTime = Math.abs(today.getTime() - hireDate.getTime());
+        const workingDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        // Days accrued: Working days × 1.25
+        const daysAccrued = Math.floor(workingDays * 1.25);
+
+        // Days taken (approved leaves only)
+        const daysTaken = leaves
+          .filter(l => l.employeeId === emp.id && l.status === 'approved')
+          .reduce((sum, l) => sum + l.days, 0);
+
+        // Days remaining
+        const daysRemaining = daysAccrued - daysTaken;
+
+        return {
+          employeeId: emp.id,
+          employeeName: `${emp.firstName} ${emp.lastName}`,
+          department: emp.department,
+          workingDays,
+          daysAccrued,
+          daysTaken,
+          daysRemaining
+        };
+      })
+      .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  }, [employees, leaves]);
+
   // Calculate days between dates
   const calculateDays = (start: string, end: string) => {
     const startDate = new Date(start);
@@ -239,6 +274,102 @@ const HRLeave: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Employee Leave Balances */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                {t('employee_leave_balances') || 'Soldes de Congé des Employés'}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Formule : (Jours travaillés × 1,25) - Jours pris
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                  {t('employee') || 'Employé'}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                  {t('department') || 'Département'}
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                  {t('working_days') || 'Jours Travaillés'}
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                  {t('days_accrued') || 'Jours Acquis'}
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                  {t('days_taken') || 'Jours Pris'}
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                  {t('days_remaining') || 'Jours Restants'}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {employeeBalances.map((balance) => (
+                <tr key={balance.employeeId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <Users className="w-5 h-5 text-gray-400 mr-2" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {balance.employeeName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {balance.department}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="text-sm text-gray-900 dark:text-white font-medium">
+                      {balance.workingDays}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      {balance.daysAccrued}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                      {balance.daysTaken}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className={`text-sm font-bold ${
+                      balance.daysRemaining > 10
+                        ? 'text-green-600 dark:text-green-400'
+                        : balance.daysRemaining > 0
+                        ? 'text-yellow-600 dark:text-yellow-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {balance.daysRemaining}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {employeeBalances.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+              {t('no_employees') || 'Aucun employé actif'}
+            </h3>
+          </div>
+        )}
+      </div>
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
