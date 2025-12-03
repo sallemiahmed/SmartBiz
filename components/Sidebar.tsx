@@ -128,25 +128,25 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
       emoji: '🛠️',
       subItems: [
         { id: 'services-dashboard', labelKey: 'service_dashboard' },
-        { id: 'services-crm', labelKey: 'Contact Maint.' },
+        { id: 'services-crm', labelKey: 'service_crm' },
         { id: 'services-jobs', labelKey: 'job_cards', hasAction: true },
-        { id: 'services-sales', labelKey: 'service_sales' }, 
+        { id: 'services-sales', labelKey: 'service_sales' },
         { id: 'services-catalog', labelKey: 'service_catalog' },
         { id: 'services-technicians', labelKey: 'technicians' }
       ]
     },
     {
       id: 'hr',
-      labelKey: 'Human Resources',
+      labelKey: 'hr',
       icon: Briefcase,
       emoji: '👥',
       subItems: [
           { id: 'hr-dashboard', labelKey: 'hr_dashboard' },
-          { id: 'hr-employees', labelKey: 'Employees' },
-          { id: 'hr-contracts', labelKey: 'Contracts' },
-          { id: 'hr-payroll', labelKey: 'Payroll' },
-          { id: 'hr-leave', labelKey: 'Leave & Time' },
-          { id: 'hr-expenses', labelKey: 'Expense Reports' },
+          { id: 'hr-employees', labelKey: 'employees' },
+          { id: 'hr-contracts', labelKey: 'contracts' },
+          { id: 'hr-payroll', labelKey: 'payroll' },
+          { id: 'hr-leave', labelKey: 'leave_time' },
+          { id: 'hr-expenses', labelKey: 'expense_reports' },
           { id: 'hr-performance', labelKey: 'performance' }
       ]
     },
