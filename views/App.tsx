@@ -81,8 +81,12 @@ function AppContent() {
   const toggleTheme = () => setIsDark(!isDark);
 
   const renderView = () => {
+    // Log current view for debugging
+    console.log('[App] renderView called with currentView:', currentView);
+
     // --- Human Resources Routing (High Priority) ---
     if (currentView === 'hr' || currentView.startsWith('hr-')) {
+        console.log('[App] Routing to HumanResources with view:', currentView);
         return <HumanResources view={currentView} />;
     }
 

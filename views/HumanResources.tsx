@@ -13,11 +13,24 @@ interface HumanResourcesProps {
 }
 
 const HumanResources: React.FC<HumanResourcesProps> = ({ view }) => {
-  const activeTab = view?.replace('hr-', '') || 'dashboard';
+  // Normalize the view to get the active tab
+  let activeTab = 'dashboard';
 
-  // Simple routing logic
-  if (activeTab === 'hr') return <HRDashboard />;
+  if (view) {
+    // Remove 'hr-' or 'hr' prefix to get the actual tab name
+    if (view === 'hr') {
+      activeTab = 'dashboard';
+    } else if (view.startsWith('hr-')) {
+      activeTab = view.replace('hr-', '');
+    } else {
+      activeTab = view;
+    }
+  }
 
+  // Log for debugging (will help identify routing issues)
+  console.log('[HumanResources] view:', view, '→ activeTab:', activeTab);
+
+  // Route to the appropriate component
   switch (activeTab) {
     case 'dashboard':
       return <HRDashboard />;
@@ -34,6 +47,7 @@ const HumanResources: React.FC<HumanResourcesProps> = ({ view }) => {
     case 'performance':
       return <HRPerformance />;
     default:
+      console.warn('[HumanResources] Unknown tab:', activeTab, '- defaulting to dashboard');
       return <HRDashboard />;
   }
 };
