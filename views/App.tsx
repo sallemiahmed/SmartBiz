@@ -33,7 +33,6 @@ import ServiceSales from './ServiceSales';
 import Technicians from './Technicians'; 
 import MaintenanceCRM from './MaintenanceCRM';
 import FleetManagement from './FleetManagement';
-import HumanResources from './HumanResources';
 import Reports from './Reports';
 import Settings from './Settings';
 import BankManagement from './BankManagement'; 
@@ -83,12 +82,6 @@ function AppContent() {
   const renderView = () => {
     // Log current view for debugging
     console.log('[App] renderView called with currentView:', currentView);
-
-    // --- Human Resources Routing (High Priority) ---
-    if (currentView === 'hr' || currentView.startsWith('hr-')) {
-        console.log('[App] Routing to HumanResources with view:', currentView);
-        return <HumanResources view={currentView} />;
-    }
 
     // --- Services Routing ---
     if (currentView === 'services' || currentView === 'services-dashboard') {
