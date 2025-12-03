@@ -492,5 +492,15 @@
     "tech_check_expiry": "Tech. Check Exp.",
     "in_use": "In Use",
     "out_of_service": "Out of Service",
-    "costs_expenses": "Costs & Expenses"
+    "costs_expenses": "Costs & Expenses",
+    "performance": "Performance",
+    "hr_dashboard": "Dashboard",
+    "total_employees": "Total Employees",
+    "on_leave_today": "On Leave Today",
+    "active_contracts": "Active Contracts",
+    "payroll_cost": "Payroll Cost",
+    "payroll_headcount_trend": "Payroll & Headcount Trend",
+    "department_distribution": "Department Distribution",
+    "pending_leave_requests": "Pending Leave Requests",
+    "expiring_contracts": "Expiring Contracts"
 }

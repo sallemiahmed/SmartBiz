@@ -81,6 +81,11 @@ function AppContent() {
   const toggleTheme = () => setIsDark(!isDark);
 
   const renderView = () => {
+    // --- Human Resources Routing (High Priority) ---
+    if (currentView === 'hr' || currentView.startsWith('hr-')) {
+        return <HumanResources view={currentView} />;
+    }
+
     // --- Services Routing ---
     if (currentView === 'services' || currentView === 'services-dashboard') {
         return <ServiceDashboard />;
@@ -202,10 +207,6 @@ function AppContent() {
     if (currentView.startsWith('fleet')) {
         return <FleetManagement view={currentView} />;
     }
-    
-    if (currentView.startsWith('hr')) {
-        return <HumanResources view={currentView} />;
-    }
 
     if (currentView.startsWith('banking')) {
       return <BankManagement view={currentView} />;
@@ -258,7 +259,7 @@ function AppContent() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {renderView()}
           
-          {!currentView.startsWith('sales') && !currentView.startsWith('purchases') && !currentView.startsWith('settings') && !currentView.startsWith('services') && (
+          {!currentView.startsWith('sales') && !currentView.startsWith('purchases') && !currentView.startsWith('settings') && !currentView.startsWith('services') && !currentView.startsWith('hr') && (
             <footer className="p-6 text-center text-xs text-gray-400 dark:text-gray-600">
               &copy; 2024 SmartBiz Manager SaaS. All rights reserved. v1.0.0
             </footer>

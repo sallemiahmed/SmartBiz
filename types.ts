@@ -5,7 +5,7 @@ export type AppView =
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians' | 'services-crm'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
-  | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses'
+  | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses' | 'hr-performance'
   | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
   | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
@@ -425,6 +425,34 @@ export interface ExpenseReport {
   description: string;
   status: 'pending' | 'approved' | 'reimbursed' | 'rejected';
   receipt?: string;
+}
+
+// HR Performance Interfaces
+export interface ReviewCycle {
+  id: string;
+  name: string; // e.g., "Q1 2024 Performance Review"
+  startDate: string;
+  endDate: string;
+  status: 'draft' | 'active' | 'closed';
+}
+
+export interface PerformanceReview {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  cycleId: string;
+  cycleName: string;
+  date: string;
+  reviewerName: string;
+  status: 'scheduled' | 'in_progress' | 'completed' | 'acknowledged';
+  score: number; // 0-5 or 0-100
+  ratings: {
+    category: string;
+    score: number; // 1-5
+    comment?: string;
+  }[];
+  overallFeedback: string;
+  goals?: string;
 }
 
 export interface TaxRate {
