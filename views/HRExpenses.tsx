@@ -67,14 +67,16 @@ const HRExpenses: React.FC = () => {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = expenseReports.length;
-    const pending = expenseReports.filter(r => r.status === 'pending').length;
-    const approved = expenseReports.filter(r => r.status === 'approved').length;
-    const rejected = expenseReports.filter(r => r.status === 'rejected').length;
+    const reports = expenseReports || [];
+
+    const total = reports.length;
+    const pending = reports.filter(r => r.status === 'pending').length;
+    const approved = reports.filter(r => r.status === 'approved').length;
+    const rejected = reports.filter(r => r.status === 'rejected').length;
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    const monthReports = expenseReports.filter(r => {
+    const monthReports = reports.filter(r => {
       const date = new Date(r.date);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
@@ -92,8 +94,10 @@ const HRExpenses: React.FC = () => {
 
   // Filter reports
   const filteredReports = useMemo(() => {
-    return expenseReports.filter(report => {
-      const emp = employees.find(e => e.id === report.employeeId);
+    const reports = expenseReports || [];
+    const allEmployees = employees || [];
+    return reports.filter(report => {
+      const emp = allEmployees.find(e => e.id === report.employeeId);
       const empName = emp ? `${emp.firstName} ${emp.lastName}` : '';
 
       const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

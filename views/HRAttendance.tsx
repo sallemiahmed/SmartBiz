@@ -115,8 +115,10 @@ const HRAttendance: React.FC = () => {
 
   // Filter shifts
   const filteredShifts = useMemo(() => {
-    return shifts.filter(shift => {
-      const emp = employees.find(e => e.id === shift.employeeId);
+    const allShifts = shifts || [];
+    const allEmployees = employees || [];
+    return allShifts.filter(shift => {
+      const emp = allEmployees.find(e => e.id === shift.employeeId);
       const empName = emp ? `${emp.firstName} ${emp.lastName}` : '';
 
       const matchesSearch = empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
