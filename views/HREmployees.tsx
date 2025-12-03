@@ -27,7 +27,11 @@ const HREmployees: React.FC = () => {
     department: '',
     hireDate: new Date().toISOString().split('T')[0],
     status: 'active',
-    salary: 0
+    salary: 0,
+    bonuses: 0,
+    numberOfChildren: 0,
+    maritalStatus: undefined,
+    benefits: ''
   });
 
   // Filtered employees
@@ -66,7 +70,11 @@ const HREmployees: React.FC = () => {
       department: '',
       hireDate: new Date().toISOString().split('T')[0],
       status: 'active',
-      salary: 0
+      salary: 0,
+      bonuses: 0,
+      numberOfChildren: 0,
+      maritalStatus: undefined,
+      benefits: ''
     });
     setSelectedEmployee(null);
     setIsEditing(false);
@@ -500,20 +508,79 @@ const HREmployees: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {t('bonuses') || 'Primes'}
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.bonuses || 0}
+                      onChange={(e) => setFormData({ ...formData, bonuses: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {t('number_of_children') || 'Nombre d\'Enfants'}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.numberOfChildren || 0}
+                      onChange={(e) => setFormData({ ...formData, numberOfChildren: parseInt(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {t('marital_status') || 'Situation Familiale'}
+                    </label>
+                    <select
+                      value={formData.maritalStatus || ''}
+                      onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value as Employee['maritalStatus'] })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">{t('select_marital_status') || 'Sélectionner...'}</option>
+                      <option value="single">{t('single') || 'Célibataire'}</option>
+                      <option value="married">{t('married') || 'Marié(e)'}</option>
+                      <option value="divorced">{t('divorced') || 'Divorcé(e)'}</option>
+                      <option value="widowed">{t('widowed') || 'Veuf/Veuve'}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {t('status') || 'Statut'}
+                    </label>
+                    <select
+                      value={formData.status || 'active'}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as Employee['status'] })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="active">{t('active') || 'Actif'}</option>
+                      <option value="on_leave">{t('on_leave') || 'En Congé'}</option>
+                      <option value="inactive">{t('inactive') || 'Inactif'}</option>
+                      <option value="terminated">{t('terminated') || 'Terminé'}</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('status') || 'Statut'}
+                    {t('benefits') || 'Avantages'}
                   </label>
-                  <select
-                    value={formData.status || 'active'}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as Employee['status'] })}
+                  <textarea
+                    value={formData.benefits || ''}
+                    onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+                    rows={3}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="active">{t('active') || 'Actif'}</option>
-                    <option value="on_leave">{t('on_leave') || 'En Congé'}</option>
-                    <option value="inactive">{t('inactive') || 'Inactif'}</option>
-                    <option value="terminated">{t('terminated') || 'Terminé'}</option>
-                  </select>
+                    placeholder={t('benefits') || 'Avantages (assurance, voiture de fonction, etc.)'}
+                  />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">

@@ -569,5 +569,17 @@
   "new_leave_request": "Nouvelle Demande de Congé",
   "select_employee": "Sélectionner un employé...",
   "days_approved": "Jours Approuvés",
-  "no_employees": "Aucun employé actif"
+  "no_employees": "Aucun employé actif",
+  "bonuses": "Primes",
+  "marital_status": "Situation Familiale",
+  "benefits": "Avantages",
+  "number_of_children": "Nombre d'Enfants",
+  "single": "Célibataire",
+  "married": "Marié(e)",
+  "divorced": "Divorcé(e)",
+  "widowed": "Veuf/Veuve",
+  "select_marital_status": "Sélectionner...",
+  "on_leave": "En Congé",
+  "select_department": "Sélectionner...",
+  "edit_employee": "Modifier Employé"
 }
