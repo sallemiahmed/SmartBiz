@@ -238,15 +238,261 @@ export const mockPositions: Position[] = [
 ];
 
 export const mockEmployees: Employee[] = [
-  { id: 'e1', firstName: 'Mohamed', lastName: 'Ben Ali', email: 'mohamed@smartbiz.tn', phone: '20 123 123', position: 'Directeur Général', department: 'Direction', hireDate: '2015-01-01', status: 'active', salary: 4500 },
-  { id: 'e2', firstName: 'Sarra', lastName: 'Trabelsi', email: 'sarra@smartbiz.tn', phone: '55 654 321', position: 'Responsable RH', department: 'RH', hireDate: '2018-05-15', status: 'active', salary: 2800 },
-  { id: 'e3', firstName: 'Walid', lastName: 'Jlassi', email: 'walid@smartbiz.tn', phone: '98 777 888', position: 'Chauffeur / Coursier', department: 'Logistique', hireDate: '2020-09-01', status: 'active', salary: 1200 },
-  { id: 'e4', firstName: 'Karim', lastName: 'Jaziri', email: 'karim@smartbiz.tn', phone: '55 123 456', position: 'Technicien Senior', department: 'Technique', hireDate: '2019-03-10', status: 'active', salary: 2200 }
+  {
+    id: 'e1',
+    matricule: 'MAT-001',
+    firstName: 'Mohamed',
+    lastName: 'Ben Ali',
+    email: 'mohamed@smartbiz.tn',
+    phone: '20 123 123',
+    position: 'Directeur Général',
+    department: 'Direction',
+    hireDate: '2015-01-01',
+    birthDate: '1978-05-12',
+    status: 'active',
+    salary: 4500,
+    bonuses: 1200,
+    maritalStatus: 'married',
+    numberOfChildren: 3,
+    benefits: 'Voiture de fonction, Assurance famille complète, Smartphone',
+    address: '15 Avenue Habib Bourguiba, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e2',
+    matricule: 'MAT-002',
+    firstName: 'Sarra',
+    lastName: 'Trabelsi',
+    email: 'sarra@smartbiz.tn',
+    phone: '55 654 321',
+    position: 'Responsable RH',
+    department: 'RH',
+    hireDate: '2018-05-15',
+    birthDate: '1985-09-22',
+    status: 'active',
+    salary: 2800,
+    bonuses: 400,
+    maritalStatus: 'single',
+    numberOfChildren: 0,
+    benefits: 'Assurance santé, Tickets restaurant, Formation continue',
+    address: '28 Rue de Marseille, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e3',
+    matricule: 'MAT-003',
+    firstName: 'Walid',
+    lastName: 'Jlassi',
+    email: 'walid@smartbiz.tn',
+    phone: '98 777 888',
+    position: 'Chauffeur / Coursier',
+    department: 'Logistique',
+    hireDate: '2020-09-01',
+    birthDate: '1990-03-15',
+    status: 'active',
+    salary: 1200,
+    bonuses: 150,
+    maritalStatus: 'married',
+    numberOfChildren: 2,
+    benefits: 'Assurance santé de base, Prime de transport',
+    address: 'Cité Ettahrir, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e4',
+    matricule: 'MAT-004',
+    firstName: 'Karim',
+    lastName: 'Jaziri',
+    email: 'karim@smartbiz.tn',
+    phone: '55 123 456',
+    position: 'Technicien Senior',
+    department: 'Technique',
+    hireDate: '2019-03-10',
+    birthDate: '1988-11-08',
+    status: 'active',
+    salary: 2200,
+    bonuses: 350,
+    maritalStatus: 'divorced',
+    numberOfChildren: 1,
+    benefits: 'Assurance santé, Véhicule de service, Téléphone professionnel',
+    address: 'Ariana Ville, Ariana',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e5',
+    matricule: 'MAT-005',
+    firstName: 'Amira',
+    lastName: 'Mansouri',
+    email: 'amira@smartbiz.tn',
+    phone: '22 456 789',
+    position: 'Chef Comptable',
+    department: 'Finance',
+    hireDate: '2017-06-20',
+    birthDate: '1983-07-14',
+    status: 'active',
+    salary: 3200,
+    bonuses: 600,
+    maritalStatus: 'married',
+    numberOfChildren: 2,
+    benefits: 'Assurance santé famille, Ordinateur portable, Bonus annuel',
+    address: 'Les Berges du Lac, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e6',
+    matricule: 'MAT-006',
+    firstName: 'Youssef',
+    lastName: 'Bouazizi',
+    email: 'youssef@smartbiz.tn',
+    phone: '54 789 123',
+    position: 'Développeur Full Stack',
+    department: 'IT',
+    hireDate: '2021-02-01',
+    birthDate: '1992-04-25',
+    status: 'active',
+    salary: 2600,
+    bonuses: 500,
+    maritalStatus: 'single',
+    numberOfChildren: 0,
+    benefits: 'Assurance santé, Abonnement gym, Formations techniques',
+    address: 'Menzah 6, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e7',
+    matricule: 'MAT-007',
+    firstName: 'Nesrine',
+    lastName: 'Khalil',
+    email: 'nesrine@smartbiz.tn',
+    phone: '29 654 987',
+    position: 'Assistante Administrative',
+    department: 'Administration',
+    hireDate: '2022-01-10',
+    birthDate: '1995-12-03',
+    status: 'active',
+    salary: 1500,
+    bonuses: 200,
+    maritalStatus: 'single',
+    numberOfChildren: 0,
+    benefits: 'Assurance santé, Tickets restaurant',
+    address: 'Manar 2, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e8',
+    matricule: 'MAT-008',
+    firstName: 'Riadh',
+    lastName: 'Hammami',
+    email: 'riadh@smartbiz.tn',
+    phone: '98 321 654',
+    position: 'Commercial Senior',
+    department: 'Commercial',
+    hireDate: '2016-09-15',
+    birthDate: '1980-06-18',
+    status: 'active',
+    salary: 2400,
+    bonuses: 800,
+    maritalStatus: 'married',
+    numberOfChildren: 3,
+    benefits: 'Voiture de fonction, Assurance famille, Commission sur ventes',
+    address: 'La Marsa, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e9',
+    matricule: 'MAT-009',
+    firstName: 'Leila',
+    lastName: 'Gharbi',
+    email: 'leila@smartbiz.tn',
+    phone: '55 987 321',
+    position: 'Ingénieur Qualité',
+    department: 'Qualité',
+    hireDate: '2019-11-05',
+    birthDate: '1987-02-20',
+    status: 'on_leave',
+    salary: 2900,
+    bonuses: 450,
+    maritalStatus: 'married',
+    numberOfChildren: 1,
+    benefits: 'Assurance santé, Congés supplémentaires, Horaires flexibles',
+    address: 'Carthage, Tunis',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e10',
+    matricule: 'MAT-010',
+    firstName: 'Fares',
+    lastName: 'Amor',
+    email: 'fares@smartbiz.tn',
+    phone: '26 147 258',
+    position: 'Magasinier',
+    department: 'Logistique',
+    hireDate: '2020-04-20',
+    birthDate: '1991-08-30',
+    status: 'active',
+    salary: 1400,
+    bonuses: 180,
+    maritalStatus: 'single',
+    numberOfChildren: 0,
+    benefits: 'Assurance santé de base, Prime de rendement',
+    address: 'Ben Arous, Ben Arous',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e11',
+    matricule: 'MAT-011',
+    firstName: 'Salma',
+    lastName: 'Dridi',
+    email: 'salma@smartbiz.tn',
+    phone: '52 369 147',
+    position: 'Marketing Manager',
+    department: 'Marketing',
+    hireDate: '2018-08-12',
+    birthDate: '1986-10-05',
+    status: 'active',
+    salary: 3000,
+    bonuses: 700,
+    maritalStatus: 'widowed',
+    numberOfChildren: 2,
+    benefits: 'Assurance famille, Télétravail 2 jours/semaine, Budget marketing',
+    address: 'Ennasr 1, Ariana',
+    nationality: 'Tunisienne'
+  },
+  {
+    id: 'e12',
+    matricule: 'MAT-012',
+    firstName: 'Hichem',
+    lastName: 'Oueslati',
+    email: 'hichem@smartbiz.tn',
+    phone: '28 753 951',
+    position: 'Technicien Junior',
+    department: 'Technique',
+    hireDate: '2023-03-01',
+    birthDate: '1997-01-16',
+    status: 'active',
+    salary: 1600,
+    bonuses: 150,
+    maritalStatus: 'single',
+    numberOfChildren: 0,
+    benefits: 'Assurance santé, Formation technique, Équipement professionnel',
+    address: 'Sfax Ville, Sfax',
+    nationality: 'Tunisienne'
+  }
 ];
 
 export const mockContracts: Contract[] = [
-  { id: 'cnt1', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', type: 'CDI', startDate: '2015-01-01', status: 'active' },
-  { id: 'cnt2', employeeId: 'e3', employeeName: 'Walid Jlassi', type: 'CDD', startDate: '2023-09-01', endDate: '2024-08-31', status: 'active' }
+  { id: 'cnt1', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', type: 'CDI', startDate: '2015-01-01', status: 'active', salary: 4500, position: 'Directeur Général' },
+  { id: 'cnt2', employeeId: 'e2', employeeName: 'Sarra Trabelsi', type: 'CDI', startDate: '2018-05-15', status: 'active', salary: 2800, position: 'Responsable RH' },
+  { id: 'cnt3', employeeId: 'e3', employeeName: 'Walid Jlassi', type: 'CDD', startDate: '2023-09-01', endDate: '2024-08-31', status: 'active', salary: 1200, position: 'Chauffeur / Coursier' },
+  { id: 'cnt4', employeeId: 'e4', employeeName: 'Karim Jaziri', type: 'CDI', startDate: '2019-03-10', status: 'active', salary: 2200, position: 'Technicien Senior' },
+  { id: 'cnt5', employeeId: 'e5', employeeName: 'Amira Mansouri', type: 'CDI', startDate: '2017-06-20', status: 'active', salary: 3200, position: 'Chef Comptable' },
+  { id: 'cnt6', employeeId: 'e6', employeeName: 'Youssef Bouazizi', type: 'CDI', startDate: '2021-02-01', status: 'active', salary: 2600, position: 'Développeur Full Stack' },
+  { id: 'cnt7', employeeId: 'e7', employeeName: 'Nesrine Khalil', type: 'CDD', startDate: '2022-01-10', endDate: '2024-12-31', status: 'active', salary: 1500, position: 'Assistante Administrative' },
+  { id: 'cnt8', employeeId: 'e8', employeeName: 'Riadh Hammami', type: 'CDI', startDate: '2016-09-15', status: 'active', salary: 2400, position: 'Commercial Senior' },
+  { id: 'cnt9', employeeId: 'e9', employeeName: 'Leila Gharbi', type: 'CDI', startDate: '2019-11-05', status: 'active', salary: 2900, position: 'Ingénieur Qualité' },
+  { id: 'cnt10', employeeId: 'e10', employeeName: 'Fares Amor', type: 'CDD', startDate: '2020-04-20', endDate: '2025-04-19', status: 'active', salary: 1400, position: 'Magasinier' },
+  { id: 'cnt11', employeeId: 'e11', employeeName: 'Salma Dridi', type: 'CDI', startDate: '2018-08-12', status: 'active', salary: 3000, position: 'Marketing Manager' },
+  { id: 'cnt12', employeeId: 'e12', employeeName: 'Hichem Oueslati', type: 'Stage', startDate: '2023-03-01', endDate: '2024-02-28', status: 'active', salary: 1600, position: 'Technicien Junior' }
 ];
 
 export const mockPayroll: Payroll[] = [
@@ -254,11 +500,33 @@ export const mockPayroll: Payroll[] = [
 ];
 
 export const mockLeaves: LeaveRequest[] = [
-  { id: 'l1', employeeId: 'e2', employeeName: 'Sarra Trabelsi', type: 'Paid Leave', startDate: getDate(10), endDate: getDate(15), days: 5, status: 'approved' }
+  { id: 'l1', employeeId: 'e2', employeeName: 'Sarra Trabelsi', type: 'Paid Leave', startDate: getDate(10), endDate: getDate(15), days: 6, status: 'approved', reason: 'Vacances familiales' },
+  { id: 'l2', employeeId: 'e4', employeeName: 'Karim Jaziri', type: 'Sick Leave', startDate: getDate(-5), endDate: getDate(-3), days: 3, status: 'approved', reason: 'Grippe' },
+  { id: 'l3', employeeId: 'e6', employeeName: 'Youssef Bouazizi', type: 'Paid Leave', startDate: getDate(20), endDate: getDate(25), days: 6, status: 'pending', reason: 'Congé annuel été' },
+  { id: 'l4', employeeId: 'e9', employeeName: 'Leila Gharbi', type: 'Paid Leave', startDate: getDate(-10), endDate: getDate(10), days: 21, status: 'approved', reason: 'Congé maternité' },
+  { id: 'l5', employeeId: 'e8', employeeName: 'Riadh Hammami', type: 'Remote', startDate: getDate(5), endDate: getDate(5), days: 1, status: 'approved', reason: 'Télétravail' },
+  { id: 'l6', employeeId: 'e5', employeeName: 'Amira Mansouri', type: 'Paid Leave', startDate: getDate(2), endDate: getDate(4), days: 3, status: 'pending', reason: 'Événement familial' },
+  { id: 'l7', employeeId: 'e11', employeeName: 'Salma Dridi', type: 'Unpaid', startDate: getDate(30), endDate: getDate(45), days: 16, status: 'pending', reason: 'Voyage personnel' },
+  { id: 'l8', employeeId: 'e3', employeeName: 'Walid Jlassi', type: 'Sick Leave', startDate: getDate(-2), endDate: getDate(-1), days: 2, status: 'approved', reason: 'Consultation médicale' },
+  { id: 'l9', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', type: 'Paid Leave', startDate: getDate(-20), endDate: getDate(-15), days: 6, status: 'approved', reason: 'Congé annuel' },
+  { id: 'l10', employeeId: 'e7', employeeName: 'Nesrine Khalil', type: 'Paid Leave', startDate: getDate(15), endDate: getDate(17), days: 3, status: 'rejected', reason: 'Demande tardive - période chargée' },
+  { id: 'l11', employeeId: 'e10', employeeName: 'Fares Amor', type: 'Sick Leave', startDate: getDate(-1), endDate: getDate(-1), days: 1, status: 'pending', reason: 'Urgence dentaire' },
+  { id: 'l12', employeeId: 'e12', employeeName: 'Hichem Oueslati', type: 'Paid Leave', startDate: getDate(7), endDate: getDate(9), days: 3, status: 'approved', reason: 'Week-end prolongé' }
 ];
 
 export const mockExpenses: ExpenseReport[] = [
-  { id: 'er1', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-3), type: 'Transport', amount: 35, description: 'Taxi Client Intervention', status: 'pending' }
+  { id: 'er1', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-3), type: 'Transport', amount: 35, description: 'Taxi Client Intervention Vermeg', status: 'pending', category: 'Transport' },
+  { id: 'er2', employeeId: 'e8', employeeName: 'Riadh Hammami', date: getDate(-5), type: 'Meals', amount: 85, description: 'Déjeuner Client SFBT', status: 'approved', category: 'Repas d\'affaires' },
+  { id: 'er3', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', date: getDate(-10), type: 'Travel', amount: 450, description: 'Vol Tunis-Paris pour conférence', status: 'approved', category: 'Voyage' },
+  { id: 'er4', employeeId: 'e11', employeeName: 'Salma Dridi', date: getDate(-2), type: 'Office', amount: 120, description: 'Fournitures marketing (brochures)', status: 'pending', category: 'Fournitures' },
+  { id: 'er5', employeeId: 'e6', employeeName: 'Youssef Bouazizi', date: getDate(-7), type: 'Training', amount: 300, description: 'Formation React Advanced', status: 'approved', category: 'Formation' },
+  { id: 'er6', employeeId: 'e2', employeeName: 'Sarra Trabelsi', date: getDate(-4), type: 'Transport', amount: 25, description: 'Taxi Réunion externe', status: 'approved', category: 'Transport' },
+  { id: 'er7', employeeId: 'e5', employeeName: 'Amira Mansouri', date: getDate(-1), type: 'Office', amount: 65, description: 'Cartouches imprimante comptabilité', status: 'pending', category: 'Fournitures' },
+  { id: 'er8', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-8), type: 'Equipment', amount: 180, description: 'Outils diagnostic réseau', status: 'approved', category: 'Équipement' },
+  { id: 'er9', employeeId: 'e3', employeeName: 'Walid Jlassi', date: getDate(-6), type: 'Fuel', amount: 90, description: 'Carburant livraisons semaine', status: 'approved', category: 'Carburant' },
+  { id: 'er10', employeeId: 'e12', employeeName: 'Hichem Oueslati', date: getDate(0), type: 'Transport', amount: 18, description: 'Métro déplacement client', status: 'pending', category: 'Transport' },
+  { id: 'er11', employeeId: 'e8', employeeName: 'Riadh Hammami', date: getDate(-12), type: 'Meals', amount: 95, description: 'Dîner prospection nouveau client', status: 'approved', category: 'Repas d\'affaires' },
+  { id: 'er12', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', date: getDate(-15), type: 'Hotel', amount: 280, description: 'Hôtel Paris 2 nuits', status: 'approved', category: 'Hébergement' }
 ];
 
 // --- MAINTENANCE CRM ---
@@ -329,20 +597,72 @@ export const mockPayslips: Payslip[] = [
     employeeMatricule: 'MAT-001',
     periodStart: '2024-04-01',
     periodEnd: '2024-04-30',
+
+    // Informations famille
+    numberOfChildren: 3,
+    maritalStatus: 'married',
+
+    // Salaire et heures
     baseSalary: 4500,
     workDays: 22,
     workedDays: 22,
+    absenceDays: 0,
+
+    // Composantes du salaire
     earnings: [
-      { elementId: 'pe1', name: 'Salaire de Base', amount: 4500, taxable: true },
-      { elementId: 'pe4', name: 'Indemnité Transport', amount: 150, taxable: false }
+      { elementId: 'base', name: 'Salaire de Base', amount: 4500, taxable: true },
+      { elementId: 'bonus', name: 'Primes', amount: 1200, taxable: true },
+      { elementId: 'transport', name: 'Indemnité Transport', amount: 150, taxable: false }
     ],
+    grossSalary: 5700,
+
+    // Cotisations sociales (employé)
+    cnssEmployee: 523.26, // 5700 × 0.0918
+    cnssEmployeeRate: 0.0918,
+
+    // Base imposable IRPP
+    professionalExpenseAllowance: 517.47, // (5700 - 523.26) × 0.10
+    childrenAllowance: 75, // 3 enfants × 25 DT
+    spouseAllowance: 150,
+    totalAllowances: 742.47,
+    taxableBase: 4434.27, // 5700 - 523.26 - 742.47
+
+    // IRPP détaillé par tranches (annuel: 53211.24 DT)
+    irppBrackets: [
+      { bracket: '0 - 5,000 DT', amount: 5000, rate: 0, tax: 0 },
+      { bracket: '5,000 - 20,000 DT', amount: 15000, rate: 26, tax: 3900 },
+      { bracket: '20,000 - 30,000 DT', amount: 10000, rate: 28, tax: 2800 },
+      { bracket: '30,000 - 50,000 DT', amount: 20000, rate: 32, tax: 6400 },
+      { bracket: '50,000+ DT', amount: 3211.24, rate: 35, tax: 1123.93 }
+    ],
+    irppTotal: 1185.33, // 14223.93 / 12
+
+    // CSS
+    css: 57, // 5700 × 0.01
+    cssRate: 0.01,
+
+    // Autres retenues
     deductions: [
-      { elementId: 'pe5', name: 'Cotisation CNSS', amount: 425.25, type: 'social' },
-      { elementId: 'pe6', name: 'IRPP', amount: 450, type: 'tax' }
+      { elementId: 'cnss', name: 'CNSS (9,18%)', amount: 523.26, type: 'social' },
+      { elementId: 'irpp', name: 'IRPP', amount: 1185.33, type: 'tax' },
+      { elementId: 'css', name: 'CSS (1%)', amount: 57, type: 'tax' }
     ],
-    grossSalary: 4650,
-    totalDeductions: 875.25,
-    netSalary: 3774.75,
+
+    // Totaux
+    totalDeductions: 1765.59,
+    netSalaryBeforeAdvances: 3934.41,
+    netSalary: 3934.41,
+
+    // Cotisations patronales
+    cnssEmployer: 944.49, // 5700 × 0.1657
+    cnssEmployerRate: 0.1657,
+    tfp: 57, // 5700 × 0.01
+    tfpRate: 0.01,
+    foprolos: 114, // 5700 × 0.02
+    foprolosRate: 0.02,
+    totalEmployerContributions: 1115.49,
+    totalEmployerCost: 6815.49,
+
     status: 'final',
     pdfUrl: '/bulletins/2024-04/ps1.pdf',
     generatedDate: '2024-04-30T16:00:00Z'
@@ -355,23 +675,392 @@ export const mockPayslips: Payslip[] = [
     employeeMatricule: 'MAT-002',
     periodStart: '2024-04-01',
     periodEnd: '2024-04-30',
+
+    // Informations famille
+    numberOfChildren: 0,
+    maritalStatus: 'single',
+
+    // Salaire et heures
     baseSalary: 2800,
     workDays: 22,
     workedDays: 22,
+    absenceDays: 0,
+
+    // Composantes du salaire
     earnings: [
-      { elementId: 'pe1', name: 'Salaire de Base', amount: 2800, taxable: true },
-      { elementId: 'pe4', name: 'Indemnité Transport', amount: 120, taxable: false }
+      { elementId: 'base', name: 'Salaire de Base', amount: 2800, taxable: true },
+      { elementId: 'bonus', name: 'Primes', amount: 400, taxable: true },
+      { elementId: 'transport', name: 'Indemnité Transport', amount: 120, taxable: false }
     ],
+    grossSalary: 3200,
+
+    // Cotisations sociales (employé)
+    cnssEmployee: 293.76, // 3200 × 0.0918
+    cnssEmployeeRate: 0.0918,
+
+    // Base imposable IRPP
+    professionalExpenseAllowance: 290.62, // (3200 - 293.76) × 0.10
+    childrenAllowance: 0,
+    spouseAllowance: 0,
+    totalAllowances: 290.62,
+    taxableBase: 2615.62,
+
+    // IRPP détaillé par tranches (annuel: 31387.44 DT)
+    irppBrackets: [
+      { bracket: '0 - 5,000 DT', amount: 5000, rate: 0, tax: 0 },
+      { bracket: '5,000 - 20,000 DT', amount: 15000, rate: 26, tax: 3900 },
+      { bracket: '20,000 - 30,000 DT', amount: 10000, rate: 28, tax: 2800 },
+      { bracket: '30,000 - 50,000 DT', amount: 1387.44, rate: 32, tax: 443.98 }
+    ],
+    irppTotal: 595.33, // 7143.98 / 12
+
+    // CSS
+    css: 32, // 3200 × 0.01
+    cssRate: 0.01,
+
+    // Autres retenues
     deductions: [
-      { elementId: 'pe5', name: 'Cotisation CNSS', amount: 264.6, type: 'social' },
-      { elementId: 'pe6', name: 'IRPP', amount: 210, type: 'tax' }
+      { elementId: 'cnss', name: 'CNSS (9,18%)', amount: 293.76, type: 'social' },
+      { elementId: 'irpp', name: 'IRPP', amount: 595.33, type: 'tax' },
+      { elementId: 'css', name: 'CSS (1%)', amount: 32, type: 'tax' }
     ],
-    grossSalary: 2920,
-    totalDeductions: 474.6,
-    netSalary: 2445.4,
+
+    // Totaux
+    totalDeductions: 921.09,
+    netSalaryBeforeAdvances: 2278.91,
+    netSalary: 2278.91,
+
+    // Cotisations patronales
+    cnssEmployer: 530.24, // 3200 × 0.1657
+    cnssEmployerRate: 0.1657,
+    tfp: 32,
+    tfpRate: 0.01,
+    foprolos: 64,
+    foprolosRate: 0.02,
+    totalEmployerContributions: 626.24,
+    totalEmployerCost: 3826.24,
+
     status: 'final',
     pdfUrl: '/bulletins/2024-04/ps2.pdf',
     generatedDate: '2024-04-30T16:00:00Z'
+  },
+  {
+    id: 'ps3',
+    runId: 'pr1',
+    employeeId: 'e4',
+    employeeName: 'Karim Jaziri',
+    employeeMatricule: 'MAT-004',
+    periodStart: '2024-04-01',
+    periodEnd: '2024-04-30',
+
+    // Informations famille
+    numberOfChildren: 1,
+    maritalStatus: 'divorced',
+
+    // Salaire et heures
+    baseSalary: 2200,
+    workDays: 22,
+    workedDays: 21,
+    absenceDays: 1,
+
+    // Heures supplémentaires détaillées
+    overtimeDetails: {
+      regularHours: 176, // 8h × 22 jours
+      dayOvertimeHours: 12, // 12 heures supplémentaires diurnes
+      nightOvertimeHours: 4, // 4 heures supplémentaires nocturnes
+      holidayOvertimeHours: 0,
+      hourlyRate: 12.5, // 2200 / 176
+      dayOvertimePay: 187.5, // 12 × 12.5 × 1.25
+      nightOvertimePay: 75, // 4 × 12.5 × 1.5
+      holidayOvertimePay: 0,
+      totalOvertimePay: 262.5
+    },
+
+    // Composantes du salaire
+    earnings: [
+      { elementId: 'base', name: 'Salaire de Base', amount: 2200, taxable: true },
+      { elementId: 'bonus', name: 'Primes', amount: 350, taxable: true },
+      { elementId: 'overtime', name: 'Heures Supplémentaires', amount: 262.5, taxable: true },
+      { elementId: 'transport', name: 'Indemnité Transport', amount: 100, taxable: false }
+    ],
+    grossSalary: 2812.5,
+
+    // Cotisations sociales (employé)
+    cnssEmployee: 258.19, // 2812.5 × 0.0918
+    cnssEmployeeRate: 0.0918,
+
+    // Base imposable IRPP
+    professionalExpenseAllowance: 255.43, // (2812.5 - 258.19) × 0.10
+    childrenAllowance: 25, // 1 enfant × 25 DT
+    spouseAllowance: 0,
+    totalAllowances: 280.43,
+    taxableBase: 2273.88,
+
+    // IRPP détaillé par tranches (annuel: 27286.56 DT)
+    irppBrackets: [
+      { bracket: '0 - 5,000 DT', amount: 5000, rate: 0, tax: 0 },
+      { bracket: '5,000 - 20,000 DT', amount: 15000, rate: 26, tax: 3900 },
+      { bracket: '20,000 - 30,000 DT', amount: 7286.56, rate: 28, tax: 2040.24 }
+    ],
+    irppTotal: 495.02, // 5940.24 / 12
+
+    // CSS
+    css: 28.13, // 2812.5 × 0.01
+    cssRate: 0.01,
+
+    // Autres retenues
+    deductions: [
+      { elementId: 'cnss', name: 'CNSS (9,18%)', amount: 258.19, type: 'social' },
+      { elementId: 'irpp', name: 'IRPP', amount: 495.02, type: 'tax' },
+      { elementId: 'css', name: 'CSS (1%)', amount: 28.13, type: 'tax' }
+    ],
+
+    // Totaux
+    totalDeductions: 781.34,
+    netSalaryBeforeAdvances: 2031.16,
+    netSalary: 2031.16,
+
+    // Cotisations patronales
+    cnssEmployer: 466.03, // 2812.5 × 0.1657
+    cnssEmployerRate: 0.1657,
+    tfp: 28.13,
+    tfpRate: 0.01,
+    foprolos: 56.25,
+    foprolosRate: 0.02,
+    totalEmployerContributions: 550.41,
+    totalEmployerCost: 3362.91,
+
+    status: 'final',
+    pdfUrl: '/bulletins/2024-04/ps3.pdf',
+    generatedDate: '2024-04-30T16:00:00Z'
+  },
+  {
+    id: 'ps4',
+    runId: 'pr1',
+    employeeId: 'e8',
+    employeeName: 'Riadh Hammami',
+    employeeMatricule: 'MAT-008',
+    periodStart: '2024-04-01',
+    periodEnd: '2024-04-30',
+
+    // Informations famille
+    numberOfChildren: 3,
+    maritalStatus: 'married',
+
+    // Salaire et heures
+    baseSalary: 2400,
+    workDays: 22,
+    workedDays: 22,
+    absenceDays: 0,
+
+    // Composantes du salaire
+    earnings: [
+      { elementId: 'base', name: 'Salaire de Base', amount: 2400, taxable: true },
+      { elementId: 'bonus', name: 'Prime de Performance', amount: 800, taxable: true },
+      { elementId: 'transport', name: 'Indemnité Transport', amount: 150, taxable: false }
+    ],
+    grossSalary: 3200,
+
+    // Cotisations sociales (employé)
+    cnssEmployee: 293.76,
+    cnssEmployeeRate: 0.0918,
+
+    // Base imposable IRPP
+    professionalExpenseAllowance: 290.62,
+    childrenAllowance: 75, // 3 enfants
+    spouseAllowance: 150,
+    totalAllowances: 515.62,
+    taxableBase: 2390.62,
+
+    // IRPP détaillé par tranches (annuel: 28687.44 DT)
+    irppBrackets: [
+      { bracket: '0 - 5,000 DT', amount: 5000, rate: 0, tax: 0 },
+      { bracket: '5,000 - 20,000 DT', amount: 15000, rate: 26, tax: 3900 },
+      { bracket: '20,000 - 30,000 DT', amount: 8687.44, rate: 28, tax: 2432.48 }
+    ],
+    irppTotal: 527.71, // 6332.48 / 12
+
+    // CSS
+    css: 32,
+    cssRate: 0.01,
+
+    // Autres retenues
+    deductions: [
+      { elementId: 'cnss', name: 'CNSS (9,18%)', amount: 293.76, type: 'social' },
+      { elementId: 'irpp', name: 'IRPP', amount: 527.71, type: 'tax' },
+      { elementId: 'css', name: 'CSS (1%)', amount: 32, type: 'tax' }
+    ],
+
+    // Totaux
+    totalDeductions: 853.47,
+    netSalaryBeforeAdvances: 2346.53,
+    netSalary: 2346.53,
+
+    // Cotisations patronales
+    cnssEmployer: 530.24,
+    cnssEmployerRate: 0.1657,
+    tfp: 32,
+    tfpRate: 0.01,
+    foprolos: 64,
+    foprolosRate: 0.02,
+    totalEmployerContributions: 626.24,
+    totalEmployerCost: 3826.24,
+
+    status: 'final',
+    pdfUrl: '/bulletins/2024-04/ps4.pdf',
+    generatedDate: '2024-04-30T16:00:00Z'
+  },
+  {
+    id: 'ps5',
+    runId: 'pr2',
+    employeeId: 'e5',
+    employeeName: 'Amira Mansouri',
+    employeeMatricule: 'MAT-005',
+    periodStart: '2024-05-01',
+    periodEnd: '2024-05-31',
+
+    // Informations famille
+    numberOfChildren: 2,
+    maritalStatus: 'married',
+
+    // Salaire et heures
+    baseSalary: 3200,
+    workDays: 22,
+    workedDays: 22,
+    absenceDays: 0,
+
+    // Composantes du salaire
+    earnings: [
+      { elementId: 'base', name: 'Salaire de Base', amount: 3200, taxable: true },
+      { elementId: 'bonus', name: 'Prime de Performance', amount: 600, taxable: true },
+      { elementId: 'transport', name: 'Indemnité Transport', amount: 140, taxable: false }
+    ],
+    grossSalary: 3800,
+
+    // Cotisations sociales (employé)
+    cnssEmployee: 348.84,
+    cnssEmployeeRate: 0.0918,
+
+    // Base imposable IRPP
+    professionalExpenseAllowance: 345.12, // (3800 - 348.84) × 0.10
+    childrenAllowance: 50, // 2 enfants
+    spouseAllowance: 150,
+    totalAllowances: 545.12,
+    taxableBase: 2906.04,
+
+    // IRPP détaillé par tranches (annuel: 34872.48 DT)
+    irppBrackets: [
+      { bracket: '0 - 5,000 DT', amount: 5000, rate: 0, tax: 0 },
+      { bracket: '5,000 - 20,000 DT', amount: 15000, rate: 26, tax: 3900 },
+      { bracket: '20,000 - 30,000 DT', amount: 10000, rate: 28, tax: 2800 },
+      { bracket: '30,000 - 50,000 DT', amount: 4872.48, rate: 32, tax: 1559.19 }
+    ],
+    irppTotal: 688.27, // 8259.19 / 12
+
+    // CSS
+    css: 38,
+    cssRate: 0.01,
+
+    // Autres retenues
+    deductions: [
+      { elementId: 'cnss', name: 'CNSS (9,18%)', amount: 348.84, type: 'social' },
+      { elementId: 'irpp', name: 'IRPP', amount: 688.27, type: 'tax' },
+      { elementId: 'css', name: 'CSS (1%)', amount: 38, type: 'tax' }
+    ],
+
+    // Totaux
+    totalDeductions: 1075.11,
+    netSalaryBeforeAdvances: 2724.89,
+    netSalary: 2724.89,
+
+    // Cotisations patronales
+    cnssEmployer: 629.66,
+    cnssEmployerRate: 0.1657,
+    tfp: 38,
+    tfpRate: 0.01,
+    foprolos: 76,
+    foprolosRate: 0.02,
+    totalEmployerContributions: 743.66,
+    totalEmployerCost: 4543.66,
+
+    status: 'draft',
+    generatedDate: '2024-05-28T10:00:00Z'
+  },
+  {
+    id: 'ps6',
+    runId: 'pr2',
+    employeeId: 'e6',
+    employeeName: 'Youssef Bouazizi',
+    employeeMatricule: 'MAT-006',
+    periodStart: '2024-05-01',
+    periodEnd: '2024-05-31',
+
+    // Informations famille
+    numberOfChildren: 0,
+    maritalStatus: 'single',
+
+    // Salaire et heures
+    baseSalary: 2600,
+    workDays: 22,
+    workedDays: 22,
+    absenceDays: 0,
+
+    // Composantes du salaire
+    earnings: [
+      { elementId: 'base', name: 'Salaire de Base', amount: 2600, taxable: true },
+      { elementId: 'bonus', name: 'Prime de Performance', amount: 500, taxable: true },
+      { elementId: 'transport', name: 'Indemnité Transport', amount: 130, taxable: false }
+    ],
+    grossSalary: 3100,
+
+    // Cotisations sociales (employé)
+    cnssEmployee: 284.58,
+    cnssEmployeeRate: 0.0918,
+
+    // Base imposable IRPP
+    professionalExpenseAllowance: 281.54, // (3100 - 284.58) × 0.10
+    childrenAllowance: 0,
+    spouseAllowance: 0,
+    totalAllowances: 281.54,
+    taxableBase: 2533.88,
+
+    // IRPP détaillé par tranches (annuel: 30406.56 DT)
+    irppBrackets: [
+      { bracket: '0 - 5,000 DT', amount: 5000, rate: 0, tax: 0 },
+      { bracket: '5,000 - 20,000 DT', amount: 15000, rate: 26, tax: 3900 },
+      { bracket: '20,000 - 30,000 DT', amount: 10000, rate: 28, tax: 2800 },
+      { bracket: '30,000 - 50,000 DT', amount: 406.56, rate: 32, tax: 130.10 }
+    ],
+    irppTotal: 569.18, // 6830.10 / 12
+
+    // CSS
+    css: 31,
+    cssRate: 0.01,
+
+    // Autres retenues
+    deductions: [
+      { elementId: 'cnss', name: 'CNSS (9,18%)', amount: 284.58, type: 'social' },
+      { elementId: 'irpp', name: 'IRPP', amount: 569.18, type: 'tax' },
+      { elementId: 'css', name: 'CSS (1%)', amount: 31, type: 'tax' }
+    ],
+
+    // Totaux
+    totalDeductions: 884.76,
+    netSalaryBeforeAdvances: 2215.24,
+    netSalary: 2215.24,
+
+    // Cotisations patronales
+    cnssEmployer: 513.67,
+    cnssEmployerRate: 0.1657,
+    tfp: 31,
+    tfpRate: 0.01,
+    foprolos: 62,
+    foprolosRate: 0.02,
+    totalEmployerContributions: 606.67,
+    totalEmployerCost: 3706.67,
+
+    status: 'draft',
+    generatedDate: '2024-05-28T10:00:00Z'
   }
 ];
 
@@ -386,15 +1075,56 @@ export const mockShifts: Shift[] = [
 // Shift Assignments
 export const mockShiftAssignments: ShiftAssignment[] = [
   { id: 'sa1', employeeId: 'e4', shiftId: 'sh1', date: getDate(0), status: 'confirmed' },
-  { id: 'sa2', employeeId: 'e4', shiftId: 'sh1', date: getDate(1), status: 'scheduled' }
+  { id: 'sa2', employeeId: 'e4', shiftId: 'sh1', date: getDate(1), status: 'scheduled' },
+  { id: 'sa3', employeeId: 'e4', shiftId: 'sh1', date: getDate(2), status: 'scheduled' },
+  { id: 'sa4', employeeId: 'e12', shiftId: 'sh1', date: getDate(0), status: 'confirmed' },
+  { id: 'sa5', employeeId: 'e12', shiftId: 'sh1', date: getDate(1), status: 'scheduled' },
+  { id: 'sa6', employeeId: 'e3', shiftId: 'sh4', date: getDate(0), status: 'confirmed' },
+  { id: 'sa7', employeeId: 'e3', shiftId: 'sh4', date: getDate(1), status: 'scheduled' },
+  { id: 'sa8', employeeId: 'e10', shiftId: 'sh1', date: getDate(0), status: 'confirmed' },
+  { id: 'sa9', employeeId: 'e10', shiftId: 'sh1', date: getDate(1), status: 'scheduled' }
 ];
 
 // Attendances
 export const mockAttendances: Attendance[] = [
+  // Jour -1
   { id: 'att1', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', date: getDate(-1), checkIn: '08:05', checkOut: '17:10', breakDuration: 60, totalHours: 8.08, status: 'present' },
   { id: 'att2', employeeId: 'e2', employeeName: 'Sarra Trabelsi', date: getDate(-1), checkIn: '08:00', checkOut: '17:00', breakDuration: 60, totalHours: 8.0, status: 'present' },
   { id: 'att3', employeeId: 'e3', employeeName: 'Walid Jlassi', date: getDate(-1), checkIn: '09:30', checkOut: '17:00', breakDuration: 60, totalHours: 6.5, status: 'late' },
-  { id: 'att4', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-1), status: 'absent' }
+  { id: 'att4', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-1), status: 'absent' },
+  { id: 'att5', employeeId: 'e5', employeeName: 'Amira Mansouri', date: getDate(-1), checkIn: '08:30', checkOut: '17:30', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att6', employeeId: 'e6', employeeName: 'Youssef Bouazizi', date: getDate(-1), checkIn: '09:00', checkOut: '18:15', breakDuration: 60, totalHours: 8.25, status: 'present' },
+  { id: 'att7', employeeId: 'e7', employeeName: 'Nesrine Khalil', date: getDate(-1), checkIn: '08:15', checkOut: '17:00', breakDuration: 60, totalHours: 7.75, status: 'present' },
+  { id: 'att8', employeeId: 'e8', employeeName: 'Riadh Hammami', date: getDate(-1), checkIn: '08:45', checkOut: '18:30', breakDuration: 60, totalHours: 8.75, status: 'present' },
+  { id: 'att10', employeeId: 'e10', employeeName: 'Fares Amor', date: getDate(-1), checkIn: '07:45', checkOut: '16:30', breakDuration: 60, totalHours: 7.75, status: 'present' },
+  { id: 'att11', employeeId: 'e11', employeeName: 'Salma Dridi', date: getDate(-1), checkIn: '09:15', checkOut: '17:45', breakDuration: 60, totalHours: 7.5, status: 'late' },
+  { id: 'att12', employeeId: 'e12', employeeName: 'Hichem Oueslati', date: getDate(-1), checkIn: '08:00', checkOut: '17:00', breakDuration: 60, totalHours: 8.0, status: 'present' },
+
+  // Jour -2
+  { id: 'att13', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', date: getDate(-2), checkIn: '08:10', checkOut: '18:00', breakDuration: 60, totalHours: 8.83, status: 'present' },
+  { id: 'att14', employeeId: 'e2', employeeName: 'Sarra Trabelsi', date: getDate(-2), checkIn: '07:55', checkOut: '17:10', breakDuration: 60, totalHours: 8.25, status: 'present' },
+  { id: 'att15', employeeId: 'e3', employeeName: 'Walid Jlassi', date: getDate(-2), checkIn: '08:00', checkOut: '16:45', breakDuration: 60, totalHours: 7.75, status: 'present' },
+  { id: 'att16', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-2), checkIn: '08:30', checkOut: '19:00', breakDuration: 60, totalHours: 9.5, status: 'overtime' },
+  { id: 'att17', employeeId: 'e5', employeeName: 'Amira Mansouri', date: getDate(-2), checkIn: '08:00', checkOut: '17:30', breakDuration: 60, totalHours: 8.5, status: 'present' },
+  { id: 'att18', employeeId: 'e6', employeeName: 'Youssef Bouazizi', date: getDate(-2), checkIn: '09:30', checkOut: '18:30', breakDuration: 60, totalHours: 8.0, status: 'late' },
+  { id: 'att19', employeeId: 'e7', employeeName: 'Nesrine Khalil', date: getDate(-2), checkIn: '08:05', checkOut: '17:05', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att20', employeeId: 'e8', employeeName: 'Riadh Hammami', date: getDate(-2), status: 'leave' },
+  { id: 'att21', employeeId: 'e10', employeeName: 'Fares Amor', date: getDate(-2), checkIn: '07:50', checkOut: '16:30', breakDuration: 60, totalHours: 7.67, status: 'present' },
+  { id: 'att22', employeeId: 'e11', employeeName: 'Salma Dridi', date: getDate(-2), checkIn: '08:30', checkOut: '17:30', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att23', employeeId: 'e12', employeeName: 'Hichem Oueslati', date: getDate(-2), checkIn: '08:15', checkOut: '17:30', breakDuration: 60, totalHours: 8.25, status: 'present' },
+
+  // Jour -3
+  { id: 'att24', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', date: getDate(-3), checkIn: '08:00', checkOut: '17:30', breakDuration: 60, totalHours: 8.5, status: 'present' },
+  { id: 'att25', employeeId: 'e2', employeeName: 'Sarra Trabelsi', date: getDate(-3), checkIn: '08:05', checkOut: '17:00', breakDuration: 60, totalHours: 7.92, status: 'present' },
+  { id: 'att26', employeeId: 'e3', employeeName: 'Walid Jlassi', date: getDate(-3), status: 'leave' },
+  { id: 'att27', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-3), status: 'sick' },
+  { id: 'att28', employeeId: 'e5', employeeName: 'Amira Mansouri', date: getDate(-3), checkIn: '08:15', checkOut: '17:45', breakDuration: 60, totalHours: 8.5, status: 'present' },
+  { id: 'att29', employeeId: 'e6', employeeName: 'Youssef Bouazizi', date: getDate(-3), checkIn: '09:00', checkOut: '18:00', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att30', employeeId: 'e7', employeeName: 'Nesrine Khalil', date: getDate(-3), checkIn: '08:10', checkOut: '17:10', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att31', employeeId: 'e8', employeeName: 'Riadh Hammami', date: getDate(-3), checkIn: '08:30', checkOut: '17:30', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att32', employeeId: 'e10', employeeName: 'Fares Amor', date: getDate(-3), checkIn: '07:45', checkOut: '16:15', breakDuration: 60, totalHours: 7.5, status: 'present' },
+  { id: 'att33', employeeId: 'e11', employeeName: 'Salma Dridi', date: getDate(-3), checkIn: '09:00', checkOut: '17:30', breakDuration: 60, totalHours: 7.5, status: 'present' },
+  { id: 'att34', employeeId: 'e12', employeeName: 'Hichem Oueslati', date: getDate(-3), checkIn: '08:00', checkOut: '17:15', breakDuration: 60, totalHours: 8.25, status: 'present' }
 ];
 
 // Timesheets
@@ -416,6 +1146,63 @@ export const mockTimesheets: Timesheet[] = [
     totalOvertime: 2,
     status: 'submitted',
     submittedDate: getDate(-1)
+  },
+  {
+    id: 'ts2',
+    employeeId: 'e6',
+    employeeName: 'Youssef Bouazizi',
+    weekStarting: getDate(-7),
+    weekEnding: getDate(-1),
+    entries: [
+      { date: getDate(-7), regularHours: 8, overtimeHours: 0, projectId: 'proj3', projectName: 'Application Mobile', task: 'Développement frontend' },
+      { date: getDate(-6), regularHours: 8, overtimeHours: 0, projectId: 'proj3', projectName: 'Application Mobile', task: 'Intégration API' },
+      { date: getDate(-5), regularHours: 8, overtimeHours: 1, projectId: 'proj3', projectName: 'Application Mobile', task: 'Tests unitaires' },
+      { date: getDate(-4), regularHours: 8, overtimeHours: 0, projectId: 'proj4', projectName: 'Refactoring Backend', task: 'Code review et optimisation' },
+      { date: getDate(-3), regularHours: 8, overtimeHours: 0, projectId: 'proj3', projectName: 'Application Mobile', task: 'Déploiement staging' }
+    ],
+    totalRegular: 40,
+    totalOvertime: 1,
+    status: 'approved',
+    submittedDate: getDate(-2),
+    approvedBy: 'Mohamed Ben Ali',
+    approvedDate: getDate(-1)
+  },
+  {
+    id: 'ts3',
+    employeeId: 'e8',
+    employeeName: 'Riadh Hammami',
+    weekStarting: getDate(-14),
+    weekEnding: getDate(-8),
+    entries: [
+      { date: getDate(-14), regularHours: 8, overtimeHours: 0, projectId: 'proj5', projectName: 'Prospection SFBT', task: 'Rendez-vous client' },
+      { date: getDate(-13), regularHours: 7, overtimeHours: 0, projectId: 'proj6', projectName: 'Suivi Poulina', task: 'Présentation produits' },
+      { date: getDate(-12), regularHours: 8, overtimeHours: 1, projectId: 'proj5', projectName: 'Prospection SFBT', task: 'Négociation contrat' },
+      { date: getDate(-11), regularHours: 8, overtimeHours: 0, projectId: 'proj7', projectName: 'Formation équipe', task: 'Formation nouveaux produits' },
+      { date: getDate(-10), regularHours: 6, overtimeHours: 0, projectId: 'proj6', projectName: 'Suivi Poulina', task: 'Closing contrat' }
+    ],
+    totalRegular: 37,
+    totalOvertime: 1,
+    status: 'approved',
+    submittedDate: getDate(-9),
+    approvedBy: 'Mohamed Ben Ali',
+    approvedDate: getDate(-8)
+  },
+  {
+    id: 'ts4',
+    employeeId: 'e12',
+    employeeName: 'Hichem Oueslati',
+    weekStarting: getDate(-7),
+    weekEnding: getDate(-1),
+    entries: [
+      { date: getDate(-7), regularHours: 8, overtimeHours: 0, projectId: 'proj8', projectName: 'Support Client Clinique', task: 'Installation équipements' },
+      { date: getDate(-6), regularHours: 8, overtimeHours: 0, projectId: 'proj8', projectName: 'Support Client Clinique', task: 'Configuration réseau' },
+      { date: getDate(-5), regularHours: 8, overtimeHours: 0, projectId: 'proj9', projectName: 'Formation interne', task: 'Formation outils diagnostic' },
+      { date: getDate(-4), regularHours: 8, overtimeHours: 0, projectId: 'proj2', projectName: 'Maintenance interne', task: 'Assistance Karim' },
+      { date: getDate(-3), regularHours: 8, overtimeHours: 0, projectId: 'proj8', projectName: 'Support Client Clinique', task: 'Tests finaux' }
+    ],
+    totalRegular: 40,
+    totalOvertime: 0,
+    status: 'draft'
   }
 ];
 
@@ -454,6 +1241,101 @@ export const mockPerformanceReviews: PerformanceReview[] = [
     ],
     overallFeedback: 'Karim démontre d\'excellentes compétences techniques et un bon relationnel client. Points d\'amélioration: gestion du temps sur certains projets complexes.',
     goals: 'Objectifs 2024: Formation certification avancée réseau, mentorat junior techniciens, améliorer documentation interventions'
+  },
+  {
+    id: 'rev2',
+    employeeId: 'e2',
+    employeeName: 'Sarra Trabelsi',
+    cycleId: 'rc1',
+    cycleName: 'Évaluation Annuelle 2023',
+    date: '2024-01-10',
+    reviewerName: 'Mohamed Ben Ali',
+    status: 'completed',
+    score: 4.5,
+    ratings: [
+      { category: 'Leadership', score: 5, comment: 'Excellent leadership et gestion d\'équipe' },
+      { category: 'Organisation', score: 5, comment: 'Très organisée et méthodique' },
+      { category: 'Communication', score: 4, comment: 'Bonne communication interpersonnelle' },
+      { category: 'Résolution de Problèmes', score: 4, comment: 'Approche pragmatique et efficace' }
+    ],
+    overallFeedback: 'Sarra a considérablement amélioré les processus RH cette année. Elle gère très bien son département et maintient d\'excellentes relations avec tous les collaborateurs.',
+    goals: 'Objectifs 2024: Mise en place SIRH complet, développement programme formation, améliorer rétention talents'
+  },
+  {
+    id: 'rev3',
+    employeeId: 'e5',
+    employeeName: 'Amira Mansouri',
+    cycleId: 'rc1',
+    cycleName: 'Évaluation Annuelle 2023',
+    date: '2024-01-20',
+    reviewerName: 'Mohamed Ben Ali',
+    status: 'completed',
+    score: 4.7,
+    ratings: [
+      { category: 'Expertise Comptable', score: 5, comment: 'Maîtrise parfaite des normes comptables' },
+      { category: 'Rigueur', score: 5, comment: 'Travail extrêmement rigoureux et précis' },
+      { category: 'Respect des Délais', score: 5, comment: 'Toujours dans les temps, même sous pression' },
+      { category: 'Initiative', score: 4, comment: 'Propose régulièrement des améliorations' }
+    ],
+    overallFeedback: 'Amira est un pilier du département finance. Sa rigueur et son professionnalisme sont exemplaires. Elle a géré parfaitement tous les audits et clôtures comptables.',
+    goals: 'Objectifs 2024: Formation contrôle de gestion avancé, automatisation processus comptables, formation junior comptables'
+  },
+  {
+    id: 'rev4',
+    employeeId: 'e6',
+    employeeName: 'Youssef Bouazizi',
+    cycleId: 'rc2',
+    cycleName: 'Évaluation Mi-année 2024',
+    date: '2024-06-15',
+    reviewerName: 'Mohamed Ben Ali',
+    status: 'in_progress',
+    score: 4.3,
+    ratings: [
+      { category: 'Compétences Techniques', score: 5, comment: 'Excellentes compétences en développement' },
+      { category: 'Innovation', score: 5, comment: 'Propose des solutions innovantes' },
+      { category: 'Travail d\'Équipe', score: 4, comment: 'Bon esprit d\'équipe' },
+      { category: 'Documentation', score: 3, comment: 'Pourrait mieux documenter son code' }
+    ],
+    overallFeedback: 'Youssef est un développeur très talentueux. Il maîtrise parfaitement le stack technique et livre un code de qualité. Point d\'amélioration: documentation du code.',
+    goals: 'Objectifs H2 2024: Finaliser refonte application mobile, améliorer documentation code, mentorat développeurs juniors'
+  },
+  {
+    id: 'rev5',
+    employeeId: 'e8',
+    employeeName: 'Riadh Hammami',
+    cycleId: 'rc1',
+    cycleName: 'Évaluation Annuelle 2023',
+    date: '2024-01-25',
+    reviewerName: 'Mohamed Ben Ali',
+    status: 'completed',
+    score: 4.6,
+    ratings: [
+      { category: 'Performance Commerciale', score: 5, comment: 'Dépassement objectifs ventes de 25%' },
+      { category: 'Relation Client', score: 5, comment: 'Excellentes relations avec les clients' },
+      { category: 'Négociation', score: 5, comment: 'Très bon négociateur' },
+      { category: 'Reporting', score: 4, comment: 'Reporting régulier et complet' }
+    ],
+    overallFeedback: 'Riadh a eu une excellente année commerciale. Il a développé le portefeuille clients et maintenu d\'excellentes relations. Meilleur commercial de l\'année 2023.',
+    goals: 'Objectifs 2024: Développer 10 nouveaux comptes majeurs, augmenter CA de 30%, former nouveaux commerciaux'
+  },
+  {
+    id: 'rev6',
+    employeeId: 'e11',
+    employeeName: 'Salma Dridi',
+    cycleId: 'rc1',
+    cycleName: 'Évaluation Annuelle 2023',
+    date: '2024-01-18',
+    reviewerName: 'Mohamed Ben Ali',
+    status: 'completed',
+    score: 4.4,
+    ratings: [
+      { category: 'Créativité', score: 5, comment: 'Campagnes marketing très créatives' },
+      { category: 'Stratégie', score: 4, comment: 'Bonne vision stratégique' },
+      { category: 'Gestion Budget', score: 4, comment: 'Respect du budget marketing' },
+      { category: 'Analyse ROI', score: 4, comment: 'Suivi efficace des performances' }
+    ],
+    overallFeedback: 'Salma a développé d\'excellentes campagnes cette année. La visibilité de l\'entreprise a considérablement augmenté. Elle gère bien son budget et analyse les résultats.',
+    goals: 'Objectifs 2024: Lancement nouvelle identité visuelle, augmentation notoriété marque, digitalisation marketing'
   }
 ];
 
@@ -490,6 +1372,70 @@ export const mockObjectives: Objective[] = [
       { id: 'kr5', description: 'Former 100% des employés au nouvel outil', target: 100, current: 60, unit: '%' },
       { id: 'kr6', description: 'Réduire le temps de traitement des demandes', target: 50, current: 35, unit: '%' }
     ]
+  },
+  {
+    id: 'obj3',
+    employeeId: 'e8',
+    title: 'Développer le portefeuille clients',
+    description: 'Augmenter le nombre de clients actifs et le chiffre d\'affaires',
+    weight: 70,
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    status: 'active',
+    progress: 55,
+    keyResults: [
+      { id: 'kr7', description: 'Acquérir 10 nouveaux comptes majeurs', target: 10, current: 6, unit: 'clients' },
+      { id: 'kr8', description: 'Augmenter le CA de 30%', target: 30, current: 18, unit: '%' },
+      { id: 'kr9', description: 'Taux de conversion leads >25%', target: 25, current: 22, unit: '%' }
+    ]
+  },
+  {
+    id: 'obj4',
+    employeeId: 'e6',
+    title: 'Moderniser l\'infrastructure technique',
+    description: 'Refactoriser le code et améliorer les performances de l\'application',
+    weight: 50,
+    startDate: '2024-06-01',
+    endDate: '2024-12-31',
+    status: 'active',
+    progress: 30,
+    keyResults: [
+      { id: 'kr10', description: 'Réduire le temps de chargement de 40%', target: 40, current: 15, unit: '%' },
+      { id: 'kr11', description: 'Atteindre 80% de couverture de tests', target: 80, current: 45, unit: '%' },
+      { id: 'kr12', description: 'Migrer 100% du code vers TypeScript', target: 100, current: 60, unit: '%' }
+    ]
+  },
+  {
+    id: 'obj5',
+    employeeId: 'e11',
+    title: 'Renforcer la présence digitale',
+    description: 'Améliorer la visibilité en ligne et l\'engagement sur les réseaux sociaux',
+    weight: 60,
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    status: 'active',
+    progress: 70,
+    keyResults: [
+      { id: 'kr13', description: 'Augmenter le trafic web de 50%', target: 50, current: 42, unit: '%' },
+      { id: 'kr14', description: 'Atteindre 5000 followers LinkedIn', target: 5000, current: 3800, unit: 'followers' },
+      { id: 'kr15', description: 'Lancer 12 campagnes marketing', target: 12, current: 9, unit: 'campagnes' }
+    ]
+  },
+  {
+    id: 'obj6',
+    employeeId: 'e5',
+    title: 'Optimiser les processus comptables',
+    description: 'Automatiser les processus et réduire les délais de clôture',
+    weight: 50,
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    status: 'active',
+    progress: 80,
+    keyResults: [
+      { id: 'kr16', description: 'Réduire le délai de clôture mensuelle à 3 jours', target: 3, current: 4, unit: 'jours' },
+      { id: 'kr17', description: 'Automatiser 80% des écritures récurrentes', target: 80, current: 75, unit: '%' },
+      { id: 'kr18', description: 'Zéro écart lors des audits', target: 0, current: 0, unit: 'écarts' }
+    ]
   }
 ];
 
@@ -510,11 +1456,94 @@ export const mockOnboardingChecklists: OnboardingChecklist[] = [
       { id: 'task5', title: 'Présentation équipe', description: 'Tour des bureaux et présentation collègues', assigneeRole: 'manager', dueInDays: 1, completed: true, completedDate: '2019-03-11', completedBy: 'Mohamed Ben Ali' }
     ],
     notes: 'Onboarding complété avec succès. Nouvelle recrue opérationnelle rapidement.'
+  },
+  {
+    id: 'onb2',
+    employeeId: 'e7',
+    employeeName: 'Nesrine Khalil',
+    startDate: '2022-01-10',
+    status: 'completed',
+    completionPercentage: 100,
+    tasks: [
+      { id: 'task6', title: 'Préparer poste de travail', description: 'PC, téléphone, accès réseau', assigneeRole: 'it', dueInDays: 0, completed: true, completedDate: '2022-01-10', completedBy: 'IT Team' },
+      { id: 'task7', title: 'Remettre contrat signé', description: 'Contrat CDD + annexes', assigneeRole: 'hr', dueInDays: 0, completed: true, completedDate: '2022-01-10', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task8', title: 'Visite médicale', description: 'Certificat médical', assigneeRole: 'hr', dueInDays: 7, completed: true, completedDate: '2022-01-14', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task9', title: 'Formation outils bureautiques', description: 'Formation Word, Excel, logiciel interne', assigneeRole: 'manager', dueInDays: 3, completed: true, completedDate: '2022-01-13', completedBy: 'Mohamed Ben Ali' },
+      { id: 'task10', title: 'Présentation des procédures administratives', description: 'Règlement intérieur, procédures', assigneeRole: 'hr', dueInDays: 2, completed: true, completedDate: '2022-01-12', completedBy: 'Sarra Trabelsi' }
+    ],
+    notes: 'Intégration réussie. Employée motivée et organisée.'
+  },
+  {
+    id: 'onb3',
+    employeeId: 'e12',
+    employeeName: 'Hichem Oueslati',
+    startDate: '2023-03-01',
+    status: 'in_progress',
+    completionPercentage: 80,
+    tasks: [
+      { id: 'task11', title: 'Préparer poste de travail', description: 'PC, téléphone, outils techniques', assigneeRole: 'it', dueInDays: 0, completed: true, completedDate: '2023-03-01', completedBy: 'IT Team' },
+      { id: 'task12', title: 'Remettre convention de stage signée', description: 'Convention tripartite', assigneeRole: 'hr', dueInDays: 0, completed: true, completedDate: '2023-03-01', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task13', title: 'Visite médicale', description: 'Certificat médical obligatoire', assigneeRole: 'hr', dueInDays: 7, completed: true, completedDate: '2023-03-07', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task14', title: 'Formation technique de base', description: 'Outils de diagnostic, procédures intervention', assigneeRole: 'manager', dueInDays: 14, completed: true, completedDate: '2023-03-14', completedBy: 'Karim Jaziri' },
+      { id: 'task15', title: 'Évaluation mi-parcours stage', description: 'Évaluation 3 mois', assigneeRole: 'manager', dueInDays: 90, completed: false }
+    ],
+    notes: 'Stagiaire prometteur. Bonne progression technique.'
+  },
+  {
+    id: 'onb4',
+    employeeId: 'e6',
+    employeeName: 'Youssef Bouazizi',
+    startDate: '2021-02-01',
+    status: 'completed',
+    completionPercentage: 100,
+    tasks: [
+      { id: 'task16', title: 'Préparer environnement de développement', description: 'PC, accès Git, serveurs dev', assigneeRole: 'it', dueInDays: 0, completed: true, completedDate: '2021-02-01', completedBy: 'IT Team' },
+      { id: 'task17', title: 'Remettre contrat signé', description: 'CDI développeur', assigneeRole: 'hr', dueInDays: 0, completed: true, completedDate: '2021-02-01', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task18', title: 'Visite médicale', description: 'Certificat médical', assigneeRole: 'hr', dueInDays: 7, completed: true, completedDate: '2021-02-05', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task19', title: 'Formation architecture applicative', description: 'Documentation technique, architecture', assigneeRole: 'manager', dueInDays: 5, completed: true, completedDate: '2021-02-06', completedBy: 'Mohamed Ben Ali' },
+      { id: 'task20', title: 'Code review et bonnes pratiques', description: 'Standards de code, Git flow', assigneeRole: 'manager', dueInDays: 3, completed: true, completedDate: '2021-02-04', completedBy: 'Mohamed Ben Ali' }
+    ],
+    notes: 'Excellent développeur. Opérationnel dès la première semaine.'
   }
 ];
 
 // Offboarding Checklists
-export const mockOffboardingChecklists: OffboardingChecklist[] = [];
+export const mockOffboardingChecklists: OffboardingChecklist[] = [
+  {
+    id: 'off1',
+    employeeId: 'e9',
+    employeeName: 'Leila Gharbi',
+    lastWorkingDay: '2024-12-31',
+    reason: 'Démission - Nouvelle opportunité',
+    status: 'scheduled',
+    completionPercentage: 0,
+    tasks: [
+      { id: 'offtask1', title: 'Récupérer matériel entreprise', description: 'PC portable, téléphone, badge accès', assigneeRole: 'it', dueInDays: 0, completed: false },
+      { id: 'offtask2', title: 'Solde de tout compte', description: 'Calcul et paiement final', assigneeRole: 'hr', dueInDays: 0, completed: false, requiresDocument: true },
+      { id: 'offtask3', title: 'Désactiver accès systèmes', description: 'Email, VPN, applications métiers', assigneeRole: 'it', dueInDays: 0, completed: false },
+      { id: 'offtask4', title: 'Entretien de départ', description: 'Feedback et raisons du départ', assigneeRole: 'hr', dueInDays: -5, completed: false },
+      { id: 'offtask5', title: 'Transfert de connaissances', description: 'Documentation et passation dossiers', assigneeRole: 'manager', dueInDays: -10, completed: false }
+    ],
+    notes: 'Départ prévu fin décembre. Préparer le recrutement du remplaçant.'
+  },
+  {
+    id: 'off2',
+    employeeId: 'e10',
+    employeeName: 'Fares Amor',
+    lastWorkingDay: '2025-04-19',
+    reason: 'Fin de CDD',
+    status: 'scheduled',
+    completionPercentage: 0,
+    tasks: [
+      { id: 'offtask6', title: 'Récupérer équipements', description: 'Scanner, chariot, badge', assigneeRole: 'manager', dueInDays: 0, completed: false },
+      { id: 'offtask7', title: 'Solde de tout compte', description: 'Paiement final + certificat de travail', assigneeRole: 'hr', dueInDays: 0, completed: false, requiresDocument: true },
+      { id: 'offtask8', title: 'Désactiver accès', description: 'Système de gestion stock', assigneeRole: 'it', dueInDays: 0, completed: false },
+      { id: 'offtask9', title: 'Entretien de fin de contrat', description: 'Évaluation performance globale', assigneeRole: 'hr', dueInDays: -3, completed: false },
+      { id: 'offtask10', title: 'Inventaire magasin', description: 'Vérification stock avant départ', assigneeRole: 'manager', dueInDays: -1, completed: false }
+    ],
+    notes: 'Bon élément. Possibilité de renouvellement du CDD à évaluer.'
+  }
+];
 
 // Audit Logs
 export const mockAuditLogs: AuditLog[] = [
@@ -562,6 +1591,133 @@ export const mockAuditLogs: AuditLog[] = [
     resource: 'payslip',
     resourceId: 'ps1',
     notes: 'Consultation bulletin de paie pour vérification'
+  },
+  {
+    id: 'log5',
+    timestamp: '2024-05-01T08:30:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'create',
+    resource: 'employee',
+    resourceId: 'e12',
+    after: { firstName: 'Hichem', lastName: 'Oueslati', position: 'Technicien Junior' },
+    notes: 'Nouveau stagiaire - Convention de stage validée'
+  },
+  {
+    id: 'log6',
+    timestamp: '2024-04-15T10:20:00Z',
+    actorId: 'e1',
+    actorName: 'Mohamed Ben Ali',
+    action: 'reject',
+    resource: 'leave_request',
+    resourceId: 'l10',
+    before: { status: 'pending' },
+    after: { status: 'rejected' },
+    notes: 'Rejet demande congé Nesrine - Période chargée'
+  },
+  {
+    id: 'log7',
+    timestamp: '2024-03-20T15:45:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'create',
+    resource: 'performance_review',
+    resourceId: 'rev1',
+    after: { employeeId: 'e4', score: 4.2 },
+    notes: 'Évaluation annuelle Karim Jaziri finalisée'
+  },
+  {
+    id: 'log8',
+    timestamp: '2024-05-28T10:00:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'create',
+    resource: 'payroll_run',
+    resourceId: 'pr2',
+    after: { reference: 'PAY-2024-05', status: 'calculated' },
+    notes: 'Calcul de la paie du mois de mai'
+  },
+  {
+    id: 'log9',
+    timestamp: '2024-04-10T09:00:00Z',
+    actorId: 'e1',
+    actorName: 'Mohamed Ben Ali',
+    action: 'approve',
+    resource: 'expense_report',
+    resourceId: 'er2',
+    before: { status: 'pending' },
+    after: { status: 'approved' },
+    notes: 'Validation note de frais Riadh Hammami'
+  },
+  {
+    id: 'log10',
+    timestamp: '2024-03-15T14:00:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'update',
+    resource: 'employee',
+    resourceId: 'e5',
+    before: { salary: 3000 },
+    after: { salary: 3200 },
+    notes: 'Augmentation salariale Amira Mansouri'
+  },
+  {
+    id: 'log11',
+    timestamp: '2024-02-28T16:30:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'create',
+    resource: 'onboarding_checklist',
+    resourceId: 'onb3',
+    after: { employeeId: 'e12', status: 'in_progress' },
+    notes: 'Création checklist onboarding Hichem Oueslati'
+  },
+  {
+    id: 'log12',
+    timestamp: '2024-05-25T11:15:00Z',
+    actorId: 'e1',
+    actorName: 'Mohamed Ben Ali',
+    action: 'approve',
+    resource: 'timesheet',
+    resourceId: 'ts2',
+    before: { status: 'submitted' },
+    after: { status: 'approved' },
+    notes: 'Validation feuille de temps Youssef Bouazizi'
+  },
+  {
+    id: 'log13',
+    timestamp: '2024-11-15T09:30:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'create',
+    resource: 'offboarding_checklist',
+    resourceId: 'off1',
+    after: { employeeId: 'e9', lastWorkingDay: '2024-12-31' },
+    notes: 'Processus de départ initié pour Leila Gharbi'
+  },
+  {
+    id: 'log14',
+    timestamp: '2024-04-20T13:45:00Z',
+    actorId: 'e1',
+    actorName: 'Mohamed Ben Ali',
+    action: 'approve',
+    resource: 'leave_request',
+    resourceId: 'l4',
+    before: { status: 'pending' },
+    after: { status: 'approved' },
+    notes: 'Validation congé maternité Leila Gharbi'
+  },
+  {
+    id: 'log15',
+    timestamp: '2024-03-10T10:00:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'update',
+    resource: 'objective',
+    resourceId: 'obj1',
+    before: { progress: 50 },
+    after: { progress: 65 },
+    notes: 'Mise à jour progression objectif Karim Jaziri'
   }
 ];
 
