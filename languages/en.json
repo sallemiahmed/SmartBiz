@@ -510,5 +510,7 @@
     "payroll": "Payroll",
     "leave_time": "Leave & Time",
     "expense_reports": "Expense Reports",
-    "stock_audit": "Stock Inventory"
+    "stock_audit": "Stock Inventory",
+    "attendance": "Attendance",
+    "hr_settings": "HR Settings"
 }

@@ -403,5 +403,7 @@
   "department_distribution": "Distribution par Département",
   "pending_leave_requests": "Demandes de Congé en Attente",
   "expiring_contracts": "Contrats Expirants",
-  "stock_audit": "Inventaire de Stock"
+  "stock_audit": "Inventaire de Stock",
+  "attendance": "Présence",
+  "hr_settings": "Paramètres RH"
 }
