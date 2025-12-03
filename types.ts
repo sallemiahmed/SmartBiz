@@ -581,6 +581,202 @@ export interface TaxRate {
   isDefault?: boolean;
 }
 
+// Extended HR Interfaces
+
+// Payroll Run & Payslip
+export interface PayrollElement {
+  id: string;
+  code: string;
+  name: string;
+  type: 'earning' | 'deduction' | 'benefit';
+  formula?: string; // Expression formula or fixed amount
+  isSystemGenerated?: boolean;
+}
+
+export interface PayrollRun {
+  id: string;
+  reference: string;
+  periodStart: string; // YYYY-MM-DD
+  periodEnd: string;
+  status: 'draft' | 'calculated' | 'validated' | 'paid' | 'closed';
+  totalGross: number;
+  totalNet: number;
+  totalDeductions: number;
+  employeesCount: number;
+  createdBy: string;
+  createdDate: string;
+  closedDate?: string;
+  paymentDate?: string;
+  notes?: string;
+}
+
+export interface Payslip {
+  id: string;
+  runId: string;
+  employeeId: string;
+  employeeName: string;
+  employeeMatricule: string;
+  periodStart: string;
+  periodEnd: string;
+  baseSalary: number;
+  workDays: number;
+  workedDays: number;
+  earnings: {
+    elementId: string;
+    name: string;
+    amount: number;
+    taxable: boolean;
+  }[];
+  deductions: {
+    elementId: string;
+    name: string;
+    amount: number;
+    type: 'social' | 'tax' | 'other';
+  }[];
+  grossSalary: number;
+  totalDeductions: number;
+  netSalary: number;
+  status: 'draft' | 'final';
+  pdfUrl?: string;
+  generatedDate: string;
+}
+
+// Shifts & Schedules
+export interface Shift {
+  id: string;
+  name: string;
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
+  breakDuration: number; // minutes
+  isActive: boolean;
+}
+
+export interface ShiftAssignment {
+  id: string;
+  employeeId: string;
+  shiftId: string;
+  date: string; // YYYY-MM-DD
+  status: 'scheduled' | 'confirmed' | 'cancelled';
+}
+
+// Onboarding & Offboarding
+export interface OnboardingTask {
+  id: string;
+  title: string;
+  description: string;
+  assigneeRole: 'hr' | 'manager' | 'employee' | 'it';
+  dueInDays: number; // Days from hire date
+  completed: boolean;
+  completedDate?: string;
+  completedBy?: string;
+  requiresDocument?: boolean;
+  documentUrl?: string;
+}
+
+export interface OnboardingChecklist {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  startDate: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  tasks: OnboardingTask[];
+  completionPercentage: number;
+  notes?: string;
+}
+
+export interface OffboardingChecklist {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  lastWorkingDate: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  tasks: OnboardingTask[];
+  exitInterview?: {
+    conducted: boolean;
+    date?: string;
+    feedback?: string;
+  };
+  completionPercentage: number;
+  notes?: string;
+}
+
+// Document Management
+export interface EmployeeDocument {
+  id: string;
+  employeeId: string;
+  type: 'id' | 'passport' | 'contract' | 'certificate' | 'medical' | 'rib' | 'other';
+  name: string;
+  uploadDate: string;
+  expiryDate?: string;
+  version: number;
+  fileUrl?: string;
+  uploadedBy: string;
+  status: 'active' | 'expired' | 'archived';
+}
+
+// Goals & Objectives (OKR)
+export interface Objective {
+  id: string;
+  employeeId: string;
+  title: string;
+  description: string;
+  weight: number; // percentage
+  startDate: string;
+  endDate: string;
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  progress: number; // 0-100
+  keyResults: {
+    id: string;
+    description: string;
+    target: number;
+    current: number;
+    unit: string;
+  }[];
+}
+
+// Audit Log
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  action: 'create' | 'update' | 'delete' | 'approve' | 'reject' | 'export' | 'view_sensitive';
+  resource: string; // e.g., 'employee', 'payroll', 'contract'
+  resourceId: string;
+  before?: any;
+  after?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  notes?: string;
+}
+
+// HR Settings
+export interface HRSettings {
+  id: string;
+  // Leave Policies
+  leaveYearStart: string; // MM-DD
+  carryoverAllowed: boolean;
+  maxCarryoverDays: number;
+  // Payroll
+  payrollFrequency: 'weekly' | 'bi-weekly' | 'monthly';
+  payrollCutoffDay: number; // Day of month
+  paymentDay: number; // Day of month
+  defaultWorkingDaysPerWeek: number;
+  overtimeRateMultiplier: number; // e.g., 1.5
+  // Working Hours
+  standardWorkingHoursPerDay: number;
+  standardWorkingHoursPerWeek: number;
+  weekendDays: string[]; // ['saturday', 'sunday']
+  // Compliance
+  dataRetentionYears: number;
+  anonymizeOnExit: boolean;
+  requireTwoFactorForSalaryAccess: boolean;
+  // Notifications
+  alertDocumentExpiryDays: number;
+  alertTrialPeriodEndDays: number;
+  alertContractEndDays: number;
+}
+
 export interface AppSettings {
   companyName: string;
   companyEmail: string;

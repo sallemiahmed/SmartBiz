@@ -8,7 +8,9 @@ import {
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
   Employee, Contract, Payroll, LeaveRequest, ExpenseReport,
   MaintenanceContract, ContactInteraction, Department, Position,
-  Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle
+  Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle,
+  PayrollRun, Payslip, PayrollElement, Shift, ShiftAssignment,
+  OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings
 } from '../types';
 // import { db, seedDatabase } from '../services/db'; // DISABLED - using mock data only
 import { loadTranslations } from '../services/translations';
@@ -18,7 +20,10 @@ import {
   mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs,
   mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll,
   mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions,
-  mockDepartments, mockPositions
+  mockDepartments, mockPositions, mockPayrollRuns, mockPayslips, mockPayrollElements,
+  mockShifts, mockShiftAssignments, mockAttendances, mockTimesheets, mockLeavePolicies,
+  mockPerformanceReviews, mockReviewCycles, mockObjectives, mockOnboardingChecklists,
+  mockOffboardingChecklists, mockAuditLogs, mockHRSettings
 } from '../services/mockData';
 
 interface AppContextType {
@@ -155,6 +160,63 @@ interface AppContextType {
   addExpenseReport: (expense: ExpenseReport) => void;
   updateExpenseReport: (expense: ExpenseReport) => void;
 
+  // Extended HR
+  payrollRuns: PayrollRun[];
+  addPayrollRun: (run: PayrollRun) => void;
+  updatePayrollRun: (run: PayrollRun) => void;
+
+  payslips: Payslip[];
+  addPayslip: (payslip: Payslip) => void;
+
+  payrollElements: PayrollElement[];
+  addPayrollElement: (element: PayrollElement) => void;
+  updatePayrollElement: (element: PayrollElement) => void;
+  deletePayrollElement: (id: string) => void;
+
+  shifts: Shift[];
+  addShift: (shift: Shift) => void;
+  updateShift: (shift: Shift) => void;
+  deleteShift: (id: string) => void;
+
+  shiftAssignments: ShiftAssignment[];
+  addShiftAssignment: (assignment: ShiftAssignment) => void;
+  deleteShiftAssignment: (id: string) => void;
+
+  addAttendance: (attendance: Attendance) => void;
+  updateAttendance: (attendance: Attendance) => void;
+
+  addTimesheet: (timesheet: Timesheet) => void;
+  updateTimesheet: (timesheet: Timesheet) => void;
+
+  addLeavePolicy: (policy: LeavePolicy) => void;
+  updateLeavePolicy: (policy: LeavePolicy) => void;
+  deleteLeavePolicy: (id: string) => void;
+
+  addPerformanceReview: (review: PerformanceReview) => void;
+  updatePerformanceReview: (review: PerformanceReview) => void;
+
+  addReviewCycle: (cycle: ReviewCycle) => void;
+  updateReviewCycle: (cycle: ReviewCycle) => void;
+
+  objectives: Objective[];
+  addObjective: (objective: Objective) => void;
+  updateObjective: (objective: Objective) => void;
+  deleteObjective: (id: string) => void;
+
+  onboardingChecklists: OnboardingChecklist[];
+  addOnboardingChecklist: (checklist: OnboardingChecklist) => void;
+  updateOnboardingChecklist: (checklist: OnboardingChecklist) => void;
+
+  offboardingChecklists: OffboardingChecklist[];
+  addOffboardingChecklist: (checklist: OffboardingChecklist) => void;
+  updateOffboardingChecklist: (checklist: OffboardingChecklist) => void;
+
+  auditLogs: AuditLog[];
+  addAuditLog: (log: AuditLog) => void;
+
+  hrSettings: HRSettings | null;
+  updateHRSettings: (settings: HRSettings) => void;
+
   settings: AppSettings;
   setSettings: (settings: AppSettings) => void;
 
@@ -163,7 +225,7 @@ interface AppContextType {
 
   stats: { revenue: number; expenses: number; profit: number };
   chartData: any[];
-  
+
   formatCurrency: (amount: number, currency?: string) => string;
   t: (key: string) => string;
 }

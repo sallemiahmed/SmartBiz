@@ -5,7 +5,9 @@ import {
   ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission,
   FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll,
   LeaveRequest, ExpenseReport, MaintenanceContract, ContactInteraction,
-  Department, Position
+  Department, Position, PayrollRun, Payslip, PayrollElement, Shift, ShiftAssignment,
+  OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings,
+  Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle
 } from '../types';
 
 export const getDate = (offset: number) => {
@@ -269,3 +271,323 @@ export const mockContactInteractions: ContactInteraction[] = [
     { id: 'ci1', clientId: 'c1', date: getDate(-5), type: 'meeting', summary: 'Réunion trimestrielle de suivi. Client satisfait.', contactPerson: 'M. Kamel' },
     { id: 'ci2', clientId: 'c2', date: getDate(-2), type: 'call', summary: 'Appel pour planification intervention préventive.', contactPerson: 'Mme. Samia' }
 ];
+
+// --- EXTENDED HR DATA ---
+
+// Payroll Elements
+export const mockPayrollElements: PayrollElement[] = [
+  { id: 'pe1', code: 'BASE', name: 'Salaire de Base', type: 'earning', isSystemGenerated: true },
+  { id: 'pe2', code: 'OT', name: 'Heures Supplémentaires', type: 'earning', formula: 'hours * rate * 1.5' },
+  { id: 'pe3', code: 'BONUS', name: 'Prime de Performance', type: 'earning' },
+  { id: 'pe4', code: 'TRANS', name: 'Indemnité Transport', type: 'earning' },
+  { id: 'pe5', code: 'CNSS', name: 'Cotisation CNSS', type: 'deduction', formula: 'base * 0.0945', isSystemGenerated: true },
+  { id: 'pe6', code: 'IRPP', name: 'IRPP', type: 'deduction', isSystemGenerated: true },
+  { id: 'pe7', code: 'ADV', name: 'Avance sur Salaire', type: 'deduction' }
+];
+
+// Payroll Runs
+export const mockPayrollRuns: PayrollRun[] = [
+  {
+    id: 'pr1',
+    reference: 'PAY-2024-04',
+    periodStart: '2024-04-01',
+    periodEnd: '2024-04-30',
+    status: 'closed',
+    totalGross: 11200,
+    totalNet: 9240,
+    totalDeductions: 1960,
+    employeesCount: 4,
+    createdBy: 'Sarra Trabelsi',
+    createdDate: '2024-04-28T10:00:00Z',
+    closedDate: '2024-04-30T16:00:00Z',
+    paymentDate: '2024-05-01',
+    notes: 'Paie mensuelle avril 2024 - Clôturée et payée'
+  },
+  {
+    id: 'pr2',
+    reference: 'PAY-2024-05',
+    periodStart: '2024-05-01',
+    periodEnd: '2024-05-31',
+    status: 'calculated',
+    totalGross: 11350,
+    totalNet: 9365,
+    totalDeductions: 1985,
+    employeesCount: 4,
+    createdBy: 'Sarra Trabelsi',
+    createdDate: '2024-05-28T10:00:00Z',
+    notes: 'Paie mensuelle mai 2024 - En attente validation'
+  }
+];
+
+// Payslips
+export const mockPayslips: Payslip[] = [
+  {
+    id: 'ps1',
+    runId: 'pr1',
+    employeeId: 'e1',
+    employeeName: 'Mohamed Ben Ali',
+    employeeMatricule: 'MAT-001',
+    periodStart: '2024-04-01',
+    periodEnd: '2024-04-30',
+    baseSalary: 4500,
+    workDays: 22,
+    workedDays: 22,
+    earnings: [
+      { elementId: 'pe1', name: 'Salaire de Base', amount: 4500, taxable: true },
+      { elementId: 'pe4', name: 'Indemnité Transport', amount: 150, taxable: false }
+    ],
+    deductions: [
+      { elementId: 'pe5', name: 'Cotisation CNSS', amount: 425.25, type: 'social' },
+      { elementId: 'pe6', name: 'IRPP', amount: 450, type: 'tax' }
+    ],
+    grossSalary: 4650,
+    totalDeductions: 875.25,
+    netSalary: 3774.75,
+    status: 'final',
+    pdfUrl: '/bulletins/2024-04/ps1.pdf',
+    generatedDate: '2024-04-30T16:00:00Z'
+  },
+  {
+    id: 'ps2',
+    runId: 'pr1',
+    employeeId: 'e2',
+    employeeName: 'Sarra Trabelsi',
+    employeeMatricule: 'MAT-002',
+    periodStart: '2024-04-01',
+    periodEnd: '2024-04-30',
+    baseSalary: 2800,
+    workDays: 22,
+    workedDays: 22,
+    earnings: [
+      { elementId: 'pe1', name: 'Salaire de Base', amount: 2800, taxable: true },
+      { elementId: 'pe4', name: 'Indemnité Transport', amount: 120, taxable: false }
+    ],
+    deductions: [
+      { elementId: 'pe5', name: 'Cotisation CNSS', amount: 264.6, type: 'social' },
+      { elementId: 'pe6', name: 'IRPP', amount: 210, type: 'tax' }
+    ],
+    grossSalary: 2920,
+    totalDeductions: 474.6,
+    netSalary: 2445.4,
+    status: 'final',
+    pdfUrl: '/bulletins/2024-04/ps2.pdf',
+    generatedDate: '2024-04-30T16:00:00Z'
+  }
+];
+
+// Shifts
+export const mockShifts: Shift[] = [
+  { id: 'sh1', name: 'Matin (08:00-16:00)', startTime: '08:00', endTime: '16:00', breakDuration: 60, isActive: true },
+  { id: 'sh2', name: 'Après-midi (14:00-22:00)', startTime: '14:00', endTime: '22:00', breakDuration: 30, isActive: true },
+  { id: 'sh3', name: 'Nuit (22:00-06:00)', startTime: '22:00', endTime: '06:00', breakDuration: 30, isActive: true },
+  { id: 'sh4', name: 'Journée Continue (09:00-17:00)', startTime: '09:00', endTime: '17:00', breakDuration: 60, isActive: true }
+];
+
+// Shift Assignments
+export const mockShiftAssignments: ShiftAssignment[] = [
+  { id: 'sa1', employeeId: 'e4', shiftId: 'sh1', date: getDate(0), status: 'confirmed' },
+  { id: 'sa2', employeeId: 'e4', shiftId: 'sh1', date: getDate(1), status: 'scheduled' }
+];
+
+// Attendances
+export const mockAttendances: Attendance[] = [
+  { id: 'att1', employeeId: 'e1', employeeName: 'Mohamed Ben Ali', date: getDate(-1), checkIn: '08:05', checkOut: '17:10', breakDuration: 60, totalHours: 8.08, status: 'present' },
+  { id: 'att2', employeeId: 'e2', employeeName: 'Sarra Trabelsi', date: getDate(-1), checkIn: '08:00', checkOut: '17:00', breakDuration: 60, totalHours: 8.0, status: 'present' },
+  { id: 'att3', employeeId: 'e3', employeeName: 'Walid Jlassi', date: getDate(-1), checkIn: '09:30', checkOut: '17:00', breakDuration: 60, totalHours: 6.5, status: 'late' },
+  { id: 'att4', employeeId: 'e4', employeeName: 'Karim Jaziri', date: getDate(-1), status: 'absent' }
+];
+
+// Timesheets
+export const mockTimesheets: Timesheet[] = [
+  {
+    id: 'ts1',
+    employeeId: 'e4',
+    employeeName: 'Karim Jaziri',
+    weekStarting: getDate(-7),
+    weekEnding: getDate(-1),
+    entries: [
+      { date: getDate(-7), regularHours: 8, overtimeHours: 0, projectId: 'proj1', projectName: 'Client Vermeg', task: 'Installation réseau' },
+      { date: getDate(-6), regularHours: 8, overtimeHours: 2, projectId: 'proj1', projectName: 'Client Vermeg', task: 'Configuration serveurs' },
+      { date: getDate(-5), regularHours: 7, overtimeHours: 0, projectId: 'proj2', projectName: 'Maintenance interne', task: 'Mise à jour systèmes' },
+      { date: getDate(-4), regularHours: 8, overtimeHours: 0, projectId: 'proj1', projectName: 'Client Vermeg', task: 'Tests et validation' },
+      { date: getDate(-3), regularHours: 6, overtimeHours: 0, projectId: 'proj2', projectName: 'Maintenance interne', task: 'Support utilisateurs' }
+    ],
+    totalRegular: 37,
+    totalOvertime: 2,
+    status: 'submitted',
+    submittedDate: getDate(-1)
+  }
+];
+
+// Leave Policies
+export const mockLeavePolicies: LeavePolicy[] = [
+  { id: 'lp1', name: 'Congé Annuel', type: 'annual', daysPerYear: 20, maxCarryover: 5, requiresApproval: true, paidLeave: true, description: 'Congé annuel payé selon le code du travail' },
+  { id: 'lp2', name: 'Congé Maladie', type: 'sick', daysPerYear: 15, maxCarryover: 0, requiresApproval: true, paidLeave: true, description: 'Congé maladie avec certificat médical' },
+  { id: 'lp3', name: 'RTT', type: 'rtt', daysPerYear: 12, maxCarryover: 0, requiresApproval: true, paidLeave: true, description: 'Réduction du Temps de Travail' },
+  { id: 'lp4', name: 'Congé Sans Solde', type: 'unpaid', daysPerYear: 0, requiresApproval: true, paidLeave: false, description: 'Congé exceptionnel non payé' },
+  { id: 'lp5', name: 'Télétravail', type: 'remote', daysPerYear: 52, requiresApproval: true, paidLeave: true, description: 'Jour de travail à distance' }
+];
+
+// Performance Review Cycles
+export const mockReviewCycles: ReviewCycle[] = [
+  { id: 'rc1', name: 'Évaluation Annuelle 2023', startDate: '2023-12-01', endDate: '2024-01-31', status: 'closed' },
+  { id: 'rc2', name: 'Évaluation Mi-année 2024', startDate: '2024-06-01', endDate: '2024-07-15', status: 'active' }
+];
+
+// Performance Reviews
+export const mockPerformanceReviews: PerformanceReview[] = [
+  {
+    id: 'rev1',
+    employeeId: 'e4',
+    employeeName: 'Karim Jaziri',
+    cycleId: 'rc1',
+    cycleName: 'Évaluation Annuelle 2023',
+    date: '2024-01-15',
+    reviewerName: 'Mohamed Ben Ali',
+    status: 'completed',
+    score: 4.2,
+    ratings: [
+      { category: 'Compétences Techniques', score: 5, comment: 'Excellente maîtrise technique' },
+      { category: 'Qualité du Travail', score: 4, comment: 'Très bon travail, quelques points à améliorer' },
+      { category: 'Communication', score: 4, comment: 'Bonne communication avec les clients' },
+      { category: 'Ponctualité', score: 4, comment: 'Respect des délais dans la plupart des cas' }
+    ],
+    overallFeedback: 'Karim démontre d\'excellentes compétences techniques et un bon relationnel client. Points d\'amélioration: gestion du temps sur certains projets complexes.',
+    goals: 'Objectifs 2024: Formation certification avancée réseau, mentorat junior techniciens, améliorer documentation interventions'
+  }
+];
+
+// Objectives (OKR)
+export const mockObjectives: Objective[] = [
+  {
+    id: 'obj1',
+    employeeId: 'e4',
+    title: 'Améliorer la satisfaction client sur les interventions',
+    description: 'Augmenter le taux de satisfaction client et réduire les temps d\'intervention',
+    weight: 40,
+    startDate: '2024-01-01',
+    endDate: '2024-06-30',
+    status: 'active',
+    progress: 65,
+    keyResults: [
+      { id: 'kr1', description: 'Obtenir un score NPS supérieur à 8/10', target: 8, current: 7.5, unit: 'score' },
+      { id: 'kr2', description: 'Réduire le temps moyen d\'intervention', target: 90, current: 105, unit: 'minutes' },
+      { id: 'kr3', description: 'Zéro réclamation client', target: 0, current: 1, unit: 'réclamations' }
+    ]
+  },
+  {
+    id: 'obj2',
+    employeeId: 'e2',
+    title: 'Digitaliser les processus RH',
+    description: 'Mettre en place un système de gestion RH digitalisé',
+    weight: 60,
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    status: 'active',
+    progress: 45,
+    keyResults: [
+      { id: 'kr4', description: 'Déployer le module de congés en ligne', target: 100, current: 80, unit: '%' },
+      { id: 'kr5', description: 'Former 100% des employés au nouvel outil', target: 100, current: 60, unit: '%' },
+      { id: 'kr6', description: 'Réduire le temps de traitement des demandes', target: 50, current: 35, unit: '%' }
+    ]
+  }
+];
+
+// Onboarding Checklists
+export const mockOnboardingChecklists: OnboardingChecklist[] = [
+  {
+    id: 'onb1',
+    employeeId: 'e4',
+    employeeName: 'Karim Jaziri',
+    startDate: '2019-03-10',
+    status: 'completed',
+    completionPercentage: 100,
+    tasks: [
+      { id: 'task1', title: 'Préparer poste de travail', description: 'PC, téléphone, accès réseau', assigneeRole: 'it', dueInDays: 0, completed: true, completedDate: '2019-03-10', completedBy: 'IT Team' },
+      { id: 'task2', title: 'Remettre contrat signé', description: 'Contrat de travail + annexes', assigneeRole: 'hr', dueInDays: 0, completed: true, completedDate: '2019-03-10', completedBy: 'Sarra Trabelsi', requiresDocument: true, documentUrl: '/docs/contract-e4.pdf' },
+      { id: 'task3', title: 'Visite médicale d\'embauche', description: 'Certificat médical obligatoire', assigneeRole: 'hr', dueInDays: 7, completed: true, completedDate: '2019-03-15', completedBy: 'Sarra Trabelsi', requiresDocument: true },
+      { id: 'task4', title: 'Formation sécurité', description: 'Formation obligatoire sécurité au travail', assigneeRole: 'manager', dueInDays: 7, completed: true, completedDate: '2019-03-17', completedBy: 'Mohamed Ben Ali' },
+      { id: 'task5', title: 'Présentation équipe', description: 'Tour des bureaux et présentation collègues', assigneeRole: 'manager', dueInDays: 1, completed: true, completedDate: '2019-03-11', completedBy: 'Mohamed Ben Ali' }
+    ],
+    notes: 'Onboarding complété avec succès. Nouvelle recrue opérationnelle rapidement.'
+  }
+];
+
+// Offboarding Checklists
+export const mockOffboardingChecklists: OffboardingChecklist[] = [];
+
+// Audit Logs
+export const mockAuditLogs: AuditLog[] = [
+  {
+    id: 'log1',
+    timestamp: '2024-04-30T16:00:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'create',
+    resource: 'payroll_run',
+    resourceId: 'pr1',
+    after: { reference: 'PAY-2024-04', status: 'closed' },
+    notes: 'Clôture de la paie du mois d\'avril'
+  },
+  {
+    id: 'log2',
+    timestamp: '2024-05-10T14:30:00Z',
+    actorId: 'e1',
+    actorName: 'Mohamed Ben Ali',
+    action: 'approve',
+    resource: 'leave_request',
+    resourceId: 'l1',
+    before: { status: 'pending' },
+    after: { status: 'approved' },
+    notes: 'Validation congé Sarra Trabelsi'
+  },
+  {
+    id: 'log3',
+    timestamp: '2024-05-15T09:15:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'update',
+    resource: 'employee',
+    resourceId: 'e4',
+    before: { salary: 2000 },
+    after: { salary: 2200 },
+    notes: 'Augmentation salariale suite à évaluation annuelle'
+  },
+  {
+    id: 'log4',
+    timestamp: '2024-05-20T11:00:00Z',
+    actorId: 'e2',
+    actorName: 'Sarra Trabelsi',
+    action: 'view_sensitive',
+    resource: 'payslip',
+    resourceId: 'ps1',
+    notes: 'Consultation bulletin de paie pour vérification'
+  }
+];
+
+// HR Settings
+export const mockHRSettings: HRSettings = {
+  id: 'hr-settings-1',
+  // Leave Policies
+  leaveYearStart: '01-01',
+  carryoverAllowed: true,
+  maxCarryoverDays: 5,
+  // Payroll
+  payrollFrequency: 'monthly',
+  payrollCutoffDay: 25,
+  paymentDay: 1,
+  defaultWorkingDaysPerWeek: 5,
+  overtimeRateMultiplier: 1.5,
+  // Working Hours
+  standardWorkingHoursPerDay: 8,
+  standardWorkingHoursPerWeek: 40,
+  weekendDays: ['saturday', 'sunday'],
+  // Compliance
+  dataRetentionYears: 10,
+  anonymizeOnExit: true,
+  requireTwoFactorForSalaryAccess: false,
+  // Notifications
+  alertDocumentExpiryDays: 30,
+  alertTrialPeriodEndDays: 15,
+  alertContractEndDays: 60
+};
