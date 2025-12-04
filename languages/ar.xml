@@ -372,4 +372,88 @@
     <string name="client_fields">حقول العملاء</string>
     <string name="supplier_fields">حقول الموردين</string>
     <string name="no_custom_fields">لا توجد حقول مخصصة.</string>
+
+    <!-- Project Management -->
+    <string name="project_management">إدارة المشاريع</string>
+    <string name="project_dashboard">لوحة القيادة</string>
+    <string name="projects_list">المشاريع</string>
+    <string name="tasks">المهام</string>
+    <string name="time_tracking">تتبع الوقت</string>
+    <string name="budget_costs">الميزانية والتكاليف</string>
+
+    <!-- Prospects -->
+    <string name="prospects">العملاء المحتملون</string>
+    <string name="prospect_management">إدارة العملاء المحتملين</string>
+    <string name="new_prospect">عميل محتمل جديد</string>
+    <string name="edit_prospect">تعديل العميل المحتمل</string>
+    <string name="prospect_details">تفاصيل العميل المحتمل</string>
+    <string name="search_prospects">البحث في العملاء المحتملين...</string>
+    <string name="no_prospects">لا يوجد عملاء محتملون.</string>
+    <string name="total_prospects">إجمالي العملاء المحتملين</string>
+    <string name="new_prospects">جدد</string>
+    <string name="qualified_prospects">مؤهلون</string>
+    <string name="pipeline_value">قيمة خط الأنابيب</string>
+    <string name="company">الشركة</string>
+    <string name="contact">جهة الاتصال</string>
+    <string name="source">المصدر</string>
+    <string name="priority">الأولوية</string>
+    <string name="estimated_value">القيمة المقدرة</string>
+    <string name="probability">الاحتمالية</string>
+    <string name="next_follow_up">المتابعة القادمة</string>
+    <string name="assigned_to">مسند إلى</string>
+    <string name="industry">الصناعة</string>
+    <string name="website">الموقع الإلكتروني</string>
+    <string name="convert_to_client">تحويل إلى عميل</string>
+    <string name="convert_confirm">هل تريد تحويل هذا العميل المحتمل إلى عميل؟</string>
+    <string name="client_created">تم إنشاء العميل بنجاح!</string>
+    <string name="delete_prospect">حذف العميل المحتمل؟</string>
+
+    <!-- Prospect Status -->
+    <string name="status_new">جديد</string>
+    <string name="status_contacted">تم التواصل</string>
+    <string name="status_qualified">مؤهل</string>
+    <string name="status_proposal">عرض</string>
+    <string name="status_negotiation">مفاوضة</string>
+    <string name="status_won">فاز</string>
+    <string name="status_lost">خسر</string>
+    <string name="all_statuses">كل الحالات</string>
+
+    <!-- Prospect Priority -->
+    <string name="priority_low">منخفضة</string>
+    <string name="priority_medium">متوسطة</string>
+    <string name="priority_high">عالية</string>
+    <string name="priority_hot">ساخن</string>
+
+    <!-- Prospect Sources -->
+    <string name="source_website">الموقع الإلكتروني</string>
+    <string name="source_referral">إحالة</string>
+    <string name="source_social_media">وسائل التواصل الاجتماعي</string>
+    <string name="source_cold_call">مكالمة باردة</string>
+    <string name="source_trade_show">معرض تجاري</string>
+    <string name="source_advertising">إعلان</string>
+    <string name="source_other">أخرى</string>
+
+    <!-- Interactions -->
+    <string name="interactions">التفاعلات</string>
+    <string name="interaction_history">سجل التفاعلات</string>
+    <string name="new_interaction">تفاعل جديد</string>
+    <string name="add_interaction">إضافة تفاعل</string>
+    <string name="no_interactions">لا توجد تفاعلات مسجلة.</string>
+    <string name="interaction_type">النوع</string>
+    <string name="interaction_call">مكالمة</string>
+    <string name="interaction_email">بريد إلكتروني</string>
+    <string name="interaction_meeting">اجتماع</string>
+    <string name="interaction_note">ملاحظة</string>
+    <string name="summary">ملخص</string>
+    <string name="outcome">النتيجة</string>
+    <string name="next_action">الإجراء التالي</string>
+    <string name="contact_info">معلومات الاتصال</string>
+    <string name="opportunity">الفرصة</string>
+    <string name="not_assigned">غير مسند</string>
+    <string name="close">إغلاق</string>
+    <string name="create">إنشاء</string>
+    <string name="required_fields">يرجى ملء الحقول المطلوبة</string>
+    <string name="phone">الهاتف</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="tax_id">الرقم الضريبي</string>
 </resources>

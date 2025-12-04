@@ -380,4 +380,80 @@
     <string name="tasks">Tasks</string>
     <string name="time_tracking">Time Tracking</string>
     <string name="budget_costs">Budget &amp; Costs</string>
+
+    <!-- Prospects -->
+    <string name="prospects">Prospects</string>
+    <string name="prospect_management">Prospect Management</string>
+    <string name="new_prospect">New Prospect</string>
+    <string name="edit_prospect">Edit Prospect</string>
+    <string name="prospect_details">Prospect Details</string>
+    <string name="search_prospects">Search prospects...</string>
+    <string name="no_prospects">No prospects found.</string>
+    <string name="total_prospects">Total Prospects</string>
+    <string name="new_prospects">New</string>
+    <string name="qualified_prospects">Qualified</string>
+    <string name="pipeline_value">Pipeline Value</string>
+    <string name="company">Company</string>
+    <string name="contact">Contact</string>
+    <string name="source">Source</string>
+    <string name="priority">Priority</string>
+    <string name="estimated_value">Estimated Value</string>
+    <string name="probability">Probability</string>
+    <string name="next_follow_up">Next Follow-up</string>
+    <string name="assigned_to">Assigned To</string>
+    <string name="industry">Industry</string>
+    <string name="website">Website</string>
+    <string name="convert_to_client">Convert to Client</string>
+    <string name="convert_confirm">Convert this prospect to a client?</string>
+    <string name="client_created">Client created successfully!</string>
+    <string name="delete_prospect">Delete Prospect?</string>
+
+    <!-- Prospect Status -->
+    <string name="status_new">New</string>
+    <string name="status_contacted">Contacted</string>
+    <string name="status_qualified">Qualified</string>
+    <string name="status_proposal">Proposal</string>
+    <string name="status_negotiation">Negotiation</string>
+    <string name="status_won">Won</string>
+    <string name="status_lost">Lost</string>
+    <string name="all_statuses">All Statuses</string>
+
+    <!-- Prospect Priority -->
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+    <string name="priority_hot">Hot</string>
+
+    <!-- Prospect Sources -->
+    <string name="source_website">Website</string>
+    <string name="source_referral">Referral</string>
+    <string name="source_social_media">Social Media</string>
+    <string name="source_cold_call">Cold Call</string>
+    <string name="source_trade_show">Trade Show</string>
+    <string name="source_advertising">Advertising</string>
+    <string name="source_other">Other</string>
+
+    <!-- Interactions -->
+    <string name="interactions">Interactions</string>
+    <string name="interaction_history">Interaction History</string>
+    <string name="new_interaction">New Interaction</string>
+    <string name="add_interaction">Add Interaction</string>
+    <string name="no_interactions">No interactions recorded.</string>
+    <string name="interaction_type">Type</string>
+    <string name="interaction_call">Call</string>
+    <string name="interaction_email">Email</string>
+    <string name="interaction_meeting">Meeting</string>
+    <string name="interaction_note">Note</string>
+    <string name="summary">Summary</string>
+    <string name="outcome">Outcome</string>
+    <string name="next_action">Next Action</string>
+    <string name="contact_info">Contact Information</string>
+    <string name="opportunity">Opportunity</string>
+    <string name="not_assigned">Not Assigned</string>
+    <string name="close">Close</string>
+    <string name="create">Create</string>
+    <string name="required_fields">Please fill in required fields</string>
+    <string name="phone">Phone</string>
+    <string name="email">Email</string>
+    <string name="tax_id">Tax ID</string>
 </resources>
