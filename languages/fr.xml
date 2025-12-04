@@ -456,4 +456,39 @@
     <string name="phone">Téléphone</string>
     <string name="email">Email</string>
     <string name="tax_id">N° Fiscal</string>
+
+    <!-- Gestion des Contacts -->
+    <string name="contacts">Contacts</string>
+    <string name="manage_contacts">Gérer les Contacts</string>
+    <string name="add_contact">Ajouter un Contact</string>
+    <string name="edit_contact">Modifier le Contact</string>
+    <string name="delete_contact">Supprimer le Contact</string>
+    <string name="delete_contact_confirm">Êtes-vous sûr de vouloir supprimer ce contact ?</string>
+    <string name="no_contacts">Aucun contact ajouté</string>
+    <string name="add_contact_hint">Ajoutez des contacts pour gérer plusieurs personnes pour ce client</string>
+    <string name="contact_person">Personne de Contact</string>
+    <string name="first_name">Prénom</string>
+    <string name="last_name">Nom</string>
+    <string name="mobile">Mobile</string>
+    <string name="job_title">Fonction</string>
+    <string name="department">Département</string>
+    <string name="role">Rôle</string>
+    <string name="notes">Notes</string>
+    <string name="primary">Principal</string>
+    <string name="set_as_primary">Définir comme Principal</string>
+    <string name="set_as_primary_contact">Définir comme contact principal</string>
+    <string name="info">Informations</string>
+
+    <!-- Rôles des Contacts -->
+    <string name="role_decision_maker">Décideur</string>
+    <string name="role_technical">Technique</string>
+    <string name="role_purchasing">Achats</string>
+    <string name="role_accounting">Comptabilité</string>
+    <string name="role_operations">Opérations</string>
+    <string name="role_other">Autre</string>
+
+    <!-- Responsable Commercial -->
+    <string name="sales_rep">Responsable Commercial</string>
+    <string name="assign_sales_rep">Assigner un Responsable Commercial</string>
+    <string name="no_employees">Aucun employé actif trouvé</string>
 </resources>

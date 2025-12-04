@@ -456,4 +456,39 @@
     <string name="phone">الهاتف</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="tax_id">الرقم الضريبي</string>
+
+    <!-- إدارة جهات الاتصال -->
+    <string name="contacts">جهات الاتصال</string>
+    <string name="manage_contacts">إدارة جهات الاتصال</string>
+    <string name="add_contact">إضافة جهة اتصال</string>
+    <string name="edit_contact">تعديل جهة الاتصال</string>
+    <string name="delete_contact">حذف جهة الاتصال</string>
+    <string name="delete_contact_confirm">هل أنت متأكد من حذف جهة الاتصال هذه؟</string>
+    <string name="no_contacts">لم تتم إضافة جهات اتصال بعد</string>
+    <string name="add_contact_hint">أضف جهات اتصال لإدارة عدة أشخاص لهذا العميل</string>
+    <string name="contact_person">شخص الاتصال</string>
+    <string name="first_name">الاسم الأول</string>
+    <string name="last_name">اسم العائلة</string>
+    <string name="mobile">الجوال</string>
+    <string name="job_title">المسمى الوظيفي</string>
+    <string name="department">القسم</string>
+    <string name="role">الدور</string>
+    <string name="notes">ملاحظات</string>
+    <string name="primary">رئيسي</string>
+    <string name="set_as_primary">تعيين كرئيسي</string>
+    <string name="set_as_primary_contact">تعيين كجهة اتصال رئيسية</string>
+    <string name="info">معلومات</string>
+
+    <!-- أدوار جهات الاتصال -->
+    <string name="role_decision_maker">صانع القرار</string>
+    <string name="role_technical">تقني</string>
+    <string name="role_purchasing">المشتريات</string>
+    <string name="role_accounting">المحاسبة</string>
+    <string name="role_operations">العمليات</string>
+    <string name="role_other">أخرى</string>
+
+    <!-- مندوب المبيعات -->
+    <string name="sales_rep">مندوب المبيعات</string>
+    <string name="assign_sales_rep">تعيين مندوب مبيعات</string>
+    <string name="no_employees">لا يوجد موظفون نشطون</string>
 </resources>

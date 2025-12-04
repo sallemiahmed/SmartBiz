@@ -7,11 +7,29 @@ export type AppView =
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
   | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses' | 'hr-performance' | 'hr-attendance' | 'hr-settings'
   | 'projects' | 'projects-dashboard' | 'projects-list' | 'projects-tasks' | 'projects-timesheet' | 'projects-budget' | 'projects-reports'
+  | 'crm-pipeline' | 'crm-opportunities' | 'crm-revenue'
   | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
   | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
   | 'services-jobs-create'
   | 'settings-general' | 'settings-profile' | 'settings-security' | 'settings-billing' | 'settings-notifications';
+
+export interface ClientContact {
+  id: string;
+  clientId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  mobile?: string;
+  role: 'decision_maker' | 'technical' | 'purchasing' | 'accounting' | 'operations' | 'other';
+  jobTitle?: string;
+  department?: string;
+  isPrimary: boolean; // Primary contact for this client
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 export interface Client {
   id: string;
@@ -26,6 +44,10 @@ export interface Client {
   taxId?: string;
   customFields?: Record<string, any>;
   zone?: string; // Geographic zone
+  // Contact management
+  contacts?: ClientContact[];
+  salesRepId?: string; // Assigned sales representative (Employee ID)
+  salesRepName?: string;
 }
 
 export interface Prospect {
@@ -65,6 +87,75 @@ export interface ProspectInteraction {
   outcome?: string;
   nextAction?: string;
   createdBy: string;
+}
+
+// ========== CRM / Pipeline Commercial ==========
+
+export type OpportunityStage = 'new' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+
+export interface Opportunity {
+  id: string;
+  title: string;
+  // Linked to client OR prospect (one must be set)
+  clientId?: string;
+  clientName?: string;
+  prospectId?: string;
+  prospectName?: string;
+  // Financial
+  amount: number;
+  probability: number; // 0-100
+  weightedAmount?: number; // amount * probability / 100
+  currency: string;
+  // Pipeline
+  stage: OpportunityStage;
+  expectedCloseDate: string;
+  actualCloseDate?: string;
+  // Assignment
+  salesRepId: string;
+  salesRepName: string;
+  // Follow-up
+  nextAction?: string;
+  nextActionDate?: string;
+  // Metadata
+  source?: string;
+  lostReason?: string;
+  wonReason?: string;
+  notes?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ClientInteraction {
+  id: string;
+  clientId: string;
+  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'demo';
+  date: string;
+  subject: string;
+  description?: string;
+  outcome?: string;
+  nextAction?: string;
+  nextActionDate?: string;
+  // Who performed the interaction
+  performedById: string;
+  performedByName: string;
+  // Duration in minutes (for calls/meetings)
+  duration?: number;
+  // Related opportunity if any
+  opportunityId?: string;
+  createdAt: string;
+}
+
+// Client transaction history item (computed from invoices/orders)
+export interface ClientTransaction {
+  id: string;
+  clientId: string;
+  type: 'estimate' | 'order' | 'delivery' | 'invoice' | 'payment' | 'return';
+  documentNumber: string;
+  date: string;
+  amount: number;
+  status: string;
+  linkedDocumentId?: string;
 }
 
 export interface Supplier {

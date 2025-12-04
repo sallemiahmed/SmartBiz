@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import {
-  Client, Prospect, ProspectInteraction, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
+  Client, ClientContact, ClientInteraction, Prospect, ProspectInteraction, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
   StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
@@ -11,7 +11,8 @@ import {
   Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle,
   PayrollRun, Payslip, PayrollElement, Shift, ShiftAssignment,
   OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings,
-  Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMilestone
+  Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMilestone,
+  Opportunity
 } from '../types';
 // import { db, seedDatabase } from '../services/db'; // DISABLED - using mock data only
 import { loadTranslations } from '../services/translations';
@@ -25,7 +26,8 @@ import {
   mockShifts, mockShiftAssignments, mockAttendances, mockTimesheets, mockLeavePolicies,
   mockPerformanceReviews, mockReviewCycles, mockObjectives, mockOnboardingChecklists,
   mockOffboardingChecklists, mockAuditLogs, mockHRSettings,
-  mockProjects, mockProjectTasks, mockProjectTimeEntries, mockProjectExpenses, mockProjectMilestones
+  mockProjects, mockProjectTasks, mockProjectTimeEntries, mockProjectExpenses, mockProjectMilestones,
+  mockProspects, mockOpportunities, mockClientInteractions
 } from '../services/mockData';
 
 interface AppContextType {
@@ -33,6 +35,11 @@ interface AppContextType {
   addClient: (client: Client) => void;
   updateClient: (client: Client) => void;
   deleteClient: (id: string) => void;
+  addClientContact: (clientId: string, contact: ClientContact) => void;
+  updateClientContact: (clientId: string, contact: ClientContact) => void;
+  deleteClientContact: (clientId: string, contactId: string) => void;
+  setClientPrimaryContact: (clientId: string, contactId: string) => void;
+  assignSalesRep: (clientId: string, employeeId: string, employeeName: string) => void;
 
   prospects: Prospect[];
   addProspect: (prospect: Prospect) => void;
@@ -40,6 +47,21 @@ interface AppContextType {
   deleteProspect: (id: string) => void;
   convertProspectToClient: (prospectId: string) => Client | null;
   addProspectInteraction: (prospectId: string, interaction: ProspectInteraction) => void;
+
+  // CRM Opportunities & Interactions
+  opportunities: Opportunity[];
+  addOpportunity: (opportunity: Opportunity) => void;
+  updateOpportunity: (opportunity: Opportunity) => void;
+  deleteOpportunity: (id: string) => void;
+  updateOpportunityStage: (id: string, stage: Opportunity['stage'], reason?: string) => void;
+
+  clientInteractions: ClientInteraction[];
+  addClientInteraction: (interaction: ClientInteraction) => void;
+  updateClientInteraction: (interaction: ClientInteraction) => void;
+  deleteClientInteraction: (id: string) => void;
+  getClientInteractions: (clientId: string) => ClientInteraction[];
+  getClientOpportunities: (clientId: string) => Opportunity[];
+  getProspectOpportunities: (prospectId: string) => Opportunity[];
 
   suppliers: Supplier[];
   addSupplier: (supplier: Supplier) => void;
@@ -299,6 +321,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // State initialization
   const [clients, setClients] = useState<Client[]>([]);
   const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [crmClientInteractions, setCrmClientInteractions] = useState<ClientInteraction[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -359,6 +383,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       // Load mock data directly into state
       setClients(mockClients);
+      setProspects(mockProspects);
+      setOpportunities(mockOpportunities);
+      setCrmClientInteractions(mockClientInteractions);
       setSuppliers(mockSuppliers);
       setProducts(mockInventory);
       setInvoices(mockInvoices);
@@ -445,6 +472,80 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setClients(prev => prev.filter(c => c.id !== id));
   };
 
+  // Client Contact Management
+  const addClientContact = (clientId: string, contact: ClientContact) => {
+      setClients(prev => prev.map(c => {
+          if (c.id === clientId) {
+              const contacts = c.contacts || [];
+              // If this is the first contact or marked as primary, ensure it's the only primary
+              const newContact = {
+                  ...contact,
+                  isPrimary: contacts.length === 0 ? true : contact.isPrimary
+              };
+              // If new contact is primary, remove primary from others
+              const updatedContacts = newContact.isPrimary
+                  ? contacts.map(ct => ({ ...ct, isPrimary: false }))
+                  : contacts;
+              return { ...c, contacts: [...updatedContacts, newContact] };
+          }
+          return c;
+      }));
+  };
+
+  const updateClientContact = (clientId: string, contact: ClientContact) => {
+      setClients(prev => prev.map(c => {
+          if (c.id === clientId && c.contacts) {
+              let updatedContacts = c.contacts.map(ct =>
+                  ct.id === contact.id ? { ...contact, updatedAt: new Date().toISOString() } : ct
+              );
+              // If updated contact is primary, remove primary from others
+              if (contact.isPrimary) {
+                  updatedContacts = updatedContacts.map(ct =>
+                      ct.id !== contact.id ? { ...ct, isPrimary: false } : ct
+                  );
+              }
+              return { ...c, contacts: updatedContacts };
+          }
+          return c;
+      }));
+  };
+
+  const deleteClientContact = (clientId: string, contactId: string) => {
+      setClients(prev => prev.map(c => {
+          if (c.id === clientId && c.contacts) {
+              const deletedContact = c.contacts.find(ct => ct.id === contactId);
+              let updatedContacts = c.contacts.filter(ct => ct.id !== contactId);
+              // If deleted contact was primary, make the first remaining contact primary
+              if (deletedContact?.isPrimary && updatedContacts.length > 0) {
+                  updatedContacts[0] = { ...updatedContacts[0], isPrimary: true };
+              }
+              return { ...c, contacts: updatedContacts };
+          }
+          return c;
+      }));
+  };
+
+  const setClientPrimaryContact = (clientId: string, contactId: string) => {
+      setClients(prev => prev.map(c => {
+          if (c.id === clientId && c.contacts) {
+              const updatedContacts = c.contacts.map(ct => ({
+                  ...ct,
+                  isPrimary: ct.id === contactId
+              }));
+              return { ...c, contacts: updatedContacts };
+          }
+          return c;
+      }));
+  };
+
+  const assignSalesRep = (clientId: string, employeeId: string, employeeName: string) => {
+      setClients(prev => prev.map(c =>
+          c.id === clientId
+              ? { ...c, salesRepId: employeeId, salesRepName: employeeName }
+              : c
+      ));
+  };
+
   // Prospect Management
   const addProspect = async (prospect: Prospect) => {
       setProspects(prev => [prospect, ...prev]);
@@ -494,6 +595,67 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           }
           return p;
       }));
+  };
+
+  // Opportunity Management
+  const addOpportunity = (opportunity: Opportunity) => {
+      const weightedAmount = (opportunity.amount * opportunity.probability) / 100;
+      setOpportunities(prev => [{ ...opportunity, weightedAmount, createdAt: new Date().toISOString() }, ...prev]);
+  };
+  const updateOpportunity = (opportunity: Opportunity) => {
+      const weightedAmount = (opportunity.amount * opportunity.probability) / 100;
+      setOpportunities(prev => prev.map(o => o.id === opportunity.id
+          ? { ...opportunity, weightedAmount, updatedAt: new Date().toISOString() }
+          : o
+      ));
+  };
+  const deleteOpportunity = (id: string) => {
+      setOpportunities(prev => prev.filter(o => o.id !== id));
+  };
+  const updateOpportunityStage = (id: string, stage: Opportunity['stage'], reason?: string) => {
+      setOpportunities(prev => prev.map(o => {
+          if (o.id === id) {
+              const updates: Partial<Opportunity> = {
+                  stage,
+                  updatedAt: new Date().toISOString()
+              };
+              if (stage === 'won') {
+                  updates.probability = 100;
+                  updates.weightedAmount = o.amount;
+                  updates.actualCloseDate = new Date().toISOString().split('T')[0];
+                  if (reason) updates.wonReason = reason;
+              } else if (stage === 'lost') {
+                  updates.probability = 0;
+                  updates.weightedAmount = 0;
+                  updates.actualCloseDate = new Date().toISOString().split('T')[0];
+                  if (reason) updates.lostReason = reason;
+              }
+              return { ...o, ...updates };
+          }
+          return o;
+      }));
+  };
+  const getClientOpportunities = (clientId: string): Opportunity[] => {
+      return opportunities.filter(o => o.clientId === clientId);
+  };
+  const getProspectOpportunities = (prospectId: string): Opportunity[] => {
+      return opportunities.filter(o => o.prospectId === prospectId);
+  };
+
+  // Client Interaction Management (CRM)
+  const addClientInteraction = (interaction: ClientInteraction) => {
+      setCrmClientInteractions(prev => [{ ...interaction, createdAt: new Date().toISOString() }, ...prev]);
+  };
+  const updateClientInteraction = (interaction: ClientInteraction) => {
+      setCrmClientInteractions(prev => prev.map(i => i.id === interaction.id ? interaction : i));
+  };
+  const deleteClientInteraction = (id: string) => {
+      setCrmClientInteractions(prev => prev.filter(i => i.id !== id));
+  };
+  const getClientInteractions = (clientId: string): ClientInteraction[] => {
+      return crmClientInteractions.filter(i => i.clientId === clientId).sort((a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
   };
 
   const addSupplier = async (supplier: Supplier) => {
@@ -1151,8 +1313,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [invoices, purchases]);
 
   const value = {
-    clients, addClient, updateClient, deleteClient,
+    clients, addClient, updateClient, deleteClient, addClientContact, updateClientContact, deleteClientContact, setClientPrimaryContact, assignSalesRep,
     prospects, addProspect, updateProspect, deleteProspect, convertProspectToClient, addProspectInteraction,
+    // CRM Opportunities & Interactions
+    opportunities, addOpportunity, updateOpportunity, deleteOpportunity, updateOpportunityStage,
+    clientInteractions: crmClientInteractions, addClientInteraction, updateClientInteraction, deleteClientInteraction, getClientInteractions, getClientOpportunities, getProspectOpportunities,
     suppliers, addSupplier, updateSupplier, deleteSupplier,
     products, addProduct, addProducts, updateProduct, deleteProduct,
     invoices, createSalesDocument, updateInvoice, deleteInvoice, recordDocPayment,
