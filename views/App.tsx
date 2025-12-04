@@ -238,6 +238,12 @@ function AppContent() {
       return <HRDashboard />;
     }
 
+    // Project Management views
+    if (currentView.startsWith('projects')) {
+      console.log('  🎯 Matched projects view:', currentView);
+      return <ProjectManagement />;
+    }
+
     switch (currentView) {
       case 'dashboard':
         return <Dashboard />;
