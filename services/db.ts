@@ -6,7 +6,7 @@ import {
   Technician, ServiceItem, ServiceJob, ServiceSale, InventorySession,
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
   Employee, Contract, Payroll, LeaveRequest, ExpenseReport, MaintenanceContract,
-  ContactInteraction, AppSettings, Department, Position, Attendance, Timesheet,
+  ContactInteraction, MaintenanceIntervention, AppSettings, Department, Position, Attendance, Timesheet,
   LeavePolicy, PerformanceReview, ReviewCycle
 } from '../types';
 import {
@@ -47,6 +47,7 @@ export class SmartBizDatabase extends Dexie {
   serviceSales!: Table<ServiceSale>;
   maintenanceContracts!: Table<MaintenanceContract>;
   contactInteractions!: Table<ContactInteraction>;
+  maintenanceInterventions!: Table<MaintenanceIntervention>;
 
   // Fleet
   vehicles!: Table<Vehicle>;
@@ -95,6 +96,7 @@ export class SmartBizDatabase extends Dexie {
       serviceSales: 'id, reference, clientId, date',
       maintenanceContracts: 'id, clientId, status, endDate',
       contactInteractions: 'id, clientId, date',
+      maintenanceInterventions: 'id, contractId, clientId, status, scheduledDate, technicianId',
       vehicles: 'id, plate, status',
       fleetMissions: 'id, vehicleId, status, startDate',
       fleetMaintenances: 'id, vehicleId, date',

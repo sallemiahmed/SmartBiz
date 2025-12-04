@@ -7,7 +7,7 @@ import {
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
   Employee, Contract, Payroll, LeaveRequest, ExpenseReport,
-  MaintenanceContract, ContactInteraction, Department, Position,
+  MaintenanceContract, ContactInteraction, MaintenanceIntervention, Department, Position,
   Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle,
   PayrollRun, Payslip, PayrollElement, Shift, ShiftAssignment,
   OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings
@@ -113,6 +113,11 @@ interface AppContextType {
   
   contactInteractions: ContactInteraction[];
   addContactInteraction: (interaction: ContactInteraction) => void;
+
+  maintenanceInterventions: MaintenanceIntervention[];
+  addMaintenanceIntervention: (intervention: MaintenanceIntervention) => void;
+  updateMaintenanceIntervention: (intervention: MaintenanceIntervention) => void;
+  deleteMaintenanceIntervention: (id: string) => void;
 
   // Fleet Management
   vehicles: Vehicle[];
@@ -276,7 +281,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [serviceSales, setServiceSales] = useState<ServiceSale[]>([]);
   const [maintenanceContracts, setMaintenanceContracts] = useState<MaintenanceContract[]>([]);
   const [contactInteractions, setContactInteractions] = useState<ContactInteraction[]>([]);
-  
+  const [maintenanceInterventions, setMaintenanceInterventions] = useState<MaintenanceIntervention[]>([]);
+
   // Fleet
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [fleetMissions, setFleetMissions] = useState<FleetMission[]>([]);
@@ -927,6 +933,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setContactInteractions(prev => [interaction, ...prev]);
   };
 
+  // Maintenance Interventions
+  const addMaintenanceIntervention = async (intervention: MaintenanceIntervention) => {
+      // await db.maintenanceInterventions.add(intervention);
+      setMaintenanceInterventions(prev => [intervention, ...prev]);
+  };
+  const updateMaintenanceIntervention = async (intervention: MaintenanceIntervention) => {
+      // await db.maintenanceInterventions.put(intervention);
+      setMaintenanceInterventions(prev => prev.map(i => i.id === intervention.id ? intervention : i));
+  };
+  const deleteMaintenanceIntervention = async (id: string) => {
+      // await db.maintenanceInterventions.delete(id);
+      setMaintenanceInterventions(prev => prev.filter(i => i.id !== id));
+  };
+
   const stats = useMemo(() => {
     const revenue = invoices.filter(inv => inv.type === 'invoice' && inv.status !== 'draft').reduce((acc, inv) => acc + inv.amount, 0);
     const expenses = purchases.filter(pur => pur.type === 'invoice').reduce((acc, pur) => acc + pur.amount, 0);
@@ -973,6 +993,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     serviceSales, addServiceSale, deleteServiceSale,
     maintenanceContracts, addMaintenanceContract, updateMaintenanceContract, deleteMaintenanceContract,
     contactInteractions, addContactInteraction,
+    maintenanceInterventions, addMaintenanceIntervention, updateMaintenanceIntervention, deleteMaintenanceIntervention,
     vehicles, addVehicle, updateVehicle, deleteVehicle,
     fleetMissions, addFleetMission, updateFleetMission, deleteFleetMission,
     fleetMaintenances, addFleetMaintenance, deleteFleetMaintenance,
