@@ -286,6 +286,33 @@ export interface ContactInteraction {
   contactPerson?: string;
 }
 
+export interface MaintenanceIntervention {
+  id: string;
+  contractId: string;
+  clientId: string;
+  clientName: string;
+  contactPerson?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  title: string;
+  description: string;
+  type: 'preventive' | 'corrective' | 'inspection' | 'emergency';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  scheduledDate: string;
+  scheduledTime?: string;
+  completedDate?: string;
+  technicianId?: string;
+  technicianName?: string;
+  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
+  duration?: number; // in minutes
+  notes?: string;
+  resolutionNotes?: string;
+  partsUsed?: { productId: string; name: string; quantity: number; cost: number }[];
+  laborCost?: number;
+  totalCost?: number;
+  rating?: number; // 1-5 customer satisfaction
+}
+
 export interface InventoryItem {
   productId: string;
   productName: string;

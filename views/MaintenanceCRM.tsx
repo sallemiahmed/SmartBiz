@@ -5,13 +5,436 @@ import {
   Wrench, FileText, AlertTriangle, MessageSquare, History, X, Check, Send, DollarSign, ChevronRight
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Client, MaintenanceContract, ServiceJob, ContactInteraction } from '../types';
+import { Client, MaintenanceContract, ContactInteraction, MaintenanceIntervention, Technician } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
 
+// Interventions Tab Component
+interface InterventionsTabProps {
+  client: Client;
+  contracts: MaintenanceContract[];
+  interventions: MaintenanceIntervention[];
+  technicians: { id: string; name: string; status: string }[];
+  onAddIntervention: (intervention: MaintenanceIntervention) => void;
+  onUpdateIntervention: (intervention: MaintenanceIntervention) => void;
+}
+
+const InterventionsTab: React.FC<InterventionsTabProps> = ({
+  client, contracts, interventions, technicians, onAddIntervention, onUpdateIntervention
+}) => {
+  const [showForm, setShowForm] = useState(false);
+  const [editingIntervention, setEditingIntervention] = useState<MaintenanceIntervention | null>(null);
+  const [formData, setFormData] = useState<Partial<MaintenanceIntervention>>({
+    type: 'preventive',
+    priority: 'medium',
+    status: 'planned',
+    scheduledDate: new Date().toISOString().split('T')[0],
+    scheduledTime: '09:00'
+  });
+
+  const resetForm = () => {
+    setFormData({
+      type: 'preventive',
+      priority: 'medium',
+      status: 'planned',
+      scheduledDate: new Date().toISOString().split('T')[0],
+      scheduledTime: '09:00'
+    });
+    setEditingIntervention(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (intervention: MaintenanceIntervention) => {
+    setEditingIntervention(intervention);
+    setFormData(intervention);
+    setShowForm(true);
+  };
+
+  const handleSubmit = () => {
+    if (!formData.title || !formData.contractId || !formData.scheduledDate) {
+      alert('Veuillez remplir les champs obligatoires (Titre, Contrat, Date)');
+      return;
+    }
+
+    const selectedTech = technicians.find(t => t.id === formData.technicianId);
+    const interventionData: MaintenanceIntervention = {
+      id: editingIntervention?.id || `mi-${Date.now()}`,
+      contractId: formData.contractId!,
+      clientId: client.id,
+      clientName: client.company,
+      contactPerson: formData.contactPerson || client.name,
+      contactPhone: formData.contactPhone || client.phone,
+      contactEmail: formData.contactEmail || client.email,
+      title: formData.title!,
+      description: formData.description || '',
+      type: formData.type as MaintenanceIntervention['type'],
+      priority: formData.priority as MaintenanceIntervention['priority'],
+      scheduledDate: formData.scheduledDate!,
+      scheduledTime: formData.scheduledTime,
+      technicianId: formData.technicianId,
+      technicianName: selectedTech?.name,
+      status: formData.status as MaintenanceIntervention['status'],
+      notes: formData.notes
+    };
+
+    if (editingIntervention) {
+      onUpdateIntervention(interventionData);
+    } else {
+      onAddIntervention(interventionData);
+    }
+    resetForm();
+  };
+
+  const handleStatusChange = (intervention: MaintenanceIntervention, newStatus: MaintenanceIntervention['status']) => {
+    const updated = {
+      ...intervention,
+      status: newStatus,
+      ...(newStatus === 'completed' ? { completedDate: new Date().toISOString().split('T')[0] } : {})
+    };
+    onUpdateIntervention(updated);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'planned': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'in_progress': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'cancelled': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'bg-red-500 text-white';
+      case 'high': return 'bg-orange-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-gray-400 text-white';
+      default: return 'bg-gray-400 text-white';
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'preventive': return <ShieldCheck className="w-4 h-4 text-green-500" />;
+      case 'corrective': return <Wrench className="w-4 h-4 text-orange-500" />;
+      case 'inspection': return <Search className="w-4 h-4 text-blue-500" />;
+      case 'emergency': return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      default: return <Wrench className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header with Add Button */}
+      <div className="flex justify-between items-center">
+        <h4 className="font-bold text-lg dark:text-white">Interventions de Maintenance</h4>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Nouvelle Intervention
+        </button>
+      </div>
+
+      {/* Form */}
+      {showForm && (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800 animate-in slide-in-from-top-2">
+          <h5 className="font-bold text-sm mb-4 dark:text-white flex items-center gap-2">
+            <Wrench className="w-4 h-4 text-indigo-500" />
+            {editingIntervention ? 'Modifier l\'Intervention' : 'Planifier une Intervention'}
+          </h5>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Contract Selection */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Contrat *</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.contractId || ''}
+                onChange={e => setFormData({ ...formData, contractId: e.target.value })}
+              >
+                <option value="">Sélectionner un contrat...</option>
+                {contracts.filter(c => c.status === 'active').map(c => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Titre *</label>
+              <input
+                type="text"
+                placeholder="Ex: Maintenance préventive Q1"
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.title || ''}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+
+            {/* Type */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.type}
+                onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+              >
+                <option value="preventive">Préventive</option>
+                <option value="corrective">Corrective</option>
+                <option value="inspection">Inspection</option>
+                <option value="emergency">Urgence</option>
+              </select>
+            </div>
+
+            {/* Priority */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Priorité</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.priority}
+                onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
+              >
+                <option value="low">Basse</option>
+                <option value="medium">Moyenne</option>
+                <option value="high">Haute</option>
+                <option value="critical">Critique</option>
+              </select>
+            </div>
+
+            {/* Scheduled Date */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Date Prévue *</label>
+              <input
+                type="date"
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.scheduledDate || ''}
+                onChange={e => setFormData({ ...formData, scheduledDate: e.target.value })}
+              />
+            </div>
+
+            {/* Scheduled Time */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Heure</label>
+              <input
+                type="time"
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.scheduledTime || ''}
+                onChange={e => setFormData({ ...formData, scheduledTime: e.target.value })}
+              />
+            </div>
+
+            {/* Technician */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Technicien Assigné</label>
+              <select
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.technicianId || ''}
+                onChange={e => setFormData({ ...formData, technicianId: e.target.value })}
+              >
+                <option value="">Non assigné</option>
+                {technicians.filter(t => t.status === 'available').map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Contact Person */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Personne de Contact</label>
+              <input
+                type="text"
+                placeholder={client.name}
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.contactPerson || ''}
+                onChange={e => setFormData({ ...formData, contactPerson: e.target.value })}
+              />
+            </div>
+
+            {/* Contact Phone */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Téléphone Contact</label>
+              <input
+                type="tel"
+                placeholder={client.phone}
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.contactPhone || ''}
+                onChange={e => setFormData({ ...formData, contactPhone: e.target.value })}
+              />
+            </div>
+
+            {/* Contact Email */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Email Contact</label>
+              <input
+                type="email"
+                placeholder={client.email}
+                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+                value={formData.contactEmail || ''}
+                onChange={e => setFormData({ ...formData, contactEmail: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+            <textarea
+              placeholder="Décrivez l'intervention..."
+              className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+              rows={2}
+              value={formData.description || ''}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Notes Internes</label>
+            <textarea
+              placeholder="Notes pour le technicien..."
+              className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm"
+              rows={2}
+              value={formData.notes || ''}
+              onChange={e => setFormData({ ...formData, notes: e.target.value })}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2">
+            <button onClick={resetForm} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+              Annuler
+            </button>
+            <button onClick={handleSubmit} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 flex items-center gap-2">
+              <Check className="w-4 h-4" /> {editingIntervention ? 'Mettre à jour' : 'Créer l\'Intervention'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Interventions List */}
+      <div className="space-y-3">
+        {interventions.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <Wrench className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>Aucune intervention planifiée</p>
+            <p className="text-sm mt-1">Cliquez sur "Nouvelle Intervention" pour en créer une</p>
+          </div>
+        ) : (
+          interventions
+            .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime())
+            .map(intervention => (
+              <div
+                key={intervention.id}
+                className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">{getTypeIcon(intervention.type)}</div>
+                    <div>
+                      <h5 className="font-bold text-gray-900 dark:text-white">{intervention.title}</h5>
+                      <p className="text-xs text-gray-500 mt-0.5">{intervention.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityColor(intervention.priority)}`}>
+                      {intervention.priority === 'low' ? 'Basse' :
+                       intervention.priority === 'medium' ? 'Moyenne' :
+                       intervention.priority === 'high' ? 'Haute' : 'Critique'}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(intervention.status)}`}>
+                      {intervention.status === 'planned' ? 'Planifiée' :
+                       intervention.status === 'in_progress' ? 'En cours' :
+                       intervention.status === 'completed' ? 'Terminée' : 'Annulée'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <Calendar className="w-4 h-4" />
+                    <span>{intervention.scheduledDate} {intervention.scheduledTime && `à ${intervention.scheduledTime}`}</span>
+                  </div>
+                  {intervention.technicianName && (
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <Users className="w-4 h-4" />
+                      <span>{intervention.technicianName}</span>
+                    </div>
+                  )}
+                  {intervention.contactPerson && (
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <Phone className="w-4 h-4" />
+                      <span>{intervention.contactPerson}</span>
+                    </div>
+                  )}
+                  {intervention.completedDate && (
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <Check className="w-4 h-4" />
+                      <span>Terminée le {intervention.completedDate}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                  {intervention.status === 'planned' && (
+                    <>
+                      <button
+                        onClick={() => handleStatusChange(intervention, 'in_progress')}
+                        className="px-3 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded text-xs hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
+                      >
+                        Démarrer
+                      </button>
+                      <button
+                        onClick={() => handleEdit(intervention)}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-600"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(intervention, 'cancelled')}
+                        className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded text-xs hover:bg-red-200 dark:hover:bg-red-900/50"
+                      >
+                        Annuler
+                      </button>
+                    </>
+                  )}
+                  {intervention.status === 'in_progress' && (
+                    <>
+                      <button
+                        onClick={() => handleStatusChange(intervention, 'completed')}
+                        className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
+                      >
+                        <Check className="w-3 h-3" /> Marquer Terminée
+                      </button>
+                      <button
+                        onClick={() => handleEdit(intervention)}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-600"
+                      >
+                        Modifier
+                      </button>
+                    </>
+                  )}
+                  {(intervention.status === 'completed' || intervention.status === 'cancelled') && (
+                    <span className="text-xs text-gray-400 italic">
+                      {intervention.status === 'completed' ? 'Intervention terminée' : 'Intervention annulée'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+        )}
+      </div>
+    </div>
+  );
+};
+
 const MaintenanceCRM: React.FC = () => {
-  const { 
-    clients, updateClient, maintenanceContracts, addMaintenanceContract, updateMaintenanceContract, 
-    serviceJobs, contactInteractions, addContactInteraction, formatCurrency, t 
+  const {
+    clients, updateClient, maintenanceContracts, addMaintenanceContract, updateMaintenanceContract,
+    contactInteractions, addContactInteraction,
+    maintenanceInterventions, addMaintenanceIntervention, updateMaintenanceIntervention,
+    technicians, formatCurrency, t
   } = useApp();
 
   // --- STATE ---
@@ -30,7 +453,7 @@ const MaintenanceCRM: React.FC = () => {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return diffDays <= 30 && diffDays >= 0;
   });
-  const upcomingInterventions = serviceJobs.filter(j => j.status === 'pending');
+  const upcomingInterventions = maintenanceInterventions.filter(i => i.status === 'planned' || i.status === 'in_progress');
   
   const filteredClients = clients.filter(c => {
       const matchesSearch = c.company.toLowerCase().includes(clientSearch.toLowerCase()) || c.name.toLowerCase().includes(clientSearch.toLowerCase());
@@ -114,7 +537,7 @@ const MaintenanceCRM: React.FC = () => {
       
       const [modalTab, setModalTab] = useState<'overview' | 'contracts' | 'interventions' | 'history'>('overview');
       const clientContracts = maintenanceContracts.filter(c => c.clientId === selectedClient.id);
-      const clientJobs = serviceJobs.filter(j => j.clientId === selectedClient.id);
+      const clientInterventions = maintenanceInterventions.filter(i => i.clientId === selectedClient.id);
       const clientHistory = contactInteractions.filter(i => i.clientId === selectedClient.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       // Interaction Form State
@@ -206,7 +629,7 @@ const MaintenanceCRM: React.FC = () => {
                             </div>
                             <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
                                 <h4 className="font-bold mb-3 dark:text-white">Quick Stats</h4>
-                                <div className="flex justify-between text-sm mb-2"><span>Total Interventions:</span> <span className="font-bold">{clientJobs.length}</span></div>
+                                <div className="flex justify-between text-sm mb-2"><span>Total Interventions:</span> <span className="font-bold">{clientInterventions.length}</span></div>
                                 <div className="flex justify-between text-sm"><span>Last Interaction:</span> <span className="font-bold text-gray-600">{clientHistory[0]?.date || 'N/A'}</span></div>
                             </div>
                         </div>
@@ -263,24 +686,14 @@ const MaintenanceCRM: React.FC = () => {
 
                     {/* INTERVENTIONS TAB */}
                     {modalTab === 'interventions' && (
-                         <div className="space-y-3">
-                             {clientJobs.map(job => (
-                                 <div key={job.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 flex justify-between">
-                                     <div>
-                                         <div className="flex items-center gap-2 mb-1">
-                                             <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">{job.ticketNumber}</span>
-                                             <span className="font-bold text-sm dark:text-white">{job.deviceInfo}</span>
-                                         </div>
-                                         <p className="text-xs text-gray-500">{job.problemDescription}</p>
-                                     </div>
-                                     <div className="text-right">
-                                         <span className={`px-2 py-0.5 rounded text-xs ${job.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{job.status}</span>
-                                         <div className="text-xs text-gray-400 mt-1">{job.date}</div>
-                                     </div>
-                                 </div>
-                             ))}
-                             {clientJobs.length === 0 && <div className="text-center text-gray-400 py-8">No service history.</div>}
-                         </div>
+                        <InterventionsTab
+                            client={selectedClient}
+                            contracts={clientContracts}
+                            interventions={maintenanceInterventions.filter(i => i.clientId === selectedClient.id)}
+                            technicians={technicians}
+                            onAddIntervention={addMaintenanceIntervention}
+                            onUpdateIntervention={updateMaintenanceIntervention}
+                        />
                     )}
 
                     {/* HISTORY TAB */}
