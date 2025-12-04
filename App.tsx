@@ -47,6 +47,7 @@ import HRAttendance from './views/HRAttendance';
 import HRExpenses from './views/HRExpenses';
 import HRPerformance from './views/HRPerformance';
 import HRSettings from './views/HRSettings';
+import ProjectManagement from './views/ProjectManagement';
 import { AppView } from './types';
 import { AppProvider, useApp } from './context/AppContext';
 
@@ -89,6 +90,13 @@ function AppContent() {
   const toggleTheme = () => setIsDark(!isDark);
 
   const renderView = () => {
+    // --- Project Management views ---
+    if (currentView === 'projects' || currentView === 'projects-dashboard' ||
+        currentView === 'projects-list' || currentView === 'projects-tasks' ||
+        currentView === 'projects-timesheet' || currentView === 'projects-budget' ||
+        currentView === 'projects-reports') {
+      return <ProjectManagement view={currentView} />;
+    }
 
     // --- Services Routing ---
     if (currentView === 'services' || currentView === 'services-dashboard') {

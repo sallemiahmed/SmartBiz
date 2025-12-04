@@ -24,7 +24,8 @@ import {
   mockDepartments, mockPositions, mockPayrollRuns, mockPayslips, mockPayrollElements,
   mockShifts, mockShiftAssignments, mockAttendances, mockTimesheets, mockLeavePolicies,
   mockPerformanceReviews, mockReviewCycles, mockObjectives, mockOnboardingChecklists,
-  mockOffboardingChecklists, mockAuditLogs, mockHRSettings
+  mockOffboardingChecklists, mockAuditLogs, mockHRSettings,
+  mockProjects, mockProjectTasks, mockProjectTimeEntries, mockProjectExpenses, mockProjectMilestones
 } from '../services/mockData';
 
 interface AppContextType {
@@ -32,6 +33,13 @@ interface AppContextType {
   addClient: (client: Client) => void;
   updateClient: (client: Client) => void;
   deleteClient: (id: string) => void;
+
+  prospects: Prospect[];
+  addProspect: (prospect: Prospect) => void;
+  updateProspect: (prospect: Prospect) => void;
+  deleteProspect: (id: string) => void;
+  convertProspectToClient: (prospectId: string) => Client | null;
+  addProspectInteraction: (prospectId: string, interaction: ProspectInteraction) => void;
 
   suppliers: Supplier[];
   addSupplier: (supplier: Supplier) => void;
@@ -290,6 +298,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // State initialization
   const [clients, setClients] = useState<Client[]>([]);
+  const [prospects, setProspects] = useState<Prospect[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -386,6 +395,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setPerformanceReviews([]);
       setReviewCycles([]);
 
+      // Project Management
+      setProjects(mockProjects);
+      setProjectTasks(mockProjectTasks);
+      setProjectTimeEntries(mockProjectTimeEntries);
+      setProjectExpenses(mockProjectExpenses);
+      setProjectMilestones(mockProjectMilestones);
+
       console.log('Mock data loaded successfully!');
     } catch (error) {
       console.error("Failed to load mock data", error);
@@ -427,6 +443,57 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteClient = async (id: string) => {
       // await db.clients.delete(id);
       setClients(prev => prev.filter(c => c.id !== id));
+  };
+
+  // Prospect Management
+  const addProspect = async (prospect: Prospect) => {
+      setProspects(prev => [prospect, ...prev]);
+  };
+  const updateProspect = async (prospect: Prospect) => {
+      setProspects(prev => prev.map(p => p.id === prospect.id ? { ...prospect, updatedAt: new Date().toISOString() } : p));
+  };
+  const deleteProspect = async (id: string) => {
+      setProspects(prev => prev.filter(p => p.id !== id));
+  };
+  const convertProspectToClient = (prospectId: string): Client | null => {
+      const prospect = prospects.find(p => p.id === prospectId);
+      if (!prospect) return null;
+
+      const newClient: Client = {
+          id: `client-${Date.now()}`,
+          company: prospect.company,
+          name: prospect.contactName,
+          email: prospect.email,
+          phone: prospect.phone,
+          status: 'active',
+          category: prospect.industry || 'Corporate',
+          totalSpent: 0,
+          address: prospect.address,
+          customFields: {}
+      };
+
+      // Add client and update prospect
+      setClients(prev => [newClient, ...prev]);
+      setProspects(prev => prev.map(p =>
+          p.id === prospectId
+              ? { ...p, status: 'won' as const, convertedToClientId: newClient.id, convertedDate: new Date().toISOString() }
+              : p
+      ));
+
+      return newClient;
+  };
+  const addProspectInteraction = (prospectId: string, interaction: ProspectInteraction) => {
+      setProspects(prev => prev.map(p => {
+          if (p.id === prospectId) {
+              return {
+                  ...p,
+                  interactions: [...(p.interactions || []), interaction],
+                  lastContactDate: interaction.date,
+                  updatedAt: new Date().toISOString()
+              };
+          }
+          return p;
+      }));
   };
 
   const addSupplier = async (supplier: Supplier) => {
@@ -1085,6 +1152,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const value = {
     clients, addClient, updateClient, deleteClient,
+    prospects, addProspect, updateProspect, deleteProspect, convertProspectToClient, addProspectInteraction,
     suppliers, addSupplier, updateSupplier, deleteSupplier,
     products, addProduct, addProducts, updateProduct, deleteProduct,
     invoices, createSalesDocument, updateInvoice, deleteInvoice, recordDocPayment,
