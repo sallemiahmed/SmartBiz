@@ -372,4 +372,12 @@
     <string name="client_fields">Champs Clients</string>
     <string name="supplier_fields">Champs Fournisseurs</string>
     <string name="no_custom_fields">Aucun champ personnalisé défini.</string>
+
+    <!-- Project Management -->
+    <string name="project_management">Gestion de Projets</string>
+    <string name="project_dashboard">Tableau de Bord</string>
+    <string name="projects_list">Projets</string>
+    <string name="tasks">Tâches</string>
+    <string name="time_tracking">Suivi du Temps</string>
+    <string name="budget_costs">Budget &amp; Coûts</string>
 </resources>

@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import {
-  Client, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
+  Client, Prospect, ProspectInteraction, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
   StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
@@ -10,7 +10,8 @@ import {
   MaintenanceContract, ContactInteraction, MaintenanceIntervention, Department, Position,
   Attendance, Timesheet, LeavePolicy, PerformanceReview, ReviewCycle,
   PayrollRun, Payslip, PayrollElement, Shift, ShiftAssignment,
-  OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings
+  OnboardingChecklist, OffboardingChecklist, Objective, AuditLog, HRSettings,
+  Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMilestone
 } from '../types';
 // import { db, seedDatabase } from '../services/db'; // DISABLED - using mock data only
 import { loadTranslations } from '../services/translations';
@@ -222,6 +223,32 @@ interface AppContextType {
   hrSettings: HRSettings | null;
   updateHRSettings: (settings: HRSettings) => void;
 
+  // Project Management
+  projects: Project[];
+  addProject: (project: Project) => void;
+  updateProject: (project: Project) => void;
+  deleteProject: (id: string) => void;
+
+  projectTasks: ProjectTask[];
+  addProjectTask: (task: ProjectTask) => void;
+  updateProjectTask: (task: ProjectTask) => void;
+  deleteProjectTask: (id: string) => void;
+
+  projectTimeEntries: ProjectTimeEntry[];
+  addProjectTimeEntry: (entry: ProjectTimeEntry) => void;
+  updateProjectTimeEntry: (entry: ProjectTimeEntry) => void;
+  deleteProjectTimeEntry: (id: string) => void;
+
+  projectExpenses: ProjectExpense[];
+  addProjectExpense: (expense: ProjectExpense) => void;
+  updateProjectExpense: (expense: ProjectExpense) => void;
+  deleteProjectExpense: (id: string) => void;
+
+  projectMilestones: ProjectMilestone[];
+  addProjectMilestone: (milestone: ProjectMilestone) => void;
+  updateProjectMilestone: (milestone: ProjectMilestone) => void;
+  deleteProjectMilestone: (id: string) => void;
+
   settings: AppSettings;
   setSettings: (settings: AppSettings) => void;
 
@@ -303,6 +330,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [performanceReviews, setPerformanceReviews] = useState<PerformanceReview[]>([]);
   const [reviewCycles, setReviewCycles] = useState<ReviewCycle[]>([]);
+
+  // Projects
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>([]);
+  const [projectTimeEntries, setProjectTimeEntries] = useState<ProjectTimeEntry[]>([]);
+  const [projectExpenses, setProjectExpenses] = useState<ProjectExpense[]>([]);
+  const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
 
   const [settings, setSettingsState] = useState<AppSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
@@ -947,6 +981,80 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setMaintenanceInterventions(prev => prev.filter(i => i.id !== id));
   };
 
+  // Project Management Functions
+  const addProject = async (project: Project) => {
+      setProjects(prev => [project, ...prev]);
+  };
+  const updateProject = async (project: Project) => {
+      setProjects(prev => prev.map(p => p.id === project.id ? { ...project, updatedAt: new Date().toISOString() } : p));
+  };
+  const deleteProject = async (id: string) => {
+      setProjects(prev => prev.filter(p => p.id !== id));
+      // Also delete related tasks, time entries, expenses, milestones
+      setProjectTasks(prev => prev.filter(t => t.projectId !== id));
+      setProjectTimeEntries(prev => prev.filter(e => e.projectId !== id));
+      setProjectExpenses(prev => prev.filter(e => e.projectId !== id));
+      setProjectMilestones(prev => prev.filter(m => m.projectId !== id));
+  };
+
+  const addProjectTask = async (task: ProjectTask) => {
+      setProjectTasks(prev => [task, ...prev]);
+  };
+  const updateProjectTask = async (task: ProjectTask) => {
+      setProjectTasks(prev => prev.map(t => t.id === task.id ? { ...task, updatedAt: new Date().toISOString() } : t));
+  };
+  const deleteProjectTask = async (id: string) => {
+      setProjectTasks(prev => prev.filter(t => t.id !== id));
+  };
+
+  const addProjectTimeEntry = async (entry: ProjectTimeEntry) => {
+      setProjectTimeEntries(prev => [entry, ...prev]);
+      // Update task actual hours if linked to task
+      if (entry.taskId) {
+          setProjectTasks(prev => prev.map(t => {
+              if (t.id === entry.taskId) {
+                  return { ...t, actualHours: (t.actualHours || 0) + entry.hours };
+              }
+              return t;
+          }));
+      }
+  };
+  const updateProjectTimeEntry = async (entry: ProjectTimeEntry) => {
+      setProjectTimeEntries(prev => prev.map(e => e.id === entry.id ? entry : e));
+  };
+  const deleteProjectTimeEntry = async (id: string) => {
+      const entry = projectTimeEntries.find(e => e.id === id);
+      if (entry && entry.taskId) {
+          setProjectTasks(prev => prev.map(t => {
+              if (t.id === entry.taskId) {
+                  return { ...t, actualHours: Math.max(0, (t.actualHours || 0) - entry.hours) };
+              }
+              return t;
+          }));
+      }
+      setProjectTimeEntries(prev => prev.filter(e => e.id !== id));
+  };
+
+  const addProjectExpense = async (expense: ProjectExpense) => {
+      setProjectExpenses(prev => [expense, ...prev]);
+  };
+  const updateProjectExpense = async (expense: ProjectExpense) => {
+      setProjectExpenses(prev => prev.map(e => e.id === expense.id ? expense : e));
+  };
+  const deleteProjectExpense = async (id: string) => {
+      setProjectExpenses(prev => prev.filter(e => e.id !== id));
+  };
+
+  const addProjectMilestone = async (milestone: ProjectMilestone) => {
+      setProjectMilestones(prev => [milestone, ...prev]);
+  };
+  const updateProjectMilestone = async (milestone: ProjectMilestone) => {
+      setProjectMilestones(prev => prev.map(m => m.id === milestone.id ? milestone : m));
+  };
+  const deleteProjectMilestone = async (id: string) => {
+      setProjectMilestones(prev => prev.filter(m => m.id !== id));
+  };
+
   const stats = useMemo(() => {
     const revenue = invoices.filter(inv => inv.type === 'invoice' && inv.status !== 'draft').reduce((acc, inv) => acc + inv.amount, 0);
     const expenses = purchases.filter(pur => pur.type === 'invoice').reduce((acc, pur) => acc + pur.amount, 0);
@@ -1009,6 +1117,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     leavePolicies,
     expenses, addExpenseReport, updateExpenseReport,
     attendances, timesheets, performanceReviews, reviewCycles,
+    // Projects
+    projects, addProject, updateProject, deleteProject,
+    projectTasks, addProjectTask, updateProjectTask, deleteProjectTask,
+    projectTimeEntries, addProjectTimeEntry, updateProjectTimeEntry, deleteProjectTimeEntry,
+    projectExpenses, addProjectExpense, updateProjectExpense, deleteProjectExpense,
+    projectMilestones, addProjectMilestone, updateProjectMilestone, deleteProjectMilestone,
     settings, setSettings,
     isLoading, setIsLoading,
     stats, chartData, formatCurrency, t
