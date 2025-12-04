@@ -1,11 +1,12 @@
 
-export type AppView = 
-  | 'dashboard' | 'clients' | 'suppliers' | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' | 'sales-issue' 
+export type AppView =
+  | 'dashboard' | 'clients' | 'suppliers' | 'sales' | 'sales-estimate' | 'sales-order' | 'sales-delivery' | 'sales-invoice' | 'sales-return' | 'sales-issue'
   | 'purchases' | 'purchases-pr' | 'purchases-rfq' | 'purchases-order' | 'purchases-delivery' | 'purchases-invoice' | 'purchases-return'
   | 'services' | 'services-dashboard' | 'services-jobs' | 'services-sales' | 'services-catalog' | 'services-technicians' | 'services-crm'
   | 'inventory' | 'inventory-products' | 'inventory-warehouses' | 'inventory-transfers' | 'inventory-audit'
   | 'fleet' | 'fleet-dashboard' | 'fleet-vehicles' | 'fleet-missions' | 'fleet-maintenance' | 'fleet-costs'
   | 'hr' | 'hr-dashboard' | 'hr-employees' | 'hr-contracts' | 'hr-payroll' | 'hr-leave' | 'hr-expenses' | 'hr-performance' | 'hr-attendance' | 'hr-settings'
+  | 'projects' | 'projects-dashboard' | 'projects-list' | 'projects-tasks' | 'projects-timesheet' | 'projects-budget' | 'projects-reports'
   | 'invoices' | 'banking' | 'banking-accounts' | 'banking-transactions' | 'cash_register' | 'cost_analysis' | 'reports' | 'settings'
   | 'sales-estimate-create' | 'sales-order-create' | 'sales-delivery-create' | 'sales-invoice-create' | 'sales-return-create' | 'sales-issue-create'
   | 'purchases-pr-create' | 'purchases-rfq-create' | 'purchases-order-create' | 'purchases-delivery-create' | 'purchases-invoice-create' | 'purchases-return-create'
@@ -25,6 +26,45 @@ export interface Client {
   taxId?: string;
   customFields?: Record<string, any>;
   zone?: string; // Geographic zone
+}
+
+export interface Prospect {
+  id: string;
+  company: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  source: 'website' | 'referral' | 'social_media' | 'cold_call' | 'trade_show' | 'advertising' | 'other';
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+  priority: 'low' | 'medium' | 'high' | 'hot';
+  estimatedValue?: number;
+  probability?: number; // 0-100
+  assignedTo?: string; // Employee ID
+  assignedToName?: string;
+  industry?: string;
+  website?: string;
+  address?: string;
+  notes?: string;
+  nextFollowUp?: string; // Date
+  lastContactDate?: string;
+  lostReason?: string;
+  tags?: string[];
+  interactions?: ProspectInteraction[];
+  createdAt: string;
+  updatedAt?: string;
+  convertedToClientId?: string; // If converted
+  convertedDate?: string;
+}
+
+export interface ProspectInteraction {
+  id: string;
+  prospectId: string;
+  type: 'call' | 'email' | 'meeting' | 'demo' | 'proposal' | 'note';
+  date: string;
+  summary: string;
+  outcome?: string;
+  nextAction?: string;
+  createdBy: string;
 }
 
 export interface Supplier {
@@ -878,6 +918,160 @@ export interface HRSettings {
   alertDocumentExpiryDays: number;
   alertTrialPeriodEndDays: number;
   alertContractEndDays: number;
+}
+
+// ============================================
+// PROJECT MANAGEMENT INTERFACES
+// ============================================
+
+export interface Project {
+  id: string;
+  code: string; // Project code (e.g., PRJ-001)
+  name: string;
+  description?: string;
+  clientId?: string; // Optional - for external projects
+  clientName?: string;
+  parentProjectId?: string; // For sub-projects
+  managerId?: string; // Project manager
+  managerName?: string;
+  startDate: string;
+  endDate?: string;
+  deadline?: string;
+  budget: number;
+  currency: string;
+  status: 'planning' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  progress: number; // 0-100
+  category?: string;
+  tags?: string[];
+  teamMembers?: { employeeId: string; employeeName: string; role: string; hourlyRate?: number }[];
+  createdAt: string;
+  updatedAt?: string;
+  notes?: string;
+}
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  projectName: string;
+  parentTaskId?: string; // For sub-tasks
+  code: string; // Task code (e.g., TSK-001)
+  title: string;
+  description?: string;
+  assigneeId?: string;
+  assigneeName?: string;
+  assignees?: { employeeId: string; employeeName: string }[]; // Multiple assignees
+  startDate?: string;
+  dueDate?: string;
+  completedDate?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'todo' | 'in_progress' | 'review' | 'completed' | 'cancelled' | 'blocked';
+  progress: number; // 0-100
+  dependencies?: string[]; // IDs of tasks that must be completed first
+  tags?: string[];
+  attachments?: { id: string; name: string; url: string; uploadedAt: string }[];
+  comments?: { id: string; userId: string; userName: string; text: string; createdAt: string }[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ProjectTimeEntry {
+  id: string;
+  projectId: string;
+  projectName: string;
+  taskId?: string;
+  taskName?: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  hours: number;
+  description?: string;
+  billable: boolean;
+  hourlyRate?: number;
+  totalCost?: number;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  approvedBy?: string;
+  approvedAt?: string;
+  createdAt: string;
+}
+
+export interface ProjectExpense {
+  id: string;
+  projectId: string;
+  projectName: string;
+  taskId?: string;
+  taskName?: string;
+  category: 'materials' | 'equipment' | 'travel' | 'subcontractor' | 'software' | 'other';
+  description: string;
+  amount: number;
+  currency: string;
+  date: string;
+  vendorName?: string;
+  invoiceNumber?: string;
+  receipt?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'reimbursed';
+  submittedBy: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ProjectMilestone {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  dueDate: string;
+  completedDate?: string;
+  status: 'pending' | 'completed' | 'overdue';
+  deliverables?: string[];
+  payment?: number; // Payment tied to milestone
+}
+
+export interface ProjectDocument {
+  id: string;
+  projectId: string;
+  taskId?: string;
+  name: string;
+  type: 'document' | 'image' | 'spreadsheet' | 'presentation' | 'other';
+  url?: string;
+  size?: number;
+  uploadedBy: string;
+  uploadedAt: string;
+  version: number;
+  tags?: string[];
+  notes?: string;
+}
+
+export interface ProjectNote {
+  id: string;
+  projectId: string;
+  taskId?: string;
+  authorId: string;
+  authorName: string;
+  title?: string;
+  content: string;
+  isPinned?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ProjectActivityLog {
+  id: string;
+  projectId: string;
+  taskId?: string;
+  userId: string;
+  userName: string;
+  action: 'created' | 'updated' | 'deleted' | 'status_changed' | 'assigned' | 'commented' | 'uploaded' | 'time_logged';
+  entityType: 'project' | 'task' | 'milestone' | 'document' | 'expense' | 'time_entry';
+  entityId: string;
+  description: string;
+  oldValue?: any;
+  newValue?: any;
+  createdAt: string;
 }
 
 export interface AppSettings {

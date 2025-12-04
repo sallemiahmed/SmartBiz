@@ -372,4 +372,12 @@
     <string name="client_fields">Client Fields</string>
     <string name="supplier_fields">Supplier Fields</string>
     <string name="no_custom_fields">No custom fields defined.</string>
+
+    <!-- Project Management -->
+    <string name="project_management">Project Management</string>
+    <string name="project_dashboard">Dashboard</string>
+    <string name="projects_list">Projects</string>
+    <string name="tasks">Tasks</string>
+    <string name="time_tracking">Time Tracking</string>
+    <string name="budget_costs">Budget &amp; Costs</string>
 </resources>

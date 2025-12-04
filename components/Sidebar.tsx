@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Truck, 
-  Package, 
-  FileStack, 
-  LineChart, 
+import {
+  LayoutDashboard,
+  Users,
+  Truck,
+  Package,
+  FileStack,
+  LineChart,
   Settings,
   CircleDollarSign,
   Receipt,
@@ -18,7 +18,8 @@ import {
   Calculator,
   Wrench,
   Car,
-  Briefcase
+  Briefcase,
+  FolderKanban
 } from 'lucide-react';
 import { AppView } from '../types';
 import { useApp } from '../context/AppContext';
@@ -175,6 +176,20 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, se
         { id: 'hr-expenses', labelKey: 'expense_reports' },
         { id: 'hr-performance', labelKey: 'performance' },
         { id: 'hr-settings', labelKey: 'hr_settings' },
+      ]
+    },
+    {
+      id: 'projects',
+      labelKey: 'project_management',
+      icon: FolderKanban,
+      emoji: '📁',
+      subItems: [
+        { id: 'projects-dashboard', labelKey: 'project_dashboard' },
+        { id: 'projects-list', labelKey: 'projects_list' },
+        { id: 'projects-tasks', labelKey: 'tasks' },
+        { id: 'projects-timesheet', labelKey: 'time_tracking' },
+        { id: 'projects-budget', labelKey: 'budget_costs' },
+        { id: 'projects-reports', labelKey: 'reports' },
       ]
     },
     { id: 'invoices', labelKey: 'documents', icon: FileStack, emoji: '🧮' },

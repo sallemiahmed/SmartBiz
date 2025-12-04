@@ -47,6 +47,7 @@ import HRAttendance from './HRAttendance';
 import HRExpenses from './HRExpenses';
 import HRPerformance from './HRPerformance';
 import HRSettings from './HRSettings';
+import ProjectManagement from './ProjectManagement';
 import { AppView } from '../types';
 import { AppProvider, useApp } from '../context/AppContext';
 
@@ -287,6 +288,12 @@ function AppContent() {
           <p className="text-xs text-red-500 mt-4">DEBUG: currentView = "{currentView}"</p>
         </div>
       );
+    }
+
+    // Project Management views
+    if (currentView.startsWith('projects')) {
+      console.log('  🎯 Matched projects view:', currentView);
+      return <ProjectManagement />;
     }
 
     switch (currentView) {

@@ -7,7 +7,8 @@ import {
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
   Employee, Contract, Payroll, LeaveRequest, ExpenseReport, MaintenanceContract,
   ContactInteraction, MaintenanceIntervention, AppSettings, Department, Position, Attendance, Timesheet,
-  LeavePolicy, PerformanceReview, ReviewCycle
+  LeavePolicy, PerformanceReview, ReviewCycle,
+  Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMilestone
 } from '../types';
 import {
   mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases,
@@ -70,6 +71,13 @@ export class SmartBizDatabase extends Dexie {
   performanceReviews!: Table<PerformanceReview>;
   reviewCycles!: Table<ReviewCycle>;
 
+  // Projects
+  projects!: Table<Project>;
+  projectTasks!: Table<ProjectTask>;
+  projectTimeEntries!: Table<ProjectTimeEntry>;
+  projectExpenses!: Table<ProjectExpense>;
+  projectMilestones!: Table<ProjectMilestone>;
+
   // Settings
   settings!: Table<AppSettings>;
 
@@ -115,6 +123,12 @@ export class SmartBizDatabase extends Dexie {
       timesheets: 'id, employeeId, weekStarting, status',
       performanceReviews: 'id, employeeId, cycleId, status',
       reviewCycles: 'id, name, status',
+      // Projects
+      projects: 'id, code, name, clientId, status, managerId, startDate',
+      projectTasks: 'id, projectId, code, assigneeId, status, dueDate',
+      projectTimeEntries: 'id, projectId, taskId, employeeId, date, status',
+      projectExpenses: 'id, projectId, category, status, date',
+      projectMilestones: 'id, projectId, status, dueDate',
       settings: 'id' // We will use a fixed ID 'config' for settings
     });
   }
