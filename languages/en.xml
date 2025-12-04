@@ -456,4 +456,39 @@
     <string name="phone">Phone</string>
     <string name="email">Email</string>
     <string name="tax_id">Tax ID</string>
+
+    <!-- Contact Management -->
+    <string name="contacts">Contacts</string>
+    <string name="manage_contacts">Manage Contacts</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="edit_contact">Edit Contact</string>
+    <string name="delete_contact">Delete Contact</string>
+    <string name="delete_contact_confirm">Are you sure you want to delete this contact?</string>
+    <string name="no_contacts">No contacts added yet</string>
+    <string name="add_contact_hint">Add contacts to manage multiple people for this client</string>
+    <string name="contact_person">Contact Person</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="mobile">Mobile</string>
+    <string name="job_title">Job Title</string>
+    <string name="department">Department</string>
+    <string name="role">Role</string>
+    <string name="notes">Notes</string>
+    <string name="primary">Primary</string>
+    <string name="set_as_primary">Set as Primary</string>
+    <string name="set_as_primary_contact">Set as primary contact</string>
+    <string name="info">Information</string>
+
+    <!-- Contact Roles -->
+    <string name="role_decision_maker">Decision Maker</string>
+    <string name="role_technical">Technical</string>
+    <string name="role_purchasing">Purchasing</string>
+    <string name="role_accounting">Accounting</string>
+    <string name="role_operations">Operations</string>
+    <string name="role_other">Other</string>
+
+    <!-- Sales Representative -->
+    <string name="sales_rep">Sales Representative</string>
+    <string name="assign_sales_rep">Assign Sales Representative</string>
+    <string name="no_employees">No active employees found</string>
 </resources>
