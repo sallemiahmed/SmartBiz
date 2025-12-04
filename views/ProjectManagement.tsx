@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   FolderKanban, Plus, Search, Filter, Calendar, Clock, Users, DollarSign,
   CheckCircle2, AlertTriangle, TrendingUp, BarChart3, ChevronRight, X,
@@ -11,7 +11,11 @@ import { Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMileston
 
 type ProjectsTab = 'dashboard' | 'projects' | 'tasks' | 'timesheet' | 'budget' | 'reports';
 
-const ProjectManagement: React.FC = () => {
+interface ProjectManagementProps {
+  view?: string;
+}
+
+const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   const {
     projects, addProject, updateProject, deleteProject,
     projectTasks, addProjectTask, updateProjectTask, deleteProjectTask,
@@ -21,7 +25,24 @@ const ProjectManagement: React.FC = () => {
     clients, employees, formatCurrency, settings
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<ProjectsTab>('dashboard');
+  // Map view prop to tab
+  const getTabFromView = (viewName?: string): ProjectsTab => {
+    if (!viewName) return 'dashboard';
+    if (viewName === 'projects' || viewName === 'projects-dashboard') return 'dashboard';
+    if (viewName === 'projects-list') return 'projects';
+    if (viewName === 'projects-tasks') return 'tasks';
+    if (viewName === 'projects-timesheet') return 'timesheet';
+    if (viewName === 'projects-budget') return 'budget';
+    if (viewName === 'projects-reports') return 'reports';
+    return 'dashboard';
+  };
+
+  const [activeTab, setActiveTab] = useState<ProjectsTab>(getTabFromView(view));
+
+  // Update tab when view prop changes
+  useEffect(() => {
+    setActiveTab(getTabFromView(view));
+  }, [view]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);

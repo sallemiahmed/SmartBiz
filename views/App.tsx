@@ -51,13 +51,8 @@ import ProjectManagement from './ProjectManagement';
 import { AppView } from '../types';
 import { AppProvider, useApp } from '../context/AppContext';
 
-// Cache bust: 2025-12-03-17:31 - FORCE RELOAD
 function AppContent() {
-  // TEMPORARY TEST: Force HR dashboard to load
-  const [currentView, setCurrentView] = useState<AppView>('hr-dashboard');
-  console.error('🔴🔴🔴 NEW CODE IS LOADING - YOU SHOULD SEE THIS IN RED! 🔴🔴🔴');
-  console.log('🚀 [AppContent] Initial currentView:', 'hr-dashboard');
-  console.log('🔄 [CACHE BUST] This is the NEW version with debug logs');
+  const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
@@ -65,18 +60,12 @@ function AppContent() {
   const { settings, setIsLoading } = useApp();
 
   const handleNavigate = React.useCallback((view: AppView) => {
-    console.log('🧭 [handleNavigate] Called with view:', view);
-    console.log('   Current view:', currentView);
-    console.log('   Is different?', view !== currentView);
     if (view !== currentView) {
       setIsLoading(true);
       setTimeout(() => {
-        console.log('   ⏰ Setting currentView to:', view);
         setCurrentView(view);
         setTimeout(() => setIsLoading(false), 200);
       }, 100);
-    } else {
-      console.log('   ⚠️ Same view, not navigating');
     }
   }, [currentView, setIsLoading]);
 
@@ -101,10 +90,13 @@ function AppContent() {
   const toggleTheme = () => setIsDark(!isDark);
 
   const renderView = () => {
-    // Log current view for debugging
-    console.log('🎯 [App] renderView called with currentView:', currentView);
-    console.log('   Type:', typeof currentView, '| Length:', currentView.length);
-    console.log('   Is HR view?', currentView.startsWith('hr'));
+    // --- Project Management views (MUST be before other routing) ---
+    if (currentView === 'projects' || currentView === 'projects-dashboard' ||
+        currentView === 'projects-list' || currentView === 'projects-tasks' ||
+        currentView === 'projects-timesheet' || currentView === 'projects-budget' ||
+        currentView === 'projects-reports') {
+      return <ProjectManagement view={currentView} />;
+    }
 
     // --- Services Routing ---
     if (currentView === 'services' || currentView === 'services-dashboard') {
@@ -234,66 +226,16 @@ function AppContent() {
 
     // --- HR Routing ---
     if (currentView.startsWith('hr')) {
-      console.log('🔍 [HR ROUTING DEBUG]');
-      console.log('  ➡️ currentView:', currentView);
-      console.log('  ➡️ startsWith("hr"):', currentView.startsWith('hr'));
-
-      if (currentView === 'hr' || currentView === 'hr-dashboard') {
-        console.log('  ✅ Matched: hr-dashboard');
-        console.log('  ➡️ HRDashboard component:', typeof HRDashboard);
-        return <HRDashboard />;
-      }
-      if (currentView === 'hr-employees') {
-        console.log('  ✅ Matched: hr-employees');
-        return <HREmployees />;
-      }
-      if (currentView === 'hr-contracts') {
-        console.log('  ✅ Matched: hr-contracts');
-        return <HRContracts />;
-      }
-      if (currentView === 'hr-leave') {
-        console.log('  ✅ Matched: hr-leave');
-        return <HRLeave />;
-      }
-      if (currentView === 'hr-payroll') {
-        console.log('  ✅ Matched: hr-payroll');
-        return <HRPayroll />;
-      }
-      if (currentView === 'hr-attendance') {
-        console.log('  ✅ Matched: hr-attendance');
-        return <HRAttendance />;
-      }
-      if (currentView === 'hr-expenses') {
-        console.log('  ✅ Matched: hr-expenses');
-        return <HRExpenses />;
-      }
-      if (currentView === 'hr-performance') {
-        console.log('  ✅ Matched: hr-performance');
-        return <HRPerformance />;
-      }
-      if (currentView === 'hr-settings') {
-        console.log('  ✅ Matched: hr-settings');
-        return <HRSettings />;
-      }
-      // Fallback for unknown HR views
-      console.log('  ❌ NO MATCH - Falling back to construction message');
-      console.log('  ➡️ Available HR views:', [
-        'hr', 'hr-dashboard', 'hr-employees', 'hr-contracts', 'hr-leave',
-        'hr-payroll', 'hr-attendance', 'hr-expenses', 'hr-performance', 'hr-settings'
-      ]);
-      return (
-        <div className="p-12 text-center">
-          <h2 className="text-xl font-bold text-gray-400">Module RH en construction 🚧</h2>
-          <p className="text-gray-500 mt-2">La vue {currentView} sera disponible prochainement</p>
-          <p className="text-xs text-red-500 mt-4">DEBUG: currentView = "{currentView}"</p>
-        </div>
-      );
-    }
-
-    // Project Management views
-    if (currentView.startsWith('projects')) {
-      console.log('  🎯 Matched projects view:', currentView);
-      return <ProjectManagement />;
+      if (currentView === 'hr' || currentView === 'hr-dashboard') return <HRDashboard />;
+      if (currentView === 'hr-employees') return <HREmployees />;
+      if (currentView === 'hr-contracts') return <HRContracts />;
+      if (currentView === 'hr-leave') return <HRLeave />;
+      if (currentView === 'hr-payroll') return <HRPayroll />;
+      if (currentView === 'hr-attendance') return <HRAttendance />;
+      if (currentView === 'hr-expenses') return <HRExpenses />;
+      if (currentView === 'hr-performance') return <HRPerformance />;
+      if (currentView === 'hr-settings') return <HRSettings />;
+      return <HRDashboard />;
     }
 
     switch (currentView) {

@@ -24,7 +24,8 @@ import {
   mockDepartments, mockPositions, mockPayrollRuns, mockPayslips, mockPayrollElements,
   mockShifts, mockShiftAssignments, mockAttendances, mockTimesheets, mockLeavePolicies,
   mockPerformanceReviews, mockReviewCycles, mockObjectives, mockOnboardingChecklists,
-  mockOffboardingChecklists, mockAuditLogs, mockHRSettings
+  mockOffboardingChecklists, mockAuditLogs, mockHRSettings,
+  mockProjects, mockProjectTasks, mockProjectTimeEntries, mockProjectExpenses, mockProjectMilestones
 } from '../services/mockData';
 
 interface AppContextType {
@@ -393,6 +394,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setTimesheets([]);
       setPerformanceReviews([]);
       setReviewCycles([]);
+
+      // Project Management
+      setProjects(mockProjects);
+      setProjectTasks(mockProjectTasks);
+      setProjectTimeEntries(mockProjectTimeEntries);
+      setProjectExpenses(mockProjectExpenses);
+      setProjectMilestones(mockProjectMilestones);
 
       console.log('Mock data loaded successfully!');
     } catch (error) {
