@@ -4,6 +4,7 @@ import { Search, Plus, FileDown, Send, Filter, ArrowUp, ArrowDown, RotateCcw, Ca
 import { useApp } from '../context/AppContext';
 import { Invoice } from '../types';
 import Pagination from '../components/Pagination';
+import { printInvoice } from '../utils/printGenerator';
 
 const Invoices: React.FC = () => {
   const { invoices, clients, formatCurrency, settings, t } = useApp();
@@ -73,13 +74,18 @@ const Invoices: React.FC = () => {
   const handleSendEmail = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSending(true);
-    
+
     // Simulate Backend API call
     setTimeout(() => {
       setIsSending(false);
       setIsEmailModalOpen(false);
       alert(t('email_sent_success'));
     }, 1500);
+  };
+
+  const handleDownload = (invoice: Invoice) => {
+    const client = clients.find(c => c.id === invoice.clientId);
+    printInvoice(invoice, settings, client);
   };
 
   // --- Process Data ---
@@ -301,7 +307,11 @@ const Invoices: React.FC = () => {
                        >
                          <Send className="w-4 h-4" />
                        </button>
-                       <button className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Download PDF">
+                       <button
+                         onClick={() => handleDownload(inv)}
+                         className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                         title={t('download_pdf')}
+                       >
                          <FileDown className="w-4 h-4" />
                        </button>
                     </div>
