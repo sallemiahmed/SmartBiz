@@ -284,6 +284,7 @@
   "pending": "En Attente",
   "overdue": "En retard",
   "draft": "Brouillon",
+  "validated": "Validé",
   "completed": "Terminé",
   "received": "Reçu",
   "in_stock": "En Stock",

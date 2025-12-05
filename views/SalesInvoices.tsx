@@ -7,9 +7,11 @@ import { printInvoice } from '../utils/printGenerator';
 
 interface SalesInvoicesProps {
   onAddNew: () => void;
+  autoOpenDocId?: string | null;
+  onDocOpened?: () => void;
 }
 
-const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
+const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
   const { invoices, deleteInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,6 +116,8 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
 
   const getStatusColor = (status: string) => {
     switch(status) {
+      case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+      case 'validated': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
       case 'paid': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
       case 'partial': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
       case 'pending': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
@@ -121,6 +125,20 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
     }
   };
+
+  // Auto-open document modal after creation
+  useEffect(() => {
+    if (autoOpenDocId && !isViewModalOpen) {
+      const docToOpen = salesInvoices.find(doc => doc.id === autoOpenDocId);
+      if (docToOpen) {
+        setSelectedDoc(docToOpen);
+        setIsViewModalOpen(true);
+        if (onDocOpened) {
+          onDocOpened();
+        }
+      }
+    }
+  }, [autoOpenDocId, salesInvoices, isViewModalOpen]);
 
   return (
     <div className="p-6">
@@ -180,6 +198,8 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                 className="w-full pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white appearance-none cursor-pointer"
               >
                 <option value="all">{t('all_status')}</option>
+                <option value="draft">{t('draft')}</option>
+                <option value="validated">{t('validated')}</option>
                 <option value="paid">{t('paid')}</option>
                 <option value="pending">{t('pending')}</option>
                 <option value="partial">{t('partial')}</option>

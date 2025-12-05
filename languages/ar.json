@@ -283,6 +283,7 @@
   "pending": "معلق",
   "overdue": "متأخر",
   "draft": "مسودة",
+  "validated": "تم التحقق",
   "completed": "مكتمل",
   "received": "مستلم",
   "in_stock": "متوفر",

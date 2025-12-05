@@ -12,6 +12,558 @@ interface FleetManagementProps {
   view?: string;
 }
 
+// ============ EXTRACTED MODAL COMPONENTS ============
+
+interface AddVehicleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editingVehicle: Vehicle | null;
+  addVehicle: (vehicle: Vehicle) => void;
+  updateVehicle: (vehicle: Vehicle) => void;
+  t: (key: string) => string;
+}
+
+const AddVehicleModal = React.memo<AddVehicleModalProps>(({
+  isOpen,
+  onClose,
+  editingVehicle,
+  addVehicle,
+  updateVehicle,
+  t
+}) => {
+  const [formData, setFormData] = useState<Partial<Vehicle>>({
+    status: 'available',
+    fuelType: 'Diesel',
+    mileage: 0,
+    ...editingVehicle
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingVehicle) {
+      updateVehicle({ ...editingVehicle, ...formData } as Vehicle);
+    } else {
+      addVehicle({ ...formData, id: `v-${Date.now()}` } as Vehicle);
+    }
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{editingVehicle ? 'Edit' : 'Add'} Vehicle</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('make')}</label>
+              <input
+                id="vehicle-make"
+                name="make"
+                required
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.make || ''}
+                onChange={e => setFormData({...formData, make: e.target.value})}
+                placeholder="Toyota"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('model')}</label>
+              <input
+                id="vehicle-model"
+                name="model"
+                required
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.model || ''}
+                onChange={e => setFormData({...formData, model: e.target.value})}
+                placeholder="Corolla"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('plate')}</label>
+              <input
+                id="vehicle-plate"
+                name="plate"
+                required
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.plate || ''}
+                onChange={e => setFormData({...formData, plate: e.target.value})}
+                placeholder="123 TN 4567"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">Year</label>
+              <input
+                id="vehicle-year"
+                name="year"
+                type="number"
+                required
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.year || ''}
+                onChange={e => setFormData({...formData, year: parseInt(e.target.value)})}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('fuel_type')}</label>
+              <select
+                id="vehicle-fuelType"
+                name="fuelType"
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.fuelType}
+                onChange={e => setFormData({...formData, fuelType: e.target.value as any})}
+              >
+                <option value="Diesel">Diesel</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Electric">Electric</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('mileage')}</label>
+              <input
+                id="vehicle-mileage"
+                name="mileage"
+                type="number"
+                required
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.mileage}
+                onChange={e => setFormData({...formData, mileage: parseInt(e.target.value)})}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('insurance_expiry')}</label>
+              <input
+                id="vehicle-insuranceExpiry"
+                name="insuranceExpiry"
+                type="date"
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.insuranceExpiry || ''}
+                onChange={e => setFormData({...formData, insuranceExpiry: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">{t('tech_check_expiry')}</label>
+              <input
+                id="vehicle-technicalCheckExpiry"
+                name="technicalCheckExpiry"
+                type="date"
+                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={formData.technicalCheckExpiry || ''}
+                onChange={e => setFormData({...formData, technicalCheckExpiry: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded">{t('cancel')}</button>
+            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">{t('save')}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
+AddVehicleModal.displayName = 'AddVehicleModal';
+
+interface MissionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  vehicles: Vehicle[];
+  fleetMissions: FleetMission[];
+  addFleetMission: (mission: FleetMission) => void;
+  t: (key: string) => string;
+}
+
+const MissionModal = React.memo<MissionModalProps>(({
+  isOpen,
+  onClose,
+  vehicles,
+  fleetMissions,
+  addFleetMission,
+  t
+}) => {
+  const [missionFormData, setMissionFormData] = useState<Partial<FleetMission>>({
+    status: 'planned',
+    startDate: new Date().toISOString().split('T')[0],
+    startTime: '08:00',
+    endDate: new Date().toISOString().split('T')[0],
+    endTime: '18:00'
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!missionFormData.vehicleId) return alert("Please select a vehicle");
+
+    // --- Overlap Validation Logic ---
+    const newStart = new Date(`${missionFormData.startDate}T${missionFormData.startTime || '00:00'}`);
+    const newEnd = new Date(`${missionFormData.endDate}T${missionFormData.endTime || '23:59'}`);
+
+    if (newEnd <= newStart) {
+      return alert("End time must be after start time.");
+    }
+
+    const hasConflict = fleetMissions.some(mission => {
+      // Skip check for same mission (if editing), cancelled missions, or different vehicles
+      if (mission.vehicleId !== missionFormData.vehicleId) return false;
+      if (mission.status === 'cancelled') return false;
+
+      const existingStart = new Date(`${mission.startDate}T${mission.startTime || '00:00'}`);
+      const existingEnd = new Date(`${mission.endDate}T${mission.endTime || '23:59'}`);
+
+      // Check for overlap
+      return (newStart < existingEnd && newEnd > existingStart);
+    });
+
+    if (hasConflict) {
+      return alert("This vehicle is already assigned to another mission during this period.");
+    }
+    // --------------------------------
+
+    const vehicle = vehicles.find(v => v.id === missionFormData.vehicleId);
+
+    addFleetMission({
+      id: `miss-${Date.now()}`,
+      vehicleName: vehicle ? `${vehicle.make} ${vehicle.model}` : 'Unknown',
+      ...missionFormData as any
+    });
+    onClose();
+    setMissionFormData({
+      status: 'planned',
+      startDate: new Date().toISOString().split('T')[0],
+      startTime: '08:00',
+      endDate: new Date().toISOString().split('T')[0],
+      endTime: '18:00'
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
+        <h3 className="text-lg font-bold mb-4 dark:text-white">{t('new_mission')}</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">{t('vehicle')}</label>
+            <select
+              id="mission-vehicleId"
+              name="vehicleId"
+              required
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={missionFormData.vehicleId || ''}
+              onChange={e => setMissionFormData({...missionFormData, vehicleId: e.target.value})}
+            >
+              <option value="">Select Vehicle...</option>
+              {vehicles.filter(v => v.status === 'available' || v.status === 'in_use').map(v => (
+                <option key={v.id} value={v.id}>{v.plate} - {v.make} {v.model}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">{t('driver')}</label>
+            <input
+              id="mission-driverName"
+              name="driverName"
+              type="text"
+              required
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={missionFormData.driverName || ''}
+              onChange={e => setMissionFormData({...missionFormData, driverName: e.target.value})}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm mb-1 dark:text-gray-300">Start Date</label>
+              <input
+                id="mission-startDate"
+                name="startDate"
+                type="date"
+                required
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={missionFormData.startDate}
+                onChange={e => setMissionFormData({...missionFormData, startDate: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1 dark:text-gray-300">Start Time</label>
+              <input
+                id="mission-startTime"
+                name="startTime"
+                type="time"
+                required
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={missionFormData.startTime}
+                onChange={e => setMissionFormData({...missionFormData, startTime: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm mb-1 dark:text-gray-300">End Date</label>
+              <input
+                id="mission-endDate"
+                name="endDate"
+                type="date"
+                required
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={missionFormData.endDate}
+                onChange={e => setMissionFormData({...missionFormData, endDate: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1 dark:text-gray-300">End Time</label>
+              <input
+                id="mission-endTime"
+                name="endTime"
+                type="time"
+                required
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={missionFormData.endTime}
+                onChange={e => setMissionFormData({...missionFormData, endTime: e.target.value})}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Destination</label>
+            <input
+              id="mission-destination"
+              name="destination"
+              type="text"
+              required
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={missionFormData.destination || ''}
+              onChange={e => setMissionFormData({...missionFormData, destination: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Purpose / Notes</label>
+            <textarea
+              id="mission-purpose"
+              name="purpose"
+              rows={2}
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none"
+              value={missionFormData.purpose || ''}
+              onChange={e => setMissionFormData({...missionFormData, purpose: e.target.value})}
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Create Mission</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
+MissionModal.displayName = 'MissionModal';
+
+interface ExpenseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  vehicles: Vehicle[];
+  addFleetExpense: (expense: FleetExpense) => void;
+}
+
+const ExpenseModal = React.memo<ExpenseModalProps>(({
+  isOpen,
+  onClose,
+  vehicles,
+  addFleetExpense
+}) => {
+  const [expData, setExpData] = useState<Partial<FleetExpense>>({
+    type: 'fuel',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expData.vehicleId) return alert("Select vehicle");
+    addFleetExpense({
+      id: `fe-${Date.now()}`,
+      ...expData as any
+    });
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+        <h3 className="text-lg font-bold mb-4 dark:text-white">Add Expense</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Vehicle</label>
+            <select
+              id="expense-vehicleId"
+              name="vehicleId"
+              required
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={expData.vehicleId || ''}
+              onChange={e => setExpData({...expData, vehicleId: e.target.value})}
+            >
+              <option value="">Select...</option>
+              {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} - {v.model}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Type</label>
+            <select
+              id="expense-type"
+              name="type"
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={expData.type}
+              onChange={e => setExpData({...expData, type: e.target.value as any})}
+            >
+              <option value="fuel">Fuel</option>
+              <option value="insurance">Insurance</option>
+              <option value="tax">Tax</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Amount</label>
+            <input
+              id="expense-amount"
+              name="amount"
+              type="number"
+              required
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={expData.amount || ''}
+              onChange={e => setExpData({...expData, amount: parseFloat(e.target.value)})}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Description</label>
+            <input
+              id="expense-description"
+              name="description"
+              type="text"
+              required
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={expData.description || ''}
+              onChange={e => setExpData({...expData, description: e.target.value})}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
+ExpenseModal.displayName = 'ExpenseModal';
+
+interface DocumentsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedVehicleId: string;
+  fleetDocuments: FleetDocument[];
+  addFleetDocument: (doc: FleetDocument) => void;
+  deleteFleetDocument: (id: string) => void;
+}
+
+const DocumentsModal = React.memo<DocumentsModalProps>(({
+  isOpen,
+  onClose,
+  selectedVehicleId,
+  fleetDocuments,
+  addFleetDocument,
+  deleteFleetDocument
+}) => {
+  const [newDoc, setNewDoc] = useState<Partial<FleetDocument>>({ type: 'insurance' });
+  const docs = fleetDocuments.filter(d => d.vehicleId === selectedVehicleId);
+
+  const handleAdd = () => {
+    if (!newDoc.number) return;
+    addFleetDocument({
+      id: `fd-${Date.now()}`,
+      vehicleId: selectedVehicleId,
+      ...newDoc as any
+    });
+    setNewDoc({ type: 'insurance', number: '', expiryDate: '' });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg">
+        <div className="flex justify-between mb-4">
+          <h3 className="text-lg font-bold dark:text-white">Vehicle Documents</h3>
+          <button onClick={onClose}><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="space-y-2 mb-6 max-h-40 overflow-y-auto">
+          {docs.map(doc => (
+            <div key={doc.id} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+              <div>
+                <p className="font-medium text-sm dark:text-white capitalize">{doc.type} - {doc.number}</p>
+                <p className="text-xs text-gray-500">Exp: {doc.expiryDate || 'N/A'}</p>
+              </div>
+              <button onClick={() => deleteFleetDocument(doc.id)} className="text-red-500"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          ))}
+          {docs.length === 0 && <p className="text-sm text-gray-500 text-center">No documents found.</p>}
+        </div>
+
+        <div className="border-t pt-4 dark:border-gray-700">
+          <h4 className="text-sm font-bold mb-2 dark:text-gray-300">Add New Document</h4>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <select
+              id="doc-type"
+              name="type"
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+              value={newDoc.type}
+              onChange={e => setNewDoc({...newDoc, type: e.target.value as any})}
+            >
+              <option value="insurance">Insurance</option>
+              <option value="registration">Registration</option>
+              <option value="inspection">Inspection</option>
+              <option value="other">Other</option>
+            </select>
+            <input
+              id="doc-number"
+              name="number"
+              type="text"
+              placeholder="Doc Number"
+              className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+              value={newDoc.number || ''}
+              onChange={e => setNewDoc({...newDoc, number: e.target.value})}
+            />
+          </div>
+          <div className="flex gap-2">
+            <input
+              id="doc-expiryDate"
+              name="expiryDate"
+              type="date"
+              className="p-2 border rounded flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+              value={newDoc.expiryDate || ''}
+              onChange={e => setNewDoc({...newDoc, expiryDate: e.target.value})}
+            />
+            <button onClick={handleAdd} className="px-4 py-2 bg-green-600 text-white rounded text-sm">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+DocumentsModal.displayName = 'DocumentsModal';
+
+// ============ MAIN COMPONENT ============
+
 const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
   const { 
     vehicles, fleetMissions, fleetMaintenances, fleetExpenses, fleetDocuments, serviceJobs,
@@ -32,15 +584,8 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
   // Modal States
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  
+
   const [isMissionModalOpen, setIsMissionModalOpen] = useState(false);
-  const [missionFormData, setMissionFormData] = useState<Partial<FleetMission>>({
-      status: 'planned',
-      startDate: new Date().toISOString().split('T')[0],
-      startTime: '08:00',
-      endDate: new Date().toISOString().split('T')[0],
-      endTime: '18:00'
-  });
 
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -400,359 +945,8 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
       </div>
   );
 
-  // --- MODALS ---
+  // --- MODALS (Now extracted above as separate components) ---
 
-  const AddVehicleModal = () => {
-      const [formData, setFormData] = useState<Partial<Vehicle>>({
-          status: 'available',
-          fuelType: 'Diesel',
-          mileage: 0,
-          ...editingVehicle
-      });
-
-      const handleSubmit = (e: React.FormEvent) => {
-          e.preventDefault();
-          if (editingVehicle) {
-              updateVehicle({ ...editingVehicle, ...formData } as Vehicle);
-          } else {
-              addVehicle({ ...formData, id: `v-${Date.now()}` } as Vehicle);
-          }
-          setIsVehicleModalOpen(false);
-      };
-
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
-                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{editingVehicle ? 'Edit' : 'Add'} Vehicle</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">{t('make')}</label>
-                            <input required className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.make || ''} onChange={e => setFormData({...formData, make: e.target.value})} placeholder="Toyota" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">{t('model')}</label>
-                            <input required className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.model || ''} onChange={e => setFormData({...formData, model: e.target.value})} placeholder="Corolla" />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">{t('plate')}</label>
-                            <input required className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.plate || ''} onChange={e => setFormData({...formData, plate: e.target.value})} placeholder="123 TN 4567" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">Year</label>
-                            <input type="number" required className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.year || ''} onChange={e => setFormData({...formData, year: parseInt(e.target.value)})} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">{t('fuel_type')}</label>
-                            <select className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={formData.fuelType} onChange={e => setFormData({...formData, fuelType: e.target.value as any})}>
-                                <option value="Diesel">Diesel</option>
-                                <option value="Petrol">Petrol</option>
-                                <option value="Hybrid">Hybrid</option>
-                                <option value="Electric">Electric</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">{t('mileage')}</label>
-                            <input type="number" required className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.mileage} onChange={e => setFormData({...formData, mileage: parseInt(e.target.value)})} />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                             <label className="block text-xs font-bold text-gray-500 mb-1">{t('insurance_expiry')}</label>
-                             <input type="date" className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.insuranceExpiry || ''} onChange={e => setFormData({...formData, insuranceExpiry: e.target.value})} />
-                        </div>
-                        <div>
-                             <label className="block text-xs font-bold text-gray-500 mb-1">{t('tech_check_expiry')}</label>
-                             <input type="date" className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                value={formData.technicalCheckExpiry || ''} onChange={e => setFormData({...formData, technicalCheckExpiry: e.target.value})} />
-                        </div>
-                    </div>
-                    <div className="flex justify-end gap-2 mt-6">
-                        <button type="button" onClick={() => setIsVehicleModalOpen(false)} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded">{t('cancel')}</button>
-                        <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">{t('save')}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-      );
-  };
-
-  // Mission Modal
-  const MissionModal = () => {
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!missionFormData.vehicleId) return alert("Please select a vehicle");
-
-        // --- Overlap Validation Logic ---
-        const newStart = new Date(`${missionFormData.startDate}T${missionFormData.startTime || '00:00'}`);
-        const newEnd = new Date(`${missionFormData.endDate}T${missionFormData.endTime || '23:59'}`);
-
-        if (newEnd <= newStart) {
-            return alert("End time must be after start time.");
-        }
-
-        const hasConflict = fleetMissions.some(mission => {
-            // Skip check for same mission (if editing), cancelled missions, or different vehicles
-            if (mission.vehicleId !== missionFormData.vehicleId) return false;
-            if (mission.status === 'cancelled') return false;
-
-            const existingStart = new Date(`${mission.startDate}T${mission.startTime || '00:00'}`);
-            const existingEnd = new Date(`${mission.endDate}T${mission.endTime || '23:59'}`);
-
-            // Check for overlap
-            return (newStart < existingEnd && newEnd > existingStart);
-        });
-
-        if (hasConflict) {
-            return alert("This vehicle is already assigned to another mission during this period.");
-        }
-        // --------------------------------
-
-        const vehicle = vehicles.find(v => v.id === missionFormData.vehicleId);
-        
-        addFleetMission({
-            id: `miss-${Date.now()}`,
-            vehicleName: vehicle ? `${vehicle.make} ${vehicle.model}` : 'Unknown',
-            ...missionFormData as any
-        });
-        setIsMissionModalOpen(false);
-        setMissionFormData({ 
-            status: 'planned', 
-            startDate: new Date().toISOString().split('T')[0],
-            startTime: '08:00',
-            endDate: new Date().toISOString().split('T')[0],
-            endTime: '18:00'
-        });
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
-                <h3 className="text-lg font-bold mb-4 dark:text-white">{t('new_mission')}</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm mb-1 dark:text-gray-300">{t('vehicle')}</label>
-                        <select 
-                            required 
-                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            value={missionFormData.vehicleId || ''}
-                            onChange={e => setMissionFormData({...missionFormData, vehicleId: e.target.value})}
-                        >
-                            <option value="">Select Vehicle...</option>
-                            {vehicles.filter(v => v.status === 'available' || v.status === 'in_use').map(v => (
-                                <option key={v.id} value={v.id}>{v.plate} - {v.make} {v.model}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm mb-1 dark:text-gray-300">{t('driver')}</label>
-                        <input 
-                            type="text" 
-                            required 
-                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            value={missionFormData.driverName || ''}
-                            onChange={e => setMissionFormData({...missionFormData, driverName: e.target.value})}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm mb-1 dark:text-gray-300">Start Date</label>
-                            <input 
-                                type="date" 
-                                required 
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={missionFormData.startDate}
-                                onChange={e => setMissionFormData({...missionFormData, startDate: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1 dark:text-gray-300">Start Time</label>
-                            <input 
-                                type="time" 
-                                required
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={missionFormData.startTime}
-                                onChange={e => setMissionFormData({...missionFormData, startTime: e.target.value})}
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm mb-1 dark:text-gray-300">End Date</label>
-                            <input 
-                                type="date" 
-                                required 
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={missionFormData.endDate}
-                                onChange={e => setMissionFormData({...missionFormData, endDate: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1 dark:text-gray-300">End Time</label>
-                            <input 
-                                type="time" 
-                                required
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={missionFormData.endTime}
-                                onChange={e => setMissionFormData({...missionFormData, endTime: e.target.value})}
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm mb-1 dark:text-gray-300">Destination</label>
-                        <input 
-                            type="text" 
-                            required 
-                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            value={missionFormData.destination || ''}
-                            onChange={e => setMissionFormData({...missionFormData, destination: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm mb-1 dark:text-gray-300">Purpose / Notes</label>
-                        <textarea 
-                            rows={2}
-                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none"
-                            value={missionFormData.purpose || ''}
-                            onChange={e => setMissionFormData({...missionFormData, purpose: e.target.value})}
-                        />
-                    </div>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" onClick={() => setIsMissionModalOpen(false)} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded">Cancel</button>
-                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Create Mission</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-  };
-
-  const ExpenseModal = () => {
-      const [expData, setExpData] = useState<Partial<FleetExpense>>({ type: 'fuel', date: new Date().toISOString().split('T')[0] });
-      
-      const handleSubmit = (e: React.FormEvent) => {
-          e.preventDefault();
-          if (!expData.vehicleId) return alert("Select vehicle");
-          addFleetExpense({
-              id: `fe-${Date.now()}`,
-              ...expData as any
-          });
-          setIsExpenseModalOpen(false);
-      };
-
-      return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
-                  <h3 className="text-lg font-bold mb-4 dark:text-white">Add Expense</h3>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                      <div>
-                          <label className="block text-sm mb-1 dark:text-gray-300">Vehicle</label>
-                          <select required className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              onChange={e => setExpData({...expData, vehicleId: e.target.value})}>
-                              <option value="">Select...</option>
-                              {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} - {v.model}</option>)}
-                          </select>
-                      </div>
-                      <div>
-                          <label className="block text-sm mb-1 dark:text-gray-300">Type</label>
-                          <select className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              value={expData.type} onChange={e => setExpData({...expData, type: e.target.value as any})}>
-                              <option value="fuel">Fuel</option>
-                              <option value="insurance">Insurance</option>
-                              <option value="tax">Tax</option>
-                              <option value="other">Other</option>
-                          </select>
-                      </div>
-                      <div>
-                          <label className="block text-sm mb-1 dark:text-gray-300">Amount</label>
-                          <input type="number" required className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              onChange={e => setExpData({...expData, amount: parseFloat(e.target.value)})} />
-                      </div>
-                      <div>
-                          <label className="block text-sm mb-1 dark:text-gray-300">Description</label>
-                          <input type="text" required className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              onChange={e => setExpData({...expData, description: e.target.value})} />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                          <button type="button" onClick={() => setIsExpenseModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-                          <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
-                      </div>
-                  </form>
-              </div>
-          </div>
-      );
-  };
-  
-  const DocumentsModal = () => {
-      const [newDoc, setNewDoc] = useState<Partial<FleetDocument>>({ type: 'insurance' });
-      const docs = fleetDocuments.filter(d => d.vehicleId === selectedVehicleId);
-      
-      const handleAdd = () => {
-          if (!newDoc.number) return;
-          addFleetDocument({
-              id: `fd-${Date.now()}`,
-              vehicleId: selectedVehicleId,
-              ...newDoc as any
-          });
-          setNewDoc({ type: 'insurance', number: '', expiryDate: '' });
-      };
-
-      return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg">
-                  <div className="flex justify-between mb-4">
-                     <h3 className="text-lg font-bold dark:text-white">Vehicle Documents</h3>
-                     <button onClick={() => setIsDocumentModalOpen(false)}><X className="w-5 h-5" /></button>
-                  </div>
-                  
-                  <div className="space-y-2 mb-6 max-h-40 overflow-y-auto">
-                      {docs.map(doc => (
-                          <div key={doc.id} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                              <div>
-                                  <p className="font-medium text-sm dark:text-white capitalize">{doc.type} - {doc.number}</p>
-                                  <p className="text-xs text-gray-500">Exp: {doc.expiryDate || 'N/A'}</p>
-                              </div>
-                              <button onClick={() => deleteFleetDocument(doc.id)} className="text-red-500"><Trash2 className="w-4 h-4" /></button>
-                          </div>
-                      ))}
-                      {docs.length === 0 && <p className="text-sm text-gray-500 text-center">No documents found.</p>}
-                  </div>
-
-                  <div className="border-t pt-4 dark:border-gray-700">
-                      <h4 className="text-sm font-bold mb-2 dark:text-gray-300">Add New Document</h4>
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                          <select className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                              value={newDoc.type} onChange={e => setNewDoc({...newDoc, type: e.target.value as any})}>
-                              <option value="insurance">Insurance</option>
-                              <option value="registration">Registration</option>
-                              <option value="inspection">Inspection</option>
-                              <option value="other">Other</option>
-                          </select>
-                          <input type="text" placeholder="Doc Number" className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                              value={newDoc.number || ''} onChange={e => setNewDoc({...newDoc, number: e.target.value})} />
-                      </div>
-                      <div className="flex gap-2">
-                          <input type="date" className="p-2 border rounded flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
-                              value={newDoc.expiryDate || ''} onChange={e => setNewDoc({...newDoc, expiryDate: e.target.value})} />
-                          <button onClick={handleAdd} className="px-4 py-2 bg-green-600 text-white rounded text-sm">Add</button>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      );
-  };
-  
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
@@ -783,11 +977,39 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ view }) => {
           {activeTab === 'costs' && renderCosts()}
       </div>
 
-      {isVehicleModalOpen && <AddVehicleModal />}
-      {isExpenseModalOpen && <ExpenseModal />}
-      {isDocumentModalOpen && <DocumentsModal />}
-      
-      {isMissionModalOpen && <MissionModal />}
+      <AddVehicleModal
+        isOpen={isVehicleModalOpen}
+        onClose={() => setIsVehicleModalOpen(false)}
+        editingVehicle={editingVehicle}
+        addVehicle={addVehicle}
+        updateVehicle={updateVehicle}
+        t={t}
+      />
+
+      <ExpenseModal
+        isOpen={isExpenseModalOpen}
+        onClose={() => setIsExpenseModalOpen(false)}
+        vehicles={vehicles}
+        addFleetExpense={addFleetExpense}
+      />
+
+      <DocumentsModal
+        isOpen={isDocumentModalOpen}
+        onClose={() => setIsDocumentModalOpen(false)}
+        selectedVehicleId={selectedVehicleId}
+        fleetDocuments={fleetDocuments}
+        addFleetDocument={addFleetDocument}
+        deleteFleetDocument={deleteFleetDocument}
+      />
+
+      <MissionModal
+        isOpen={isMissionModalOpen}
+        onClose={() => setIsMissionModalOpen(false)}
+        vehicles={vehicles}
+        fleetMissions={fleetMissions}
+        addFleetMission={addFleetMission}
+        t={t}
+      />
       
       {isMaintenanceModalOpen && (
            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

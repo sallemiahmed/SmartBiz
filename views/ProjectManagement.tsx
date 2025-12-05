@@ -179,6 +179,420 @@ const ProjectModalComponent: React.FC<ProjectModalProps> = React.memo(({
   </div>
 ));
 
+// Task Modal Component
+interface TaskModalProps {
+  editingTask: ProjectTask | null;
+  taskForm: Partial<ProjectTask>;
+  setTaskForm: (form: Partial<ProjectTask>) => void;
+  projects: Project[];
+  employees: Employee[];
+  onClose: () => void;
+  onSave: () => void;
+}
+
+const TaskModalComponent: React.FC<TaskModalProps> = React.memo(({
+  editingTask,
+  taskForm,
+  setTaskForm,
+  projects,
+  employees,
+  onClose,
+  onSave
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h2 className="text-xl font-bold dark:text-white">
+          {editingTask ? 'Modifier la Tâche' : 'Nouvelle Tâche'}
+        </h2>
+        <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="p-6 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projet *</label>
+            <select
+              id="task-project"
+              name="task-project"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.projectId || ''}
+              onChange={e => setTaskForm({ ...taskForm, projectId: e.target.value })}
+            >
+              <option value="">Sélectionner un projet</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titre *</label>
+            <input
+              type="text"
+              id="task-title"
+              name="task-title"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.title || ''}
+              onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigné à</label>
+            <select
+              id="task-assignee"
+              name="task-assignee"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.assigneeId || ''}
+              onChange={e => setTaskForm({ ...taskForm, assigneeId: e.target.value })}
+            >
+              <option value="">Non assigné</option>
+              {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'échéance</label>
+            <input
+              type="date"
+              id="task-due-date"
+              name="task-due-date"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.dueDate || ''}
+              onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heures estimées</label>
+            <input
+              type="number"
+              id="task-estimated-hours"
+              name="task-estimated-hours"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.estimatedHours || ''}
+              onChange={e => setTaskForm({ ...taskForm, estimatedHours: parseFloat(e.target.value) || 0 })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priorité</label>
+            <select
+              id="task-priority"
+              name="task-priority"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.priority}
+              onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as ProjectTask['priority'] })}
+            >
+              <option value="low">Basse</option>
+              <option value="medium">Moyenne</option>
+              <option value="high">Haute</option>
+              <option value="critical">Critique</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
+            <select
+              id="task-status"
+              name="task-status"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.status}
+              onChange={e => setTaskForm({ ...taskForm, status: e.target.value as ProjectTask['status'] })}
+            >
+              <option value="todo">À faire</option>
+              <option value="in_progress">En cours</option>
+              <option value="review">En revue</option>
+              <option value="completed">Terminée</option>
+              <option value="blocked">Bloquée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <textarea
+              id="task-description"
+              name="task-description"
+              rows={3}
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={taskForm.description || ''}
+              onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          Annuler
+        </button>
+        <button
+          onClick={onSave}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          {editingTask ? 'Mettre à jour' : 'Créer'}
+        </button>
+      </div>
+    </div>
+  </div>
+));
+
+// Time Entry Modal Component
+interface TimeEntryModalProps {
+  timeEntryForm: Partial<ProjectTimeEntry>;
+  setTimeEntryForm: (form: Partial<ProjectTimeEntry>) => void;
+  projects: Project[];
+  projectTasks: ProjectTask[];
+  employees: Employee[];
+  onClose: () => void;
+  onSave: () => void;
+}
+
+const TimeEntryModalComponent: React.FC<TimeEntryModalProps> = React.memo(({
+  timeEntryForm,
+  setTimeEntryForm,
+  projects,
+  projectTasks,
+  employees,
+  onClose,
+  onSave
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h2 className="text-xl font-bold dark:text-white">Enregistrer du Temps</h2>
+        <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="p-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projet *</label>
+          <select
+            id="time-entry-project"
+            name="time-entry-project"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+            value={timeEntryForm.projectId || ''}
+            onChange={e => setTimeEntryForm({ ...timeEntryForm, projectId: e.target.value, taskId: undefined })}
+          >
+            <option value="">Sélectionner un projet</option>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+        {timeEntryForm.projectId && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tâche</label>
+            <select
+              id="time-entry-task"
+              name="time-entry-task"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={timeEntryForm.taskId || ''}
+              onChange={e => setTimeEntryForm({ ...timeEntryForm, taskId: e.target.value })}
+            >
+              <option value="">Aucune tâche spécifique</option>
+              {projectTasks.filter(t => t.projectId === timeEntryForm.projectId).map(t =>
+                <option key={t.id} value={t.id}>{t.title}</option>
+              )}
+            </select>
+          </div>
+        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Employé *</label>
+          <select
+            id="time-entry-employee"
+            name="time-entry-employee"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+            value={timeEntryForm.employeeId || ''}
+            onChange={e => setTimeEntryForm({ ...timeEntryForm, employeeId: e.target.value })}
+          >
+            <option value="">Sélectionner un employé</option>
+            {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
+            <input
+              type="date"
+              id="time-entry-date"
+              name="time-entry-date"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={timeEntryForm.date || ''}
+              onChange={e => setTimeEntryForm({ ...timeEntryForm, date: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heures *</label>
+            <input
+              type="number"
+              step="0.5"
+              id="time-entry-hours"
+              name="time-entry-hours"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={timeEntryForm.hours || ''}
+              onChange={e => setTimeEntryForm({ ...timeEntryForm, hours: parseFloat(e.target.value) || 0 })}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+          <textarea
+            id="time-entry-description"
+            name="time-entry-description"
+            rows={2}
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+            value={timeEntryForm.description || ''}
+            onChange={e => setTimeEntryForm({ ...timeEntryForm, description: e.target.value })}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="time-entry-billable"
+            name="time-entry-billable"
+            checked={timeEntryForm.billable ?? true}
+            onChange={e => setTimeEntryForm({ ...timeEntryForm, billable: e.target.checked })}
+            className="w-4 h-4"
+          />
+          <label htmlFor="time-entry-billable" className="text-sm text-gray-700 dark:text-gray-300">Facturable</label>
+        </div>
+      </div>
+      <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          Annuler
+        </button>
+        <button
+          onClick={onSave}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+));
+
+// Expense Modal Component
+interface ExpenseModalProps {
+  expenseForm: Partial<ProjectExpense>;
+  setExpenseForm: (form: Partial<ProjectExpense>) => void;
+  projects: Project[];
+  onClose: () => void;
+  onSave: () => void;
+}
+
+const ExpenseModalComponent: React.FC<ExpenseModalProps> = React.memo(({
+  expenseForm,
+  setExpenseForm,
+  projects,
+  onClose,
+  onSave
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h2 className="text-xl font-bold dark:text-white">Nouvelle Dépense</h2>
+        <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="p-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projet *</label>
+          <select
+            id="expense-project"
+            name="expense-project"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+            value={expenseForm.projectId || ''}
+            onChange={e => setExpenseForm({ ...expenseForm, projectId: e.target.value })}
+          >
+            <option value="">Sélectionner un projet</option>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie *</label>
+            <select
+              id="expense-category"
+              name="expense-category"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={expenseForm.category}
+              onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value as ProjectExpense['category'] })}
+            >
+              <option value="materials">Matériaux</option>
+              <option value="equipment">Équipement</option>
+              <option value="travel">Déplacement</option>
+              <option value="subcontractor">Sous-traitance</option>
+              <option value="software">Logiciel</option>
+              <option value="other">Autre</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
+            <input
+              type="date"
+              id="expense-date"
+              name="expense-date"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={expenseForm.date || ''}
+              onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description *</label>
+          <input
+            type="text"
+            id="expense-description"
+            name="expense-description"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+            value={expenseForm.description || ''}
+            onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Montant *</label>
+            <input
+              type="number"
+              id="expense-amount"
+              name="expense-amount"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={expenseForm.amount || ''}
+              onChange={e => setExpenseForm({ ...expenseForm, amount: parseFloat(e.target.value) || 0 })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
+            <input
+              type="text"
+              id="expense-vendor"
+              name="expense-vendor"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={expenseForm.vendorName || ''}
+              onChange={e => setExpenseForm({ ...expenseForm, vendorName: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          Annuler
+        </button>
+        <button
+          onClick={onSave}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          Créer
+        </button>
+      </div>
+    </div>
+  </div>
+));
+
 const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   const {
     projects, addProject, updateProject, deleteProject,
@@ -1785,329 +2199,6 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
     );
   };
 
-  // Task Modal
-  const TaskModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold dark:text-white">
-            {editingTask ? 'Modifier la Tâche' : 'Nouvelle Tâche'}
-          </h2>
-          <button onClick={() => { setShowTaskModal(false); resetTaskForm(); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projet *</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.projectId || ''}
-                onChange={e => setTaskForm({ ...taskForm, projectId: e.target.value })}
-              >
-                <option value="">Sélectionner un projet</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titre *</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.title || ''}
-                onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigné à</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.assigneeId || ''}
-                onChange={e => setTaskForm({ ...taskForm, assigneeId: e.target.value })}
-              >
-                <option value="">Non assigné</option>
-                {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'échéance</label>
-              <input
-                type="date"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.dueDate || ''}
-                onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heures estimées</label>
-              <input
-                type="number"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.estimatedHours || ''}
-                onChange={e => setTaskForm({ ...taskForm, estimatedHours: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priorité</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.priority}
-                onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as ProjectTask['priority'] })}
-              >
-                <option value="low">Basse</option>
-                <option value="medium">Moyenne</option>
-                <option value="high">Haute</option>
-                <option value="critical">Critique</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.status}
-                onChange={e => setTaskForm({ ...taskForm, status: e.target.value as ProjectTask['status'] })}
-              >
-                <option value="todo">À faire</option>
-                <option value="in_progress">En cours</option>
-                <option value="review">En revue</option>
-                <option value="completed">Terminée</option>
-                <option value="blocked">Bloquée</option>
-                <option value="cancelled">Annulée</option>
-              </select>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-              <textarea
-                rows={3}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={taskForm.description || ''}
-                onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-          <button
-            onClick={() => { setShowTaskModal(false); resetTaskForm(); }}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={handleSaveTask}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            {editingTask ? 'Mettre à jour' : 'Créer'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Time Entry Modal
-  const TimeEntryModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold dark:text-white">Enregistrer du Temps</h2>
-          <button onClick={() => setShowTimeEntryModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projet *</label>
-            <select
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              value={timeEntryForm.projectId || ''}
-              onChange={e => setTimeEntryForm({ ...timeEntryForm, projectId: e.target.value, taskId: undefined })}
-            >
-              <option value="">Sélectionner un projet</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          {timeEntryForm.projectId && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tâche</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={timeEntryForm.taskId || ''}
-                onChange={e => setTimeEntryForm({ ...timeEntryForm, taskId: e.target.value })}
-              >
-                <option value="">Aucune tâche spécifique</option>
-                {projectTasks.filter(t => t.projectId === timeEntryForm.projectId).map(t =>
-                  <option key={t.id} value={t.id}>{t.title}</option>
-                )}
-              </select>
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Employé *</label>
-            <select
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              value={timeEntryForm.employeeId || ''}
-              onChange={e => setTimeEntryForm({ ...timeEntryForm, employeeId: e.target.value })}
-            >
-              <option value="">Sélectionner un employé</option>
-              {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
-              <input
-                type="date"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={timeEntryForm.date || ''}
-                onChange={e => setTimeEntryForm({ ...timeEntryForm, date: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heures *</label>
-              <input
-                type="number"
-                step="0.5"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={timeEntryForm.hours || ''}
-                onChange={e => setTimeEntryForm({ ...timeEntryForm, hours: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-            <textarea
-              rows={2}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              value={timeEntryForm.description || ''}
-              onChange={e => setTimeEntryForm({ ...timeEntryForm, description: e.target.value })}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="billable"
-              checked={timeEntryForm.billable ?? true}
-              onChange={e => setTimeEntryForm({ ...timeEntryForm, billable: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="billable" className="text-sm text-gray-700 dark:text-gray-300">Facturable</label>
-          </div>
-        </div>
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-          <button
-            onClick={() => setShowTimeEntryModal(false)}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={handleSaveTimeEntry}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Enregistrer
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Expense Modal
-  const ExpenseModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold dark:text-white">Nouvelle Dépense</h2>
-          <button onClick={() => setShowExpenseModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projet *</label>
-            <select
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              value={expenseForm.projectId || ''}
-              onChange={e => setExpenseForm({ ...expenseForm, projectId: e.target.value })}
-            >
-              <option value="">Sélectionner un projet</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie *</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={expenseForm.category}
-                onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value as ProjectExpense['category'] })}
-              >
-                <option value="materials">Matériaux</option>
-                <option value="equipment">Équipement</option>
-                <option value="travel">Déplacement</option>
-                <option value="subcontractor">Sous-traitance</option>
-                <option value="software">Logiciel</option>
-                <option value="other">Autre</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
-              <input
-                type="date"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={expenseForm.date || ''}
-                onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description *</label>
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              value={expenseForm.description || ''}
-              onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Montant *</label>
-              <input
-                type="number"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={expenseForm.amount || ''}
-                onChange={e => setExpenseForm({ ...expenseForm, amount: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fournisseur</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={expenseForm.vendorName || ''}
-                onChange={e => setExpenseForm({ ...expenseForm, vendorName: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-          <button
-            onClick={() => setShowExpenseModal(false)}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={handleSaveExpense}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Créer
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
   const tabs: { id: ProjectsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Tableau de Bord', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'projects', label: 'Projets', icon: <FolderKanban className="w-4 h-4" /> },
@@ -2169,9 +2260,37 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
           onSave={handleSaveProject}
         />
       )}
-      {showTaskModal && <TaskModal />}
-      {showTimeEntryModal && <TimeEntryModal />}
-      {showExpenseModal && <ExpenseModal />}
+      {showTaskModal && (
+        <TaskModalComponent
+          editingTask={editingTask}
+          taskForm={taskForm}
+          setTaskForm={setTaskForm}
+          projects={projects}
+          employees={employees}
+          onClose={() => { setShowTaskModal(false); resetTaskForm(); }}
+          onSave={handleSaveTask}
+        />
+      )}
+      {showTimeEntryModal && (
+        <TimeEntryModalComponent
+          timeEntryForm={timeEntryForm}
+          setTimeEntryForm={setTimeEntryForm}
+          projects={projects}
+          projectTasks={projectTasks}
+          employees={employees}
+          onClose={() => setShowTimeEntryModal(false)}
+          onSave={handleSaveTimeEntry}
+        />
+      )}
+      {showExpenseModal && (
+        <ExpenseModalComponent
+          expenseForm={expenseForm}
+          setExpenseForm={setExpenseForm}
+          projects={projects}
+          onClose={() => setShowExpenseModal(false)}
+          onSave={handleSaveExpense}
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Trash2, X, Truck, Link, Printer } from 'lucide-react';
 import { Invoice } from '../types';
 import { useApp } from '../context/AppContext';
@@ -7,9 +7,11 @@ import { printInvoice } from '../utils/printGenerator';
 
 interface SalesDeliveriesProps {
   onAddNew: () => void;
+  autoOpenDocId?: string | null;
+  onDocOpened?: () => void;
 }
 
-const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
+const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
   const { invoices, deleteInvoice, t, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +36,20 @@ const SalesDeliveries: React.FC<SalesDeliveriesProps> = ({ onAddNew }) => {
       printInvoice(selectedDoc, settings);
     }
   };
+
+  // Auto-open document modal after creation
+  useEffect(() => {
+    if (autoOpenDocId && !isViewModalOpen) {
+      const docToOpen = deliveries.find(doc => doc.id === autoOpenDocId);
+      if (docToOpen) {
+        setSelectedDoc(docToOpen);
+        setIsViewModalOpen(true);
+        if (onDocOpened) {
+          onDocOpened();
+        }
+      }
+    }
+  }, [autoOpenDocId, deliveries, isViewModalOpen]);
 
   return (
     <div className="p-6">

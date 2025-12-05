@@ -8,6 +8,295 @@ interface PurchaseOrdersProps {
   onAddNew: () => void;
 }
 
+// View Modal Component
+interface ViewModalProps {
+  selectedOrder: Purchase;
+  onClose: () => void;
+  onPrint: () => void;
+  onGenerateInvoice: () => void;
+  onReceiveGoods: () => void;
+  formatCurrency: (amount: number) => string;
+  getStatusColor: (status: string) => string;
+  t: (key: string) => string;
+}
+
+const ViewModal = React.memo<ViewModalProps>(({
+  selectedOrder,
+  onClose,
+  onPrint,
+  onGenerateInvoice,
+  onReceiveGoods,
+  formatCurrency,
+  getStatusColor,
+  t
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('po_details')}</h3>
+            <span className="text-sm text-emerald-600 dark:text-emerald-400 font-mono">{selectedOrder.number}</span>
+          </div>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-500" /></button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between">
+            <span className="text-gray-500">{t('supplier_management')}</span>
+            <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.supplierName}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">{t('date')}</span>
+            <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.date}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">{t('status')}</span>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(selectedOrder.status)}`}>
+              {t(selectedOrder.status)}
+            </span>
+          </div>
+
+          {/* Payment & Conditions - Read Only */}
+          {(selectedOrder.paymentTerms || selectedOrder.paymentMethod || selectedOrder.notes) && (
+            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                <CreditCard className="w-4 h-4" /> Payment & Conditions
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {selectedOrder.paymentTerms && (
+                  <div>
+                    <span className="text-gray-500 block">Terms:</span>
+                    <span className="text-gray-900 dark:text-white">{selectedOrder.paymentTerms}</span>
+                  </div>
+                )}
+                {selectedOrder.paymentMethod && (
+                  <div>
+                    <span className="text-gray-500 block">Method:</span>
+                    <span className="text-gray-900 dark:text-white">{selectedOrder.paymentMethod}</span>
+                  </div>
+                )}
+              </div>
+              {selectedOrder.notes && (
+                <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                  <span className="text-gray-500 block">Notes:</span>
+                  <span className="text-gray-700 dark:text-gray-300 italic">{selectedOrder.notes}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {selectedOrder.items.length > 0 ? (
+                selectedOrder.items.map((item, idx) => {
+                  const fulfilled = item.fulfilledQuantity || 0;
+                  const isFullyReceived = fulfilled >= item.quantity;
+
+                  return (
+                    <div key={idx} className="flex justify-between items-center text-sm py-1">
+                      <div className="flex flex-col">
+                        <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
+                        <span className="text-xs text-gray-400">
+                          Received: <span className={isFullyReceived ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
+                        </span>
+                      </div>
+                      <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-gray-400 italic">No items recorded</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
+            <span className="text-gray-900 dark:text-white">{t('total')}</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedOrder.amount)}</span>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={onPrint}
+            className="flex-1 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+          >
+            <Printer className="w-4 h-4" /> Print Order
+          </button>
+
+          <button
+            onClick={onGenerateInvoice}
+            className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <Receipt className="w-4 h-4" />
+            {t('generate_invoice')}
+          </button>
+
+          {selectedOrder.status !== 'received' && (
+            <button
+              onClick={onReceiveGoods}
+              className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <Truck className="w-4 h-4" />
+              {t('receive_goods')}
+            </button>
+          )}
+
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            {t('close')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+ViewModal.displayName = 'ViewModal';
+
+// Reception Modal Component
+interface ReceptionModalProps {
+  selectedOrder: Purchase;
+  receiveQuantities: Record<string, number>;
+  onClose: () => void;
+  onQtyChange: (itemId: string, val: string) => void;
+  onSubmit: () => void;
+  t: (key: string) => string;
+}
+
+const ReceptionModal = React.memo<ReceptionModalProps>(({
+  selectedOrder,
+  receiveQuantities,
+  onClose,
+  onQtyChange,
+  onSubmit,
+  t
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('receive_goods')}</h3>
+            <p className="text-xs text-gray-500">PO: {selectedOrder.number}</p>
+          </div>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-500" /></button>
+        </div>
+
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+              <tr>
+                <th className="px-3 py-2 text-left">Item</th>
+                <th className="px-3 py-2 text-center">Ordered</th>
+                <th className="px-3 py-2 text-center">Received</th>
+                <th className="px-3 py-2 text-right">Receive Now</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {selectedOrder.items.map((item) => {
+                const fulfilled = item.fulfilledQuantity || 0;
+                const remaining = item.quantity - fulfilled;
+                const isFullyReceived = remaining <= 0;
+
+                return (
+                  <tr key={item.id} className={isFullyReceived ? 'opacity-50' : ''}>
+                    <td className="px-3 py-3 text-gray-900 dark:text-white">
+                      <div className="font-medium">{item.description}</div>
+                    </td>
+                    <td className="px-3 py-3 text-center text-gray-500">{item.quantity}</td>
+                    <td className="px-3 py-3 text-center text-green-600">{fulfilled}</td>
+                    <td className="px-3 py-3 text-right">
+                      <input
+                        type="number"
+                        id={`receive-qty-${item.id}`}
+                        name={`receive-qty-${item.id}`}
+                        min="0"
+                        max={remaining}
+                        disabled={isFullyReceived}
+                        value={receiveQuantities[item.id] || 0}
+                        onChange={(e) => onQtyChange(item.id, e.target.value)}
+                        className="w-20 px-2 py-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            onClick={onSubmit}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Confirm Receipt
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+ReceptionModal.displayName = 'ReceptionModal';
+
+// Delete Modal Component
+interface DeleteModalProps {
+  selectedOrder: Purchase;
+  onClose: () => void;
+  onDelete: () => void;
+  t: (key: string) => string;
+}
+
+const DeleteModal = React.memo<DeleteModalProps>(({
+  selectedOrder,
+  onClose,
+  onDelete,
+  t
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
+         <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-500">
+           <AlertTriangle className="w-6 h-6" />
+         </div>
+         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('delete_confirm_title')}</h3>
+         <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
+           {t('delete_confirm_msg')} <span className="font-bold">{selectedOrder.number}</span>?
+         </p>
+         <div className="flex gap-3 justify-center">
+           <button
+             onClick={onClose}
+             className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+           >
+             {t('cancel')}
+           </button>
+           <button
+             onClick={onDelete}
+             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+           >
+             {t('yes_delete')}
+           </button>
+         </div>
+      </div>
+    </div>
+  );
+});
+
+DeleteModal.displayName = 'DeleteModal';
+
 const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
   const { purchases, deletePurchase, createPurchaseDocument, updatePurchase, formatCurrency, settings, t } = useApp();
   
@@ -251,229 +540,38 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
 
       {/* View Modal */}
       {isViewModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
-            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('po_details')}</h3>
-                <span className="text-sm text-emerald-600 dark:text-emerald-400 font-mono">{selectedOrder.number}</span>
-              </div>
-              <button onClick={() => setIsViewModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('supplier_management')}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.supplierName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('date')}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.date}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('status')}</span>
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(selectedOrder.status)}`}>
-                  {t(selectedOrder.status)}
-                </span>
-              </div>
-
-              {/* Payment & Conditions - Read Only */}
-              {(selectedOrder.paymentTerms || selectedOrder.paymentMethod || selectedOrder.notes) && (
-                <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg text-sm space-y-2 border border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
-                    <CreditCard className="w-4 h-4" /> Payment & Conditions
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {selectedOrder.paymentTerms && (
-                      <div>
-                        <span className="text-gray-500 block">Terms:</span>
-                        <span className="text-gray-900 dark:text-white">{selectedOrder.paymentTerms}</span>
-                      </div>
-                    )}
-                    {selectedOrder.paymentMethod && (
-                      <div>
-                        <span className="text-gray-500 block">Method:</span>
-                        <span className="text-gray-900 dark:text-white">{selectedOrder.paymentMethod}</span>
-                      </div>
-                    )}
-                  </div>
-                  {selectedOrder.notes && (
-                    <div className="text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                      <span className="text-gray-500 block">Notes:</span>
-                      <span className="text-gray-700 dark:text-gray-300 italic">{selectedOrder.notes}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Items</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {selectedOrder.items.length > 0 ? (
-                    selectedOrder.items.map((item, idx) => {
-                      const fulfilled = item.fulfilledQuantity || 0;
-                      const isFullyReceived = fulfilled >= item.quantity;
-                      
-                      return (
-                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                          <div className="flex flex-col">
-                            <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
-                            <span className="text-xs text-gray-400">
-                              Received: <span className={isFullyReceived ? 'text-green-500 font-bold' : 'text-orange-500'}>{fulfilled}</span> / {item.quantity}
-                            </span>
-                          </div>
-                          <span className="text-gray-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">No items recorded</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-4 font-bold text-lg">
-                <span className="text-gray-900 dark:text-white">{t('total')}</span>
-                <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedOrder.amount)}</span>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button 
-                onClick={handlePrint}
-                className="flex-1 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> Print Order
-              </button>
-              
-              <button
-                onClick={handleGenerateInvoice}
-                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Receipt className="w-4 h-4" />
-                {t('generate_invoice')}
-              </button>
-
-              {selectedOrder.status !== 'received' && (
-                <button
-                  onClick={handleOpenReceiveModal}
-                  className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Truck className="w-4 h-4" />
-                  {t('receive_goods')}
-                </button>
-              )}
-              
-              <button 
-                onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
-              >
-                {t('close')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ViewModal
+          selectedOrder={selectedOrder}
+          onClose={() => setIsViewModalOpen(false)}
+          onPrint={handlePrint}
+          onGenerateInvoice={handleGenerateInvoice}
+          onReceiveGoods={handleOpenReceiveModal}
+          formatCurrency={formatCurrency}
+          getStatusColor={getStatusColor}
+          t={t}
+        />
       )}
 
       {/* Reception Modal */}
       {isReceiveModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6">
-            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('receive_goods')}</h3>
-                <p className="text-xs text-gray-500">PO: {selectedOrder.number}</p>
-              </div>
-              <button onClick={() => setIsReceiveModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
-            </div>
-
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Item</th>
-                    <th className="px-3 py-2 text-center">Ordered</th>
-                    <th className="px-3 py-2 text-center">Received</th>
-                    <th className="px-3 py-2 text-right">Receive Now</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {selectedOrder.items.map((item) => {
-                    const fulfilled = item.fulfilledQuantity || 0;
-                    const remaining = item.quantity - fulfilled;
-                    const isFullyReceived = remaining <= 0;
-
-                    return (
-                      <tr key={item.id} className={isFullyReceived ? 'opacity-50' : ''}>
-                        <td className="px-3 py-3 text-gray-900 dark:text-white">
-                          <div className="font-medium">{item.description}</div>
-                        </td>
-                        <td className="px-3 py-3 text-center text-gray-500">{item.quantity}</td>
-                        <td className="px-3 py-3 text-center text-green-600">{fulfilled}</td>
-                        <td className="px-3 py-3 text-right">
-                          <input 
-                            type="number" 
-                            min="0"
-                            max={remaining}
-                            disabled={isFullyReceived}
-                            value={receiveQuantities[item.id] || 0}
-                            onChange={(e) => handleQtyChange(item.id, e.target.value)}
-                            className="w-20 px-2 py-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button 
-                onClick={() => setIsReceiveModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
-              >
-                {t('cancel')}
-              </button>
-              <button 
-                onClick={submitReception}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Confirm Receipt
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReceptionModal
+          selectedOrder={selectedOrder}
+          receiveQuantities={receiveQuantities}
+          onClose={() => setIsReceiveModalOpen(false)}
+          onQtyChange={handleQtyChange}
+          onSubmit={submitReception}
+          t={t}
+        />
       )}
 
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
-             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-500">
-               <AlertTriangle className="w-6 h-6" />
-             </div>
-             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('delete_confirm_title')}</h3>
-             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-               {t('delete_confirm_msg')} <span className="font-bold">{selectedOrder.number}</span>?
-             </p>
-             <div className="flex gap-3 justify-center">
-               <button 
-                 onClick={() => setIsDeleteModalOpen(false)}
-                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
-               >
-                 {t('cancel')}
-               </button>
-               <button 
-                 onClick={handleDelete}
-                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-               >
-                 {t('yes_delete')}
-               </button>
-             </div>
-          </div>
-        </div>
+        <DeleteModal
+          selectedOrder={selectedOrder}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onDelete={handleDelete}
+          t={t}
+        />
       )}
     </div>
   );

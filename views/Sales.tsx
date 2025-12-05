@@ -13,9 +13,10 @@ import { allCurrencies } from '../utils/currencyList';
 interface SalesProps {
   mode: SalesDocumentType;
   onCancel?: () => void;
+  onDocumentCreated?: (documentId: string, documentType: SalesDocumentType) => void;
 }
 
-const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
+const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel, onDocumentCreated }) => {
   const { clients, products, serviceCatalog, warehouses, projects, createSalesDocument, formatCurrency, settings, t } = useApp();
 
   // Form State
@@ -47,6 +48,27 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
   const handleBack = () => {
     if (onCancel) onCancel();
     else window.history.back();
+  };
+
+  // Helper to reset form (for Cancel button in estimates)
+  const resetForm = () => {
+    setClientId('');
+    setProjectId('');
+    setDate(new Date().toISOString().split('T')[0]);
+    setDueDate('');
+    setWarehouseId(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
+    setCurrency(settings.currency);
+    setExchangeRate(1);
+    setStatus('draft');
+    setNotes('');
+    setItems([]);
+    setPaymentTerms('Due on Receipt');
+    setPaymentMethod('Bank Transfer');
+    setTaxRate(settings.taxRates.find(r => r.isDefault)?.rate || 0);
+    setDiscountType('percent');
+    setDiscountValue(0);
+    setCatalogFilter('all');
+    setSearchTerm('');
   };
 
   // Item Management
@@ -88,7 +110,7 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
     const client = clients.find(c => c.id === clientId);
     const project = projectId ? projects.find(p => p.id === projectId) : undefined;
 
-    createSalesDocument(mode, {
+    const createdDoc = createSalesDocument(mode, {
       clientId,
       clientName: client?.company || 'Unknown',
       projectId: projectId || undefined,
@@ -111,7 +133,12 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
       notes
     }, items);
 
-    handleBack();
+    // If onDocumentCreated callback exists, call it with the created document ID
+    if (onDocumentCreated && (mode === 'order' || mode === 'delivery' || mode === 'invoice')) {
+      onDocumentCreated(createdDoc.id, mode);
+    } else {
+      handleBack();
+    }
   };
 
   // --- Unified Catalog Logic ---
@@ -466,13 +493,13 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
         </div>
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex gap-3">
-          <button 
-            onClick={handleBack}
+          <button
+            onClick={mode === 'estimate' && items.length > 0 ? resetForm : handleBack}
             className="flex-1 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             {t('cancel')}
           </button>
-          <button 
+          <button
             onClick={handleSubmit}
             className="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 dark:shadow-none"
           >

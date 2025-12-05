@@ -237,7 +237,7 @@ export interface Invoice {
   date: string;
   amount: number;
   amountPaid?: number;
-  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'pending' | 'partial' | 'paid' | 'overdue' | 'completed' | 'cancelled' | 'processed';
+  status: 'draft' | 'validated' | 'sent' | 'accepted' | 'rejected' | 'pending' | 'partial' | 'paid' | 'overdue' | 'completed' | 'cancelled' | 'processed';
   currency: string;
   exchangeRate: number;
   items: InvoiceItem[];
