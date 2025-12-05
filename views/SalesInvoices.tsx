@@ -12,7 +12,7 @@ interface SalesInvoicesProps {
 }
 
 const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
-  const { invoices, deleteInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients } = useApp();
+  const { invoices, deleteInvoice, updateInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -84,6 +84,13 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, 
       const client = clients.find(c => c.id === selectedDoc.clientId);
       printInvoice(selectedDoc, settings, client);
     }
+  };
+
+  const handleValidate = () => {
+    if (!selectedDoc) return;
+    const updated = { ...selectedDoc, status: 'sent' as any };
+    updateInvoice(updated);
+    setSelectedDoc(updated);
   };
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
@@ -389,26 +396,38 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, 
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button 
-                onClick={handlePrint}
-                className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> {t('print')}
-              </button>
-              
-              {selectedDoc.status !== 'paid' && (
-                  <button 
-                    onClick={() => { setIsViewModalOpen(false); setIsPaymentModalOpen(true); }}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <CreditCard className="w-4 h-4" /> {t('record_payment')}
-                  </button>
+            <div className="mt-6 flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handlePrint}
+                  className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-4 h-4" /> {t('print')}
+                </button>
+
+                {selectedDoc.status !== 'paid' && selectedDoc.status !== 'draft' && (
+                    <button
+                      onClick={() => { setIsViewModalOpen(false); setIsPaymentModalOpen(true); }}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <CreditCard className="w-4 h-4" /> {t('record_payment')}
+                    </button>
+                )}
+              </div>
+
+              {/* Validate button - only show for draft invoices */}
+              {selectedDoc.status === 'draft' && (
+                <button
+                  onClick={handleValidate}
+                  className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" /> Valider
+                </button>
               )}
 
-              <button 
+              <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
                 {t('close')}
               </button>

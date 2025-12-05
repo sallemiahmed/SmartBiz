@@ -494,7 +494,7 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel, onDocumentCre
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex gap-3">
           <button
-            onClick={mode === 'estimate' && items.length > 0 ? resetForm : handleBack}
+            onClick={handleBack}
             className="flex-1 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             {t('cancel')}
