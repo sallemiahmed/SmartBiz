@@ -1622,7 +1622,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   };
 
   // Project Modal
-  const ProjectModal = () => (
+  const ProjectModal = React.memo(() => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -1747,10 +1747,10 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  );
+  ));
 
   // Task Modal
-  const TaskModal = () => (
+  const TaskModal = React.memo(() => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -1867,10 +1867,10 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  );
+  ));
 
   // Time Entry Modal
-  const TimeEntryModal = () => (
+  const TimeEntryModal = React.memo(() => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -1974,10 +1974,10 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  );
+  ));
 
   // Expense Modal
-  const ExpenseModal = () => (
+  const ExpenseModal = React.memo(() => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -2070,7 +2070,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  );
+  ));
 
   const tabs: { id: ProjectsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Tableau de Bord', icon: <BarChart3 className="w-4 h-4" /> },
