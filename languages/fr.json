@@ -646,5 +646,14 @@
   "expected": "Prévu",
   "lost": "Perdu",
   "won": "Gagné",
-  "list": "Liste"
+  "list": "Liste",
+
+  "record_payment": "Enregistrer Paiement",
+  "payment_amount": "Montant du Paiement",
+  "max_payment": "Paiement maximum",
+  "confirm_payment": "Confirmer Paiement",
+  "invalid_amount": "Montant invalide",
+  "payment_exceeds_remaining": "Le paiement dépasse le montant restant",
+  "total_amount": "Montant Total",
+  "supplier_invoice_desc": "Gérer les factures fournisseurs et paiements"
 }

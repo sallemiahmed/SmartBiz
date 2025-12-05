@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -10,11 +10,13 @@ interface PurchaseInvoicesProps {
 }
 
 const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
-  const { purchases, deletePurchase, t, formatCurrency, settings } = useApp();
-  
+  const { purchases, deletePurchase, updatePurchase, t, formatCurrency, settings } = useApp();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Purchase | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState<string>('');
 
   const purchaseInvoices = purchases.filter(p => p.type === 'invoice');
 
@@ -27,6 +29,46 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
     if (selectedDoc) {
       printInvoice(selectedDoc, settings);
     }
+  };
+
+  const handleOpenPaymentModal = () => {
+    if (selectedDoc) {
+      const remaining = selectedDoc.amount - (selectedDoc.amountPaid || 0);
+      setPaymentAmount(remaining.toFixed(2));
+      setIsPaymentModalOpen(true);
+    }
+  };
+
+  const handleRecordPayment = () => {
+    if (!selectedDoc || !paymentAmount) return;
+
+    const amount = parseFloat(paymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert(t('invalid_amount'));
+      return;
+    }
+
+    const currentPaid = selectedDoc.amountPaid || 0;
+    const remaining = selectedDoc.amount - currentPaid;
+
+    if (amount > remaining) {
+      alert(t('payment_exceeds_remaining'));
+      return;
+    }
+
+    const newPaid = currentPaid + amount;
+    const newStatus = newPaid >= selectedDoc.amount ? 'completed' : 'partial';
+
+    const updatedDoc = {
+      ...selectedDoc,
+      amountPaid: newPaid,
+      status: newStatus as any
+    };
+
+    updatePurchase(updatedDoc);
+    setSelectedDoc(updatedDoc);
+    setIsPaymentModalOpen(false);
+    setPaymentAmount('');
   };
 
   const getStatusColor = (status: string) => {
@@ -187,18 +229,102 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button 
-                onClick={handlePrint}
-                className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> {t('print')}
+            <div className="mt-6 flex justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex gap-2">
+                {selectedDoc.amount - (selectedDoc.amountPaid || 0) > 0.01 && (
+                  <button
+                    onClick={handleOpenPaymentModal}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <DollarSign className="w-4 h-4" /> {t('record_payment')}
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePrint}
+                  className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-4 h-4" /> {t('print')}
+                </button>
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  {t('close')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {isPaymentModalOpen && selectedDoc && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('record_payment')}</h3>
+                <span className="text-sm text-blue-600 dark:text-blue-400 font-mono">{selectedDoc.number}</span>
+              </div>
+              <button onClick={() => setIsPaymentModalOpen(false)}>
+                <X className="w-5 h-5 text-gray-500" />
               </button>
-              <button 
-                onClick={() => setIsViewModalOpen(false)}
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('total_amount')}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(selectedDoc.amount)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('amount_paid')}</span>
+                  <span className="font-medium text-green-600 dark:text-green-400">{formatCurrency(selectedDoc.amountPaid || 0)}</span>
+                </div>
+                <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
+                  <span className="font-medium text-gray-900 dark:text-white">{t('remaining')}</span>
+                  <span className="font-bold text-red-600 dark:text-red-400">{formatCurrency(selectedDoc.amount - (selectedDoc.amountPaid || 0))}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('payment_amount')}
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-green-500 dark:text-white"
+                    placeholder="0.00"
+                    autoFocus
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {t('max_payment')}: {formatCurrency(selectedDoc.amount - (selectedDoc.amountPaid || 0))}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setIsPaymentModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                {t('close')}
+                {t('cancel')}
+              </button>
+              <button
+                onClick={handleRecordPayment}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <DollarSign className="w-4 h-4" /> {t('confirm_payment')}
               </button>
             </div>
           </div>
