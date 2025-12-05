@@ -7,9 +7,11 @@ import { printInvoice } from '../utils/printGenerator';
 
 interface SalesInvoicesProps {
   onAddNew: () => void;
+  autoOpenDocId?: string | null;
+  onDocOpened?: () => void;
 }
 
-const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
+const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
   const { invoices, deleteInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -123,6 +125,20 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
     }
   };
+
+  // Auto-open document modal after creation
+  useEffect(() => {
+    if (autoOpenDocId && !isViewModalOpen) {
+      const docToOpen = salesInvoices.find(doc => doc.id === autoOpenDocId);
+      if (docToOpen) {
+        setSelectedDoc(docToOpen);
+        setIsViewModalOpen(true);
+        if (onDocOpened) {
+          onDocOpened();
+        }
+      }
+    }
+  }, [autoOpenDocId, salesInvoices, isViewModalOpen]);
 
   return (
     <div className="p-6">

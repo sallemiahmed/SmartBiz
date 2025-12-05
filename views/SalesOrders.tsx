@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, Save, PackagePlus, XCircle, Truck, PackageCheck } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
@@ -8,6 +8,8 @@ import SearchableSelect from '../components/SearchableSelect';
 
 interface SalesOrdersProps {
   onAddNew: () => void;
+  autoOpenDocId?: string | null;
+  onDocOpened?: () => void;
 }
 
 // --- Extracted Modal Components ---
@@ -515,7 +517,7 @@ const DeliveryModal = React.memo<DeliveryModalProps>(({
 
 DeliveryModal.displayName = 'DeliveryModal';
 
-const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
+const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
   const { invoices, deleteInvoice, createSalesDocument, updateInvoice, products, serviceCatalog, clients, t, formatCurrency, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -835,6 +837,19 @@ const SalesOrders: React.FC<SalesOrdersProps> = ({ onAddNew }) => {
   };
 
   const isFullyDelivered = selectedDoc?.items.every(i => (i.fulfilledQuantity || 0) >= i.quantity) || false;
+
+  // Auto-open document modal after creation
+  useEffect(() => {
+    if (autoOpenDocId && !isViewModalOpen) {
+      const docToOpen = salesOrders.find(doc => doc.id === autoOpenDocId);
+      if (docToOpen) {
+        handleOpenModal(docToOpen);
+        if (onDocOpened) {
+          onDocOpened();
+        }
+      }
+    }
+  }, [autoOpenDocId, salesOrders, isViewModalOpen]);
 
   return (
     <div className="p-6">
