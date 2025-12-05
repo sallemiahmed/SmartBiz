@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, ArrowRight, RotateCcw, Pencil, PackagePlus, Save } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
@@ -8,9 +8,11 @@ import SearchableSelect from '../components/SearchableSelect';
 
 interface SalesEstimatesProps {
   onAddNew: () => void;
+  autoOpenDocId?: string | null;
+  onDocOpened?: () => void;
 }
 
-const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
+const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
   const { invoices, deleteInvoice, updateInvoice, createSalesDocument, products, clients, t, formatCurrency, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -218,6 +220,19 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
       if (status === 'sent') return 'Validé';
       return t(status);
   };
+
+  // Auto-open document modal after creation
+  useEffect(() => {
+    if (autoOpenDocId && !isViewModalOpen) {
+      const docToOpen = estimates.find(doc => doc.id === autoOpenDocId);
+      if (docToOpen) {
+        handleOpenModal(docToOpen);
+        if (onDocOpened) {
+          onDocOpened();
+        }
+      }
+    }
+  }, [autoOpenDocId, estimates, isViewModalOpen]);
 
   return (
     <div className="p-6">
