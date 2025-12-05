@@ -56,7 +56,8 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
-  
+  const [autoOpenDocId, setAutoOpenDocId] = useState<string | null>(null);
+
   const { settings, setIsLoading } = useApp();
 
   const handleNavigate = React.useCallback((view: AppView) => {
@@ -88,6 +89,19 @@ function AppContent() {
   }, [settings.language]);
 
   const toggleTheme = () => setIsDark(!isDark);
+
+  const handleDocumentCreated = (documentId: string, documentType: 'order' | 'delivery' | 'invoice' | 'estimate') => {
+    setAutoOpenDocId(documentId);
+    if (documentType === 'order') {
+      handleNavigate('sales-order' as AppView);
+    } else if (documentType === 'delivery') {
+      handleNavigate('sales-delivery' as AppView);
+    } else if (documentType === 'invoice') {
+      handleNavigate('sales-invoice' as AppView);
+    } else if (documentType === 'estimate') {
+      handleNavigate('sales-estimate' as AppView);
+    }
+  };
 
   const renderView = () => {
     // --- Project Management views ---
@@ -123,28 +137,28 @@ function AppContent() {
 
     // --- Specific Sales Lists Routing ---
     if (currentView === 'sales-estimate') {
-      return <SalesEstimates onAddNew={() => handleNavigate('sales-estimate-create' as AppView)} />;
+      return <SalesEstimates onAddNew={() => handleNavigate('sales-estimate-create' as AppView)} autoOpenDocId={autoOpenDocId} onDocOpened={() => setAutoOpenDocId(null)} />;
     }
     if (currentView === 'sales-estimate-create' as AppView) {
-      return <Sales mode="estimate" />;
+      return <Sales mode="estimate" onCancel={() => handleNavigate('sales-estimate' as AppView)} onDocumentCreated={handleDocumentCreated} />;
     }
     if (currentView === 'sales-order') {
-      return <SalesOrders onAddNew={() => handleNavigate('sales-order-create' as AppView)} />;
+      return <SalesOrders onAddNew={() => handleNavigate('sales-order-create' as AppView)} autoOpenDocId={autoOpenDocId} onDocOpened={() => setAutoOpenDocId(null)} />;
     }
-    if (currentView === 'sales-order-create' as AppView) { 
-      return <Sales mode="order" />;
+    if (currentView === 'sales-order-create' as AppView) {
+      return <Sales mode="order" onCancel={() => handleNavigate('sales-order' as AppView)} onDocumentCreated={handleDocumentCreated} />;
     }
     if (currentView === 'sales-delivery') {
-      return <SalesDeliveries onAddNew={() => handleNavigate('sales-delivery-create' as AppView)} />;
+      return <SalesDeliveries onAddNew={() => handleNavigate('sales-delivery-create' as AppView)} autoOpenDocId={autoOpenDocId} onDocOpened={() => setAutoOpenDocId(null)} />;
     }
     if (currentView === 'sales-delivery-create' as AppView) {
-      return <Sales mode="delivery" />;
+      return <Sales mode="delivery" onCancel={() => handleNavigate('sales-delivery' as AppView)} onDocumentCreated={handleDocumentCreated} />;
     }
     if (currentView === 'sales-invoice') {
-      return <SalesInvoices onAddNew={() => handleNavigate('sales-invoice-create' as AppView)} />;
+      return <SalesInvoices onAddNew={() => handleNavigate('sales-invoice-create' as AppView)} autoOpenDocId={autoOpenDocId} onDocOpened={() => setAutoOpenDocId(null)} />;
     }
     if (currentView === 'sales-invoice-create' as AppView) {
-      return <Sales mode="invoice" />;
+      return <Sales mode="invoice" onCancel={() => handleNavigate('sales-invoice' as AppView)} onDocumentCreated={handleDocumentCreated} />;
     }
     if (currentView === 'sales-return') {
       return <Returns mode="client" onAddNew={() => handleNavigate('sales-return-create' as AppView)} />;
