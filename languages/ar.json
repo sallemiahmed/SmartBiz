@@ -655,5 +655,13 @@
   "invalid_amount": "مبلغ غير صالح",
   "payment_exceeds_remaining": "الدفع يتجاوز المبلغ المتبقي",
   "total_amount": "المبلغ الإجمالي",
-  "supplier_invoice_desc": "إدارة فواتير الموردين والمدفوعات"
+  "supplier_invoice_desc": "إدارة فواتير الموردين والمدفوعات",
+
+  "project_management": "إدارة المشاريع",
+  "project_management_subtitle": "خطط وتتبع وتحكم في مشاريعك",
+  "project_dashboard": "لوحة القيادة",
+  "projects_list": "المشاريع",
+  "tasks": "المهام",
+  "time_tracking": "تتبع الوقت",
+  "budget_costs": "الميزانية والتكاليف"
 }
