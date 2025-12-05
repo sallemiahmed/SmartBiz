@@ -6,7 +6,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 
 const Suppliers: React.FC = () => {
-  const { suppliers, addSupplier, updateSupplier, deleteSupplier, employees, formatCurrency, t } = useApp();
+  const { suppliers, addSupplier, updateSupplier, deleteSupplier, employees, settings, formatCurrency, t } = useApp();
   
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +36,10 @@ const Suppliers: React.FC = () => {
     phone: '',
     status: 'active',
     totalPurchased: 0,
-    contacts: []
+    contacts: [],
+    rasApplicable: false,
+    rasRateId: '',
+    rasTypeRevenu: undefined
   });
 
   // Contact Form State
@@ -526,6 +529,73 @@ const Suppliers: React.FC = () => {
                     placeholder="Sélectionner un responsable..."
                     className="w-full rounded-lg"
                   />
+                </div>
+
+                {/* Retenue à la Source (RAS) */}
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Retenue à la Source (RAS)</h3>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="rasApplicable"
+                        checked={newSupplier.rasApplicable || false}
+                        onChange={(e) => setNewSupplier(prev => ({ ...prev, rasApplicable: e.target.checked }))}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                      <label htmlFor="rasApplicable" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        RAS applicable à ce fournisseur
+                      </label>
+                    </div>
+
+                    {newSupplier.rasApplicable && (
+                      <div className="grid grid-cols-2 gap-4 pl-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type de Revenu</label>
+                          <select
+                            value={newSupplier.rasTypeRevenu || ''}
+                            onChange={(e) => {
+                              const typeRevenu = e.target.value as any;
+                              const rate = settings.rasRates.find(r => r.type_revenu === typeRevenu && r.isActive);
+                              setNewSupplier(prev => ({
+                                ...prev,
+                                rasTypeRevenu: typeRevenu || undefined,
+                                rasRateId: rate?.id || ''
+                              }));
+                            }}
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white text-sm"
+                          >
+                            <option value="">Sélectionner...</option>
+                            <option value="honoraires">Honoraires</option>
+                            <option value="prestations">Prestations</option>
+                            <option value="loyers">Loyers</option>
+                            <option value="commissions">Commissions</option>
+                            <option value="autres">Autres</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Taux RAS par défaut</label>
+                          <select
+                            value={newSupplier.rasRateId || ''}
+                            onChange={(e) => setNewSupplier(prev => ({ ...prev, rasRateId: e.target.value }))}
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white text-sm"
+                          >
+                            <option value="">Auto</option>
+                            {settings.rasRates
+                              .filter(r => r.isActive && (!newSupplier.rasTypeRevenu || r.type_revenu === newSupplier.rasTypeRevenu))
+                              .map(rate => (
+                                <option key={rate.id} value={rate.id}>
+                                  {rate.label} ({rate.taux}%)
+                                </option>
+                              ))
+                            }
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3">

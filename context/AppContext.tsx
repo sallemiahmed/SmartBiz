@@ -314,6 +314,13 @@ const defaultSettings: AppSettings = {
     { id: '2', name: 'TVA Réduite', rate: 7 },
     { id: '3', name: 'TVA Zéro', rate: 0 }
   ],
+  rasRates: [
+    { id: 'ras1', type_revenu: 'honoraires', label: 'Honoraires Professionnels', taux: 5, isActive: true },
+    { id: 'ras2', type_revenu: 'prestations', label: 'Prestations de Services', taux: 3, isActive: true },
+    { id: 'ras3', type_revenu: 'loyers', label: 'Loyers', taux: 5, isActive: true },
+    { id: 'ras4', type_revenu: 'commissions', label: 'Commissions', taux: 5, isActive: true },
+    { id: 'ras5', type_revenu: 'autres', label: 'Autres Revenus', taux: 1.5, condition: 'Résidents', isActive: true }
+  ],
   customFields: {
     clients: [],
     suppliers: []
