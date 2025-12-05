@@ -191,6 +191,10 @@ export interface Supplier {
   contacts?: SupplierContact[];
   purchaseRepId?: string; // Assigned purchase representative (Employee ID)
   purchaseRepName?: string;
+  // Retenue à la Source (RAS)
+  rasApplicable?: boolean; // RAS applicable à ce fournisseur
+  rasRateId?: string; // ID du taux RAS par défaut
+  rasTypeRevenu?: RevenueType; // Type de revenu par défaut
 }
 
 export interface Warehouse {
@@ -285,6 +289,11 @@ export interface Purchase {
   linkedDocumentId?: string;
   returnReason?: string;
   stockAction?: 'reintegrate' | 'quarantine';
+  // Retenue à la Source (RAS)
+  rasTaux?: number; // Taux de retenue en pourcentage
+  rasMontant?: number; // Montant calculé de la retenue
+  montantNetPaye?: number; // Montant net à payer après RAS (amount - rasMontant)
+  rasTypeRevenu?: RevenueType; // Type de revenu pour cette facture
 }
 
 export interface StockMovement {
@@ -784,6 +793,18 @@ export interface TaxRate {
   isDefault?: boolean;
 }
 
+// Retenue à la Source (RAS) - Withholding Tax
+export type RevenueType = 'honoraires' | 'prestations' | 'loyers' | 'commissions' | 'autres';
+
+export interface RASRate {
+  id: string;
+  type_revenu: RevenueType;
+  label: string; // Label à afficher (ex: "Honoraires professionnels")
+  taux: number; // Taux en pourcentage (ex: 5 pour 5%)
+  condition?: string; // Ex: "résident", "non résident", "export"
+  isActive: boolean;
+}
+
 // Extended HR Interfaces
 
 // Payroll Run & Payslip
@@ -1219,6 +1240,7 @@ export interface AppSettings {
   enableFiscalStamp: boolean;
   fiscalStampValue: number;
   taxRates: TaxRate[];
+  rasRates: RASRate[]; // Taux de Retenue à la Source
   customFields: {
     clients: any[];
     suppliers: any[];
