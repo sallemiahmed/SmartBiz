@@ -138,6 +138,25 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
   const fiscalStampAmount = (mode === 'invoice' && settings.enableFiscalStamp) ? settings.fiscalStampValue : 0;
   const total = subtotal + taxAmount + additionalCosts + fiscalStampAmount;
 
+  // RAS Calculations (Retenue à la Source)
+  const supplier = suppliers.find(s => s.id === selectedSupplier);
+  const rasApplicable = mode === 'invoice' && supplier?.rasApplicable;
+  let rasTaux = 0;
+  let rasMontant = 0;
+  let montantNetPaye = total;
+
+  if (rasApplicable && supplier) {
+    // Récupérer le taux RAS configuré pour le fournisseur
+    const rasRate = settings.rasRates.find(r => r.id === supplier.rasRateId);
+    rasTaux = rasRate?.taux || 0;
+
+    // Calcul RAS sur le montant HT (subtotal) selon réglementation tunisienne
+    rasMontant = (subtotal * rasTaux) / 100;
+
+    // Montant net à payer = Total TTC - RAS
+    montantNetPaye = total - rasMontant;
+  }
+
   // Handlers
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -282,7 +301,12 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
       notes,
       taxRate: taxRate,
       subtotal: subtotal,
-      linkedDocumentId: linkedOrderId || undefined
+      linkedDocumentId: linkedOrderId || undefined,
+      // Retenue à la Source (RAS)
+      rasTaux: rasApplicable ? rasTaux : undefined,
+      rasMontant: rasApplicable ? rasMontant : undefined,
+      montantNetPaye: rasApplicable ? montantNetPaye : total,
+      rasTypeRevenu: rasApplicable ? supplier?.rasTypeRevenu : undefined
     }, purchaseItems);
 
     setLastCreatedDoc(createdDoc);
@@ -694,11 +718,43 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
                 <span>{formatCurrency(fiscalStampAmount, selectedCurrency)}</span>
               </div>
             )}
-            
+
             <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between items-end">
               <span className="font-bold text-gray-900 dark:text-white">Total Amount</span>
               <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(total, selectedCurrency)}</span>
             </div>
+
+            {/* Retenue à la Source (RAS) */}
+            {rasApplicable && rasMontant > 0 && (
+              <>
+                <div className="border-t-2 border-orange-200 dark:border-orange-800 pt-2 mt-2">
+                  <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span className="font-semibold text-orange-900 dark:text-orange-300 text-sm">Retenue à la Source (RAS)</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm text-orange-800 dark:text-orange-400">
+                      <span>Type: {supplier?.rasTypeRevenu || 'N/A'}</span>
+                      <span>Taux: {rasTaux}%</span>
+                    </div>
+
+                    <div className="flex justify-between font-medium text-orange-600 dark:text-orange-400">
+                      <span>Montant RAS (sur HT)</span>
+                      <span>- {formatCurrency(rasMontant, selectedCurrency)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t-2 border-green-200 dark:border-green-800 pt-2 flex justify-between items-end">
+                  <div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 block">À payer au fournisseur</span>
+                    <span className="font-bold text-gray-900 dark:text-white">Montant Net</span>
+                  </div>
+                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(montantNetPaye, selectedCurrency)}</span>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-2 pt-2">
