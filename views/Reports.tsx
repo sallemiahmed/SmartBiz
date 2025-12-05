@@ -115,6 +115,90 @@ const Reports: React.FC = () => {
     return data;
   };
 
+  // 1B. Enhanced Sales by Customer with Advanced Metrics
+  const getEnhancedSalesByCustomer = () => {
+    // Filter invoices based on date, status, and technician
+    const filteredInvoices = invoices.filter(inv =>
+      inv.type === 'invoice' &&
+      inv.status !== 'draft' &&
+      isDateInRange(inv.date) &&
+      matchesStatus(inv.status) &&
+      (technicianFilter === 'all' || inv.salespersonName === technicianFilter)
+    );
+
+    // Calculate stats for each client
+    const data = clients
+      .filter(c => categoryFilter === 'all' || c.category === categoryFilter)
+      .map(client => {
+        const clientInvoices = filteredInvoices.filter(inv => inv.clientId === client.id);
+
+        // Calculate CA total
+        const totalRevenue = clientInvoices.reduce((acc, inv) => acc + inv.amount, 0);
+
+        // Paid vs Unpaid
+        const paidAmount = clientInvoices.filter(inv => inv.status === 'paid').reduce((acc, inv) => acc + inv.amount, 0);
+        const unpaidAmount = totalRevenue - paidAmount;
+        const paidCount = clientInvoices.filter(inv => inv.status === 'paid').length;
+        const unpaidCount = clientInvoices.length - paidCount;
+
+        // Calculate order frequency (days between orders)
+        let avgDaysBetweenOrders = 0;
+        if (clientInvoices.length > 1) {
+          const sortedDates = clientInvoices
+            .map(inv => new Date(inv.date).getTime())
+            .sort((a, b) => a - b);
+          const totalDays = (sortedDates[sortedDates.length - 1] - sortedDates[0]) / (1000 * 60 * 60 * 24);
+          avgDaysBetweenOrders = totalDays / (clientInvoices.length - 1);
+        }
+
+        // Calculate volume (total items quantity)
+        const totalVolume = clientInvoices.reduce((acc, inv) => {
+          return acc + inv.items.reduce((sum, item) => sum + item.quantity, 0);
+        }, 0);
+
+        // Calculate average order value
+        const avgOrderValue = clientInvoices.length > 0 ? totalRevenue / clientInvoices.length : 0;
+
+        // Identify product categories purchased
+        const categoriesPurchased = new Set<string>();
+        clientInvoices.forEach(inv => {
+          inv.items.forEach(item => {
+            const product = products.find(p => p.id === item.id);
+            if (product) categoriesPurchased.add(product.category);
+          });
+        });
+
+        // Calculate first and last purchase dates
+        const dates = clientInvoices.map(inv => new Date(inv.date).getTime());
+        const firstPurchase = dates.length > 0 ? new Date(Math.min(...dates)).toISOString().split('T')[0] : '-';
+        const lastPurchase = dates.length > 0 ? new Date(Math.max(...dates)).toISOString().split('T')[0] : '-';
+
+        return {
+          id: client.id,
+          company: client.company,
+          name: client.name,
+          category: client.category,
+          zone: client.zone || '-',
+          totalRevenue,
+          paidAmount,
+          unpaidAmount,
+          invoiceCount: clientInvoices.length,
+          paidCount,
+          unpaidCount,
+          totalVolume,
+          avgOrderValue,
+          avgDaysBetweenOrders: avgDaysBetweenOrders > 0 ? Math.round(avgDaysBetweenOrders) : 0,
+          categoriesPurchased: Array.from(categoriesPurchased).join(', ') || '-',
+          firstPurchase,
+          lastPurchase
+        };
+      })
+      .filter(c => c.totalRevenue > 0)
+      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    return data;
+  };
+
   // 2. VAT Logic: Derive from Invoices
   const getSalesVAT = () => {
     return invoices
@@ -386,11 +470,59 @@ const Reports: React.FC = () => {
           ]
         };
 
+      case 'rep_revenue_by_client':
+        const enhancedData = getEnhancedSalesByCustomer();
+        const totalRevenue = enhancedData.reduce((acc, c) => acc + c.totalRevenue, 0);
+        const totalPaid = enhancedData.reduce((acc, c) => acc + c.paidAmount, 0);
+        const totalUnpaid = enhancedData.reduce((acc, c) => acc + c.unpaidAmount, 0);
+
+        return {
+          title: 'Chiffre d\'Affaires par Client',
+          type: 'summary',
+          columns: [
+            { header: t('company_contact'), key: 'company' },
+            { header: 'Zone', key: 'zone' },
+            { header: 'CA Total', key: 'totalRevenue', isCurrency: true },
+            { header: 'Payé', key: 'paidAmount', isCurrency: true, color: () => 'text-green-600' },
+            { header: 'Non Payé', key: 'unpaidAmount', isCurrency: true, color: (v) => v > 0 ? 'text-orange-600' : 'text-gray-400' },
+            { header: 'Nb Factures', key: 'invoiceCount' },
+            { header: 'Volume Total', key: 'totalVolume' },
+            { header: 'Panier Moyen', key: 'avgOrderValue', isCurrency: true },
+            { header: 'Fréquence (j)', key: 'avgDaysBetweenOrders' }
+          ],
+          dataGenerator: () => enhancedData,
+          summary: [
+            { label: 'CA Total', value: formatCurrency(totalRevenue) },
+            { label: 'CA Encaissé', value: formatCurrency(totalPaid) },
+            { label: 'CA En Attente', value: formatCurrency(totalUnpaid) },
+            { label: 'Clients Actifs', value: enhancedData.length.toString() },
+            { label: 'Panier Moyen', value: formatCurrency(enhancedData.length > 0 ? totalRevenue / enhancedData.reduce((acc, c) => acc + c.invoiceCount, 0) : 0) }
+          ]
+        };
+
+      case 'rep_revenue_by_client_chart':
+        const chartData = getEnhancedSalesByCustomer().slice(0, 10); // Top 10 clients
+        return {
+          title: 'Chiffre d\'Affaires par Client - Graphiques',
+          type: 'chart',
+          dataGenerator: () => chartData.map(c => ({
+            name: c.company.length > 20 ? c.company.substring(0, 20) + '...' : c.company,
+            'CA Total': c.totalRevenue,
+            'Payé': c.paidAmount,
+            'Non Payé': c.unpaidAmount,
+            'Nb Factures': c.invoiceCount,
+            'Volume': c.totalVolume
+          })),
+          summary: [
+            { label: 'Top 10 CA Total', value: formatCurrency(chartData.reduce((acc, c) => acc + c.totalRevenue, 0)) }
+          ]
+        };
+
       case 'rep_sales_customer_detailed':
         return {
           title: t('rep_sales_customer_detailed'),
           type: 'detailed_customer',
-          dataGenerator: () => [] 
+          dataGenerator: () => []
         };
 
       case 'rep_sales_product_detailed':
@@ -578,6 +710,78 @@ const Reports: React.FC = () => {
         const rowString = Object.values(row).map(value => 
           typeof value === 'string' && value.includes(',') ? `"${value}"` : value
         ).join(",");
+        csvContent += rowString + "\n";
+      });
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadEnhancedCSV = (data: any[], filename: string, config?: ReportConfig) => {
+    if (!data || data.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM for Excel UTF-8 support
+
+    // Add report header
+    csvContent += `"${config?.title || filename}"\n`;
+    csvContent += `"Generated: ${new Date().toLocaleString()}"\n`;
+    if (dateFilter.start || dateFilter.end) {
+      csvContent += `"Period: ${dateFilter.start || 'Début'} - ${dateFilter.end || 'Aujourd\'hui'}"\n`;
+    }
+    csvContent += "\n";
+
+    // Add summary section if available
+    if (config?.summary && config.summary.length > 0) {
+      csvContent += "RÉSUMÉ\n";
+      config.summary.forEach(item => {
+        csvContent += `"${item.label}","${item.value}"\n`;
+      });
+      csvContent += "\n";
+    }
+
+    // Add main data table
+    csvContent += "DÉTAILS\n";
+
+    // Use column headers from config if available
+    if (config?.columns && config.columns.length > 0) {
+      const headers = config.columns.map(c => `"${c.header}"`).join(",");
+      csvContent += headers + "\n";
+
+      data.forEach(row => {
+        const rowData = config.columns!.map(col => {
+          let val = row[col.key];
+          // Format currency values
+          if (col.isCurrency && typeof val === 'number') {
+            val = formatCurrency(val);
+          }
+          // Handle strings with commas or quotes
+          if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
+            val = `"${val.replace(/"/g, '""')}"`;
+          }
+          return val || '-';
+        }).join(",");
+        csvContent += rowData + "\n";
+      });
+    } else {
+      // Fallback to object keys
+      const headers = Object.keys(data[0]).map(k => `"${k}"`).join(",");
+      csvContent += headers + "\n";
+      data.forEach(row => {
+        const rowString = Object.values(row).map(value => {
+          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value;
+        }).join(",");
         csvContent += rowString + "\n";
       });
     }
@@ -898,8 +1102,11 @@ const Reports: React.FC = () => {
               >
                 <Printer className="w-5 h-5" />
               </button>
-              <button 
-                onClick={() => downloadCSV(config.dataGenerator(), activeReport, config)}
+              <button
+                onClick={() => {
+                  const exportFunc = activeReport.includes('revenue_by_client') ? downloadEnhancedCSV : downloadCSV;
+                  exportFunc(config.dataGenerator(), activeReport, config);
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 <Download className="w-4 h-4" /> {t('export_report')}
@@ -1006,6 +1213,8 @@ const Reports: React.FC = () => {
       icon: FileOutput,
       color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
       links: [
+        { key: 'rep_revenue_by_client', label: '📊 Chiffre d\'Affaires par Client' },
+        { key: 'rep_revenue_by_client_chart', label: '📈 CA Client - Graphiques' },
         { key: 'rep_sales_customer_detailed', label: t('rep_sales_customer_detailed') },
         { key: 'rep_sales_product_detailed', label: t('rep_sales_product_detailed') },
         { key: 'rep_sales_customer', label: t('rep_sales_customer') },

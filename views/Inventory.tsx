@@ -1,14 +1,16 @@
 
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw, ShoppingBag, CheckCircle, FileDown } from 'lucide-react';
+import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw, ShoppingBag, CheckCircle, FileDown, TrendingUp, DollarSign, Download, Printer, Calendar, BarChart3, PieChart as PieChartIcon, Users } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 import { Product, StockMovement } from '../types';
 import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
 
 const Inventory: React.FC = () => {
-  const { products, warehouses, suppliers, stockMovements, addProduct, addProducts, updateProduct, deleteProduct, createPurchaseDocument, addStockMovement, formatCurrency, t } = useApp();
-  
+  const { products, warehouses, suppliers, stockMovements, invoices, clients, addProduct, addProducts, updateProduct, deleteProduct, createPurchaseDocument, addStockMovement, formatCurrency, t } = useApp();
+
   // State initialization
+  const [activeTab, setActiveTab] = useState<'products' | 'revenue'>('products');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -29,6 +31,11 @@ const Inventory: React.FC = () => {
   // Import State
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccessCount, setImportSuccessCount] = useState<number | null>(null);
+
+  // Revenue Tab State
+  const [revenueDateFilter, setRevenueDateFilter] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [revenueCategoryFilter, setRevenueCategoryFilter] = useState<string>('all');
+  const [revenueStatusFilter, setRevenueStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
 
   // Restock State
   const [selectedRestockSupplier, setSelectedRestockSupplier] = useState<string>('');
@@ -562,6 +569,174 @@ const Inventory: React.FC = () => {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [selectedProduct, stockMovements]);
 
+  // ===== REVENUE ANALYTICS FUNCTIONS =====
+
+  const isDateInRange = (dateStr: string) => {
+    if (!dateStr) return true;
+    const d = new Date(dateStr);
+    const start = revenueDateFilter.start ? new Date(revenueDateFilter.start) : null;
+    const end = revenueDateFilter.end ? new Date(revenueDateFilter.end) : null;
+
+    if (end) end.setHours(23, 59, 59, 999);
+
+    if (start && d < start) return false;
+    if (end && d > end) return false;
+    return true;
+  };
+
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter(inv =>
+      inv.type === 'invoice' &&
+      inv.status !== 'draft' &&
+      isDateInRange(inv.date) &&
+      (revenueStatusFilter === 'all' || inv.status === revenueStatusFilter)
+    );
+  }, [invoices, revenueDateFilter, revenueStatusFilter]);
+
+  // Global Revenue
+  const globalRevenue = useMemo(() => {
+    const total = filteredInvoices.reduce((acc, inv) => acc + inv.amount, 0);
+    const paid = filteredInvoices.filter(inv => inv.status === 'paid').reduce((acc, inv) => acc + inv.amount, 0);
+    const pending = total - paid;
+    const invoiceCount = filteredInvoices.length;
+
+    return {
+      total,
+      paid,
+      pending,
+      invoiceCount,
+      avgInvoice: invoiceCount > 0 ? total / invoiceCount : 0
+    };
+  }, [filteredInvoices]);
+
+  // Revenue by Product
+  const revenueByProduct = useMemo(() => {
+    const productRevenue: Record<string, {
+      productId: string;
+      productName: string;
+      category: string;
+      quantity: number;
+      revenue: number;
+      cost: number;
+      profit: number;
+      marginPercent: number;
+      invoiceCount: number;
+    }> = {};
+
+    filteredInvoices.forEach(inv => {
+      inv.items.forEach(item => {
+        const product = products.find(p => p.id === item.id);
+        if (!product) return;
+
+        // Filter by category if selected
+        if (revenueCategoryFilter !== 'all' && product.category !== revenueCategoryFilter) return;
+
+        const itemRevenue = item.quantity * item.price;
+        const itemCost = item.quantity * product.cost;
+        const itemProfit = itemRevenue - itemCost;
+
+        if (!productRevenue[item.id]) {
+          productRevenue[item.id] = {
+            productId: item.id,
+            productName: item.description || product.name,
+            category: product.category,
+            quantity: 0,
+            revenue: 0,
+            cost: 0,
+            profit: 0,
+            marginPercent: 0,
+            invoiceCount: 0
+          };
+        }
+
+        productRevenue[item.id].quantity += item.quantity;
+        productRevenue[item.id].revenue += itemRevenue;
+        productRevenue[item.id].cost += itemCost;
+        productRevenue[item.id].profit += itemProfit;
+        productRevenue[item.id].invoiceCount++;
+      });
+    });
+
+    // Calculate margin percent
+    Object.values(productRevenue).forEach(pr => {
+      pr.marginPercent = pr.revenue > 0 ? (pr.profit / pr.revenue) * 100 : 0;
+    });
+
+    return Object.values(productRevenue).sort((a, b) => b.revenue - a.revenue);
+  }, [filteredInvoices, products, revenueCategoryFilter]);
+
+  // Revenue by Client
+  const revenueByClient = useMemo(() => {
+    const clientRevenue: Record<string, {
+      clientId: string;
+      clientName: string;
+      company: string;
+      revenue: number;
+      paid: number;
+      pending: number;
+      invoiceCount: number;
+      productCount: number;
+    }> = {};
+
+    filteredInvoices.forEach(inv => {
+      const client = clients.find(c => c.id === inv.clientId);
+      if (!client) return;
+
+      if (!clientRevenue[inv.clientId]) {
+        clientRevenue[inv.clientId] = {
+          clientId: inv.clientId,
+          clientName: client.name,
+          company: client.company,
+          revenue: 0,
+          paid: 0,
+          pending: 0,
+          invoiceCount: 0,
+          productCount: 0
+        };
+      }
+
+      clientRevenue[inv.clientId].revenue += inv.amount;
+      if (inv.status === 'paid') {
+        clientRevenue[inv.clientId].paid += inv.amount;
+      } else {
+        clientRevenue[inv.clientId].pending += inv.amount;
+      }
+      clientRevenue[inv.clientId].invoiceCount++;
+      clientRevenue[inv.clientId].productCount += inv.items.length;
+    });
+
+    return Object.values(clientRevenue).sort((a, b) => b.revenue - a.revenue);
+  }, [filteredInvoices, clients]);
+
+  // Top 10 products for chart
+  const topProductsChart = useMemo(() => {
+    return revenueByProduct.slice(0, 10).map(p => ({
+      name: p.productName.length > 15 ? p.productName.substring(0, 15) + '...' : p.productName,
+      'CA': p.revenue,
+      'Profit': p.profit,
+      'Qté': p.quantity
+    }));
+  }, [revenueByProduct]);
+
+  // Category distribution for pie chart
+  const categoryDistribution = useMemo(() => {
+    const catRevenue: Record<string, number> = {};
+
+    revenueByProduct.forEach(pr => {
+      if (!catRevenue[pr.category]) {
+        catRevenue[pr.category] = 0;
+      }
+      catRevenue[pr.category] += pr.revenue;
+    });
+
+    return Object.entries(catRevenue).map(([name, value]) => ({
+      name,
+      value
+    })).sort((a, b) => b.value - a.value);
+  }, [revenueByProduct]);
+
+  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6'];
+
   return (
     <div className="p-6 h-full flex flex-col">
       {/* Header & Stats */}
@@ -569,6 +744,32 @@ const Inventory: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('inventory_management')} 📦</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('inventory_desc')}</p>
+
+          {/* Tabs */}
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setActiveTab('products')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'products'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Package className="w-4 h-4 inline mr-2" />
+              Produits
+            </button>
+            <button
+              onClick={() => setActiveTab('revenue')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'revenue'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 inline mr-2" />
+              Chiffre d'Affaires
+            </button>
+          </div>
         </div>
         <div className="flex gap-2">
            <button 
@@ -596,6 +797,8 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
+      {activeTab === 'products' ? (
+        <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl flex items-center gap-4 shadow-sm">
           <div className="p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400">
@@ -883,6 +1086,335 @@ const Inventory: React.FC = () => {
                   </div>
               </div>
           </div>
+      )}
+        </>
+      ) : (
+        // Revenue Tab Content
+        <div className="flex flex-col gap-6">
+          {/* Revenue Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                  <DollarSign className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">CA Total</p>
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(globalRevenue.total)}</h4>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Encaissé</p>
+                  <h4 className="text-lg font-bold text-green-600">{formatCurrency(globalRevenue.paid)}</h4>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">En Attente</p>
+                  <h4 className="text-lg font-bold text-orange-600">{formatCurrency(globalRevenue.pending)}</h4>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                  <Package className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Produits Vendus</p>
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">{revenueByProduct.length}</h4>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Clients Actifs</p>
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">{revenueByClient.length}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters Bar */}
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <input
+                type="date"
+                value={revenueDateFilter.start}
+                onChange={(e) => setRevenueDateFilter(prev => ({ ...prev, start: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white dark:color-scheme-dark"
+              />
+              <span className="text-gray-400">-</span>
+              <input
+                type="date"
+                value={revenueDateFilter.end}
+                onChange={(e) => setRevenueDateFilter(prev => ({ ...prev, end: e.target.value }))}
+                className="bg-transparent text-sm outline-none dark:text-white dark:color-scheme-dark"
+              />
+            </div>
+
+            <select
+              value={revenueCategoryFilter}
+              onChange={(e) => setRevenueCategoryFilter(e.target.value)}
+              className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+            >
+              <option value="all">Toutes Catégories</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            <select
+              value={revenueStatusFilter}
+              onChange={(e) => setRevenueStatusFilter(e.target.value as 'all' | 'paid' | 'pending')}
+              className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+            >
+              <option value="all">Tous Statuts</option>
+              <option value="paid">Payé</option>
+              <option value="pending">En Attente</option>
+            </select>
+
+            <button
+              onClick={() => {
+                setRevenueDateFilter({ start: '', end: '' });
+                setRevenueCategoryFilter('all');
+                setRevenueStatusFilter('all');
+              }}
+              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ml-auto"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Bar Chart - Top Products */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top 10 Produits - CA</h3>
+                <BarChart3 className="w-5 h-5 text-gray-400" />
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topProductsChart}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: '#1f2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                  />
+                  <Bar dataKey="CA" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Pie Chart - Categories */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">CA par Catégorie</h3>
+                <PieChartIcon className="w-5 h-5 text-gray-400" />
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={categoryDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: '#1f2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                    formatter={(value: any) => formatCurrency(value)}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* CA par Produit Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Chiffre d'Affaires par Produit</h3>
+              <button
+                onClick={() => {
+                  const csvData = [
+                    ['Produit', 'Catégorie', 'Quantité', 'CA', 'Coût', 'Profit', 'Marge %', 'Nb Factures'],
+                    ...revenueByProduct.map(p => [
+                      p.productName,
+                      p.category,
+                      p.quantity,
+                      p.revenue.toFixed(2),
+                      p.cost.toFixed(2),
+                      p.profit.toFixed(2),
+                      p.marginPercent.toFixed(1),
+                      p.invoiceCount
+                    ])
+                  ];
+                  const csv = csvData.map(row => row.join(',')).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `CA_Produits_${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                }}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Produit</th>
+                    <th className="px-4 py-3 text-left">Catégorie</th>
+                    <th className="px-4 py-3 text-right">Quantité</th>
+                    <th className="px-4 py-3 text-right">CA</th>
+                    <th className="px-4 py-3 text-right">Coût</th>
+                    <th className="px-4 py-3 text-right">Profit</th>
+                    <th className="px-4 py-3 text-right">Marge %</th>
+                    <th className="px-4 py-3 text-center">Factures</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {revenueByProduct.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                        Aucune donnée disponible pour cette période
+                      </td>
+                    </tr>
+                  ) : (
+                    revenueByProduct.map((pr, idx) => (
+                      <tr key={pr.productId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{pr.productName}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{pr.category}</td>
+                        <td className="px-4 py-3 text-right text-gray-900 dark:text-white">{pr.quantity}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">{formatCurrency(pr.revenue)}</td>
+                        <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-400">{formatCurrency(pr.cost)}</td>
+                        <td className={`px-4 py-3 text-right font-medium ${pr.profit > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(pr.profit)}
+                        </td>
+                        <td className={`px-4 py-3 text-right ${pr.marginPercent > 30 ? 'text-green-600' : pr.marginPercent > 15 ? 'text-orange-600' : 'text-red-600'}`}>
+                          {pr.marginPercent.toFixed(1)}%
+                        </td>
+                        <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{pr.invoiceCount}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* CA par Client Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Chiffre d'Affaires par Client</h3>
+              <button
+                onClick={() => {
+                  const csvData = [
+                    ['Client', 'Entreprise', 'CA Total', 'Payé', 'En Attente', 'Nb Factures', 'Nb Produits'],
+                    ...revenueByClient.map(c => [
+                      c.clientName,
+                      c.company,
+                      c.revenue.toFixed(2),
+                      c.paid.toFixed(2),
+                      c.pending.toFixed(2),
+                      c.invoiceCount,
+                      c.productCount
+                    ])
+                  ];
+                  const csv = csvData.map(row => row.join(',')).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `CA_Clients_${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                }}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Client</th>
+                    <th className="px-4 py-3 text-left">Entreprise</th>
+                    <th className="px-4 py-3 text-right">CA Total</th>
+                    <th className="px-4 py-3 text-right">Payé</th>
+                    <th className="px-4 py-3 text-right">En Attente</th>
+                    <th className="px-4 py-3 text-center">Factures</th>
+                    <th className="px-4 py-3 text-center">Produits</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {revenueByClient.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        Aucune donnée disponible pour cette période
+                      </td>
+                    </tr>
+                  ) : (
+                    revenueByClient.map((cr) => (
+                      <tr key={cr.clientId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{cr.clientName}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{cr.company}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">{formatCurrency(cr.revenue)}</td>
+                        <td className="px-4 py-3 text-right text-green-600">{formatCurrency(cr.paid)}</td>
+                        <td className="px-4 py-3 text-right text-orange-600">{formatCurrency(cr.pending)}</td>
+                        <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{cr.invoiceCount}</td>
+                        <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{cr.productCount}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ADD Modal */}
