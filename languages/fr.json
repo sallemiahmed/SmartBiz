@@ -655,5 +655,13 @@
   "invalid_amount": "Montant invalide",
   "payment_exceeds_remaining": "Le paiement dépasse le montant restant",
   "total_amount": "Montant Total",
-  "supplier_invoice_desc": "Gérer les factures fournisseurs et paiements"
+  "supplier_invoice_desc": "Gérer les factures fournisseurs et paiements",
+
+  "project_management": "Gestion de Projets",
+  "project_management_subtitle": "Planifier, suivre et contrôler vos projets",
+  "project_dashboard": "Tableau de Bord",
+  "projects_list": "Projets",
+  "tasks": "Tâches",
+  "time_tracking": "Suivi du Temps",
+  "budget_costs": "Budget & Coûts"
 }

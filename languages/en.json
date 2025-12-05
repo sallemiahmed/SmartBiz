@@ -655,5 +655,13 @@
   "invalid_amount": "Invalid amount",
   "payment_exceeds_remaining": "Payment exceeds remaining amount",
   "total_amount": "Total Amount",
-  "supplier_invoice_desc": "Manage supplier invoices and payments"
+  "supplier_invoice_desc": "Manage supplier invoices and payments",
+
+  "project_management": "Project Management",
+  "project_management_subtitle": "Plan, track and control your projects",
+  "project_dashboard": "Dashboard",
+  "projects_list": "Projects",
+  "tasks": "Tasks",
+  "time_tracking": "Time Tracking",
+  "budget_costs": "Budget & Costs"
 }
