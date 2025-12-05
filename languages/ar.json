@@ -646,5 +646,14 @@
   "expected": "متوقع",
   "lost": "خسارة",
   "won": "مكسوب",
-  "list": "قائمة"
+  "list": "قائمة",
+
+  "record_payment": "تسجيل الدفع",
+  "payment_amount": "مبلغ الدفع",
+  "max_payment": "الحد الأقصى للدفع",
+  "confirm_payment": "تأكيد الدفع",
+  "invalid_amount": "مبلغ غير صالح",
+  "payment_exceeds_remaining": "الدفع يتجاوز المبلغ المتبقي",
+  "total_amount": "المبلغ الإجمالي",
+  "supplier_invoice_desc": "إدارة فواتير الموردين والمدفوعات"
 }

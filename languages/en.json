@@ -646,5 +646,14 @@
   "expected": "Expected",
   "lost": "Lost",
   "won": "Won",
-  "list": "List"
+  "list": "List",
+
+  "record_payment": "Record Payment",
+  "payment_amount": "Payment Amount",
+  "max_payment": "Max payment",
+  "confirm_payment": "Confirm Payment",
+  "invalid_amount": "Invalid amount",
+  "payment_exceeds_remaining": "Payment exceeds remaining amount",
+  "total_amount": "Total Amount",
+  "supplier_invoice_desc": "Manage supplier invoices and payments"
 }
