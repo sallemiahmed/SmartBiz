@@ -208,6 +208,8 @@ export interface Invoice {
   type: SalesDocumentType;
   clientId: string;
   clientName: string;
+  projectId?: string;
+  projectName?: string;
   date: string;
   amount: number;
   amountPaid?: number;

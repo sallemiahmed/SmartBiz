@@ -71,6 +71,8 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     createSalesDocument('order', {
       clientId: selectedDoc.clientId,
       clientName: selectedDoc.clientName,
+      projectId: selectedDoc.projectId,
+      projectName: selectedDoc.projectName,
       date: new Date().toISOString().split('T')[0],
       amount: selectedDoc.amount,
       currency: selectedDoc.currency,
@@ -96,6 +98,8 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
     createSalesDocument('invoice', {
       clientId: selectedDoc.clientId,
       clientName: selectedDoc.clientName,
+      projectId: selectedDoc.projectId,
+      projectName: selectedDoc.projectName,
       date: new Date().toISOString().split('T')[0],
       amount: selectedDoc.amount,
       currency: selectedDoc.currency,
@@ -251,6 +255,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
               <tr>
                 <th className="px-6 py-4">{t('ref_num')}</th>
                 <th className="px-6 py-4">{t('client')}</th>
+                <th className="px-6 py-4">Projet</th>
                 <th className="px-6 py-4">{t('date')}</th>
                 <th className="px-6 py-4">{t('amount')}</th>
                 <th className="px-6 py-4">{t('status')}</th>
@@ -262,6 +267,7 @@ const SalesEstimates: React.FC<SalesEstimatesProps> = ({ onAddNew }) => {
                 <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                   <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">{doc.projectName || '-'}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
