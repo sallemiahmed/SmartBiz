@@ -134,7 +134,7 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel, onDocumentCre
     }, items);
 
     // If onDocumentCreated callback exists, call it with the created document ID
-    if (onDocumentCreated && (mode === 'order' || mode === 'delivery' || mode === 'invoice')) {
+    if (onDocumentCreated && (mode === 'order' || mode === 'delivery' || mode === 'invoice' || mode === 'estimate')) {
       onDocumentCreated(createdDoc.id, mode);
     } else {
       handleBack();
