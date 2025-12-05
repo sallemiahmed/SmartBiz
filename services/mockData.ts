@@ -1,7 +1,7 @@
 
 import {
   Client, ClientContact, ClientInteraction, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
-  BankAccount, BankTransaction, CashSession, CashTransaction, Technician,
+  BankAccount, BankTransaction, CashRegister, CashSession, CashTransaction, Technician,
   ServiceItem, ServiceJob, ServiceSale, InventorySession, Vehicle, FleetMission,
   FleetMaintenance, FleetExpense, FleetDocument, Employee, Contract, Payroll,
   LeaveRequest, ExpenseReport, MaintenanceContract, ContactInteraction,
@@ -1184,10 +1184,151 @@ export const mockClientInteractions: ClientInteraction[] = [
 
 // --- SRM DATA ---
 export const mockSuppliers: Supplier[] = [
-  { id: 's1', company: 'MyTek', contactName: 'Service Pro', email: 'pro@mytek.tn', phone: '36 010 010', status: 'active', category: 'Informatique', totalPurchased: 45000 },
-  { id: 's2', company: 'Sotipapier', contactName: 'Ali Gharbi', email: 'ali@sotipapier.com', phone: '71 789 123', status: 'active', category: 'Papeterie', totalPurchased: 12000 },
-  { id: 's3', company: 'TotalEnergies', contactName: 'Service Carte', email: 'cartes@total.tn', phone: '71 555 666', status: 'active', category: 'Carburant', totalPurchased: 28000 },
-  { id: 's4', company: 'Tunisie Cables', contactName: 'Mounir', email: 'sales@tuncable.com', phone: '71 333 444', status: 'inactive', category: 'Matériaux', totalPurchased: 5600 }
+  {
+    id: 's1',
+    company: 'MyTek',
+    contactName: 'Service Pro',
+    email: 'pro@mytek.tn',
+    phone: '36 010 010',
+    status: 'active',
+    category: 'Informatique',
+    totalPurchased: 45000,
+    address: 'Route X, km 8.5, Ariana',
+    taxId: '0987654/B/N/000',
+    purchaseRepId: 'e1',
+    purchaseRepName: 'Mohamed Ben Ali',
+    contacts: [
+      {
+        id: 'spc1-1',
+        supplierId: 's1',
+        firstName: 'Mehdi',
+        lastName: 'Hammami',
+        email: 'mehdi.hammami@mytek.tn',
+        phone: '71 222 333',
+        mobile: '98 123 456',
+        role: 'sales',
+        jobTitle: 'Responsable Commercial',
+        department: 'Ventes',
+        isPrimary: true,
+        createdAt: getDate(-200)
+      },
+      {
+        id: 'spc1-2',
+        supplierId: 's1',
+        firstName: 'Sana',
+        lastName: 'Toumi',
+        email: 'sana.toumi@mytek.tn',
+        phone: '71 222 334',
+        mobile: '22 987 654',
+        role: 'technical',
+        jobTitle: 'Ingénieur Support',
+        department: 'Support Technique',
+        isPrimary: false,
+        createdAt: getDate(-180)
+      }
+    ]
+  },
+  {
+    id: 's2',
+    company: 'Sotipapier',
+    contactName: 'Ali Gharbi',
+    email: 'ali@sotipapier.com',
+    phone: '71 789 123',
+    status: 'active',
+    category: 'Papeterie',
+    totalPurchased: 12000,
+    address: 'Zone Industrielle, Ben Arous',
+    taxId: '1122334/P/M/000',
+    purchaseRepId: 'e2',
+    purchaseRepName: 'Sarra Trabelsi',
+    contacts: [
+      {
+        id: 'spc2-1',
+        supplierId: 's2',
+        firstName: 'Ali',
+        lastName: 'Gharbi',
+        email: 'ali.gharbi@sotipapier.com',
+        phone: '71 789 123',
+        mobile: '98 765 432',
+        role: 'decision_maker',
+        jobTitle: 'Directeur Commercial',
+        department: 'Direction',
+        isPrimary: true,
+        createdAt: getDate(-250)
+      },
+      {
+        id: 'spc2-2',
+        supplierId: 's2',
+        firstName: 'Fatma',
+        lastName: 'Slimi',
+        email: 'fatma.slimi@sotipapier.com',
+        phone: '71 789 124',
+        role: 'logistics',
+        jobTitle: 'Responsable Logistique',
+        department: 'Logistique',
+        isPrimary: false,
+        createdAt: getDate(-220)
+      }
+    ]
+  },
+  {
+    id: 's3',
+    company: 'TotalEnergies',
+    contactName: 'Service Carte',
+    email: 'cartes@total.tn',
+    phone: '71 555 666',
+    status: 'active',
+    category: 'Carburant',
+    totalPurchased: 28000,
+    address: 'Avenue de la Liberté, Tunis',
+    taxId: '5544332/T/M/000',
+    purchaseRepId: 'e3',
+    purchaseRepName: 'Karim Jaziri',
+    contacts: [
+      {
+        id: 'spc3-1',
+        supplierId: 's3',
+        firstName: 'Youssef',
+        lastName: 'Ben Salah',
+        email: 'youssef.bensalah@total.tn',
+        phone: '71 555 666',
+        mobile: '55 111 222',
+        role: 'sales',
+        jobTitle: 'Chargé de Compte Entreprise',
+        department: 'B2B',
+        isPrimary: true,
+        createdAt: getDate(-180)
+      }
+    ]
+  },
+  {
+    id: 's4',
+    company: 'Tunisie Cables',
+    contactName: 'Mounir',
+    email: 'sales@tuncable.com',
+    phone: '71 333 444',
+    status: 'inactive',
+    category: 'Matériaux',
+    totalPurchased: 5600,
+    address: 'Route de Bizerte, Ariana',
+    taxId: '7788990/C/M/000',
+    contacts: [
+      {
+        id: 'spc4-1',
+        supplierId: 's4',
+        firstName: 'Mounir',
+        lastName: 'Jendoubi',
+        email: 'mounir.jendoubi@tuncable.com',
+        phone: '71 333 444',
+        mobile: '98 222 333',
+        role: 'sales',
+        jobTitle: 'Commercial',
+        department: 'Ventes',
+        isPrimary: true,
+        createdAt: getDate(-300)
+      }
+    ]
+  }
 ];
 
 // --- INVENTORY DATA ---
@@ -1209,29 +1350,90 @@ export const mockInventory: Product[] = [
 
 // --- SALES DOCUMENTS ---
 export const mockInvoices: Invoice[] = [
-  { 
-    id: 'inv1', number: 'FAC-2024-001', type: 'invoice', clientId: 'c1', clientName: 'SFBT', 
-    date: getDate(-15), amount: 14600, amountPaid: 14600, status: 'paid', currency: 'TND', exchangeRate: 1, 
-    items: [{id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 5, price: 2800}, {id: 'p3', description: 'Papier A4 (Carton)', quantity: 10, price: 60}], 
-    warehouseId: 'wh1', taxRate: 19, subtotal: 14600, fiscalStamp: 1.000 
+  {
+    id: 'inv1', number: 'FAC-2024-001', type: 'invoice', clientId: 'c1', clientName: 'SFBT',
+    projectId: 'prj1', projectName: 'Refonte Site Web Corporate',
+    date: getDate(-15), amount: 14600, amountPaid: 14600, status: 'paid', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 5, price: 2800}, {id: 'p3', description: 'Papier A4 (Carton)', quantity: 10, price: 60}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 14600, fiscalStamp: 1.000
   },
-  { 
-    id: 'inv2', number: 'FAC-2024-002', type: 'invoice', clientId: 'c2', clientName: 'Poulina Group', 
-    date: getDate(-5), amount: 9500, amountPaid: 0, status: 'pending', currency: 'TND', exchangeRate: 1, 
-    items: [{id: 'p2', description: 'Imprimante HP', quantity: 10, price: 950}], 
+  {
+    id: 'inv2', number: 'FAC-2024-002', type: 'invoice', clientId: 'c2', clientName: 'Poulina Group',
+    projectId: 'prj2', projectName: 'Application Mobile E-Commerce',
+    date: getDate(-5), amount: 9500, amountPaid: 0, status: 'pending', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'p2', description: 'Imprimante HP', quantity: 10, price: 950}],
     warehouseId: 'wh1', taxRate: 19, subtotal: 9500, fiscalStamp: 1.000, dueDate: getDate(25)
   },
-  { 
-    id: 'ord1', number: 'BC-2024-055', type: 'order', clientId: 'c3', clientName: 'Clinique Les Jasmins', 
-    date: getDate(-2), amount: 4500, status: 'pending', currency: 'TND', exchangeRate: 1, 
-    items: [{id: 'p4', description: 'Chaise Bureau Ergonomique', quantity: 10, price: 450}], 
+  {
+    id: 'ord1', number: 'BC-2024-055', type: 'order', clientId: 'c3', clientName: 'Clinique Les Jasmins',
+    projectId: 'prj4', projectName: 'Migration Cloud AWS',
+    date: getDate(-2), amount: 4500, status: 'pending', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'p4', description: 'Chaise Bureau Ergonomique', quantity: 10, price: 450}],
     warehouseId: 'wh1', taxRate: 19, subtotal: 4500, paymentTerms: 'Net 30'
   },
-  { 
-    id: 'est1', number: 'DEV-2024-101', type: 'estimate', clientId: 'c4', clientName: 'Vermeg', 
-    date: getDate(0), amount: 5600, status: 'sent', currency: 'TND', exchangeRate: 1, 
-    items: [{id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 2, price: 2800}], 
-    warehouseId: 'wh1', taxRate: 19, subtotal: 5600 
+  {
+    id: 'est1', number: 'DEV-2024-101', type: 'estimate', clientId: 'c4', clientName: 'Vermeg',
+    projectId: 'prj3', projectName: 'Audit Sécurité Infrastructure',
+    date: getDate(0), amount: 5600, status: 'sent', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 2, price: 2800}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 5600
+  },
+  {
+    id: 'inv3', number: 'FAC-2024-003', type: 'invoice', clientId: 'c1', clientName: 'SFBT',
+    projectId: 'prj1', projectName: 'Refonte Site Web Corporate',
+    date: getDate(-40), amount: 12500, amountPaid: 12500, status: 'paid', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'srv1', description: 'Développement Frontend React', quantity: 80, price: 150}, {id: 'srv2', description: 'Design UI/UX', quantity: 5, price: 500}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 12500, fiscalStamp: 1.000,
+    notes: 'Phase 1 - Développement Frontend'
+  },
+  {
+    id: 'inv4', number: 'FAC-2024-004', type: 'invoice', clientId: 'c2', clientName: 'Poulina Group',
+    projectId: 'prj2', projectName: 'Application Mobile E-Commerce',
+    date: getDate(-20), amount: 18500, amountPaid: 9250, status: 'partial', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'srv3', description: 'Développement Mobile iOS', quantity: 100, price: 120}, {id: 'srv4', description: 'Développement Mobile Android', quantity: 50, price: 110}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 18500, fiscalStamp: 1.000, dueDate: getDate(10),
+    notes: 'Paiement échelonné - 50% à la livraison'
+  },
+  {
+    id: 'ord2', number: 'BC-2024-056', type: 'order', clientId: 'c4', clientName: 'Vermeg',
+    projectId: 'prj3', projectName: 'Audit Sécurité Infrastructure',
+    date: getDate(-10), amount: 8900, status: 'accepted', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'srv5', description: 'Audit de sécurité niveau 1', quantity: 40, price: 200}, {id: 'srv6', description: 'Tests de pénétration', quantity: 5, price: 180}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 8900, paymentTerms: 'Net 30'
+  },
+  {
+    id: 'est2', number: 'DEV-2024-102', type: 'estimate', clientId: 'c3', clientName: 'Clinique Les Jasmins',
+    date: getDate(-5), amount: 15800, status: 'sent', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'srv7', description: 'Formation Personnel - Sécurité Informatique', quantity: 10, price: 450},
+      {id: 'srv8', description: 'Installation Pare-feu Enterprise', quantity: 1, price: 11300}
+    ],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 15800,
+    notes: 'Proposition pour nouveau projet sécurité 2024'
+  },
+  {
+    id: 'est3', number: 'DEV-2024-103', type: 'estimate', clientId: 'c5', clientName: 'Magasin Général',
+    projectId: 'prj6', projectName: 'Maintenance Annuelle ERP',
+    date: getDate(-2), amount: 6200, status: 'draft', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'srv9', description: 'Support Maintenance Mensuel', quantity: 12, price: 500}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 6200,
+    notes: 'Renouvellement contrat maintenance 2024'
+  },
+  {
+    id: 'del1', number: 'BL-2024-001', type: 'delivery', clientId: 'c1', clientName: 'SFBT',
+    projectId: 'prj1', projectName: 'Refonte Site Web Corporate',
+    date: getDate(-16), amount: 14600, status: 'completed', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 5, price: 2800}, {id: 'p3', description: 'Papier A4 (Carton)', quantity: 10, price: 60}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 14600,
+    linkedDocumentId: 'inv1'
+  },
+  {
+    id: 'del2', number: 'BL-2024-002', type: 'delivery', clientId: 'c2', clientName: 'Poulina Group',
+    projectId: 'prj2', projectName: 'Application Mobile E-Commerce',
+    date: getDate(-21), amount: 18500, status: 'completed', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'srv3', description: 'Développement Mobile iOS', quantity: 100, price: 120}],
+    warehouseId: 'wh1', taxRate: 19, subtotal: 18500,
+    linkedDocumentId: 'inv4'
   }
 ];
 
@@ -1271,8 +1473,55 @@ export const mockBankTransactions: BankTransaction[] = [
   { id: 'tx4', accountId: 'ba1', date: getDate(-2), description: 'Frais Bancaires', amount: -25, type: 'fee', status: 'reconciled' }
 ];
 
+// --- CAISSES ---
+export const mockCashRegisters: CashRegister[] = [
+  {
+    id: 'cr1',
+    name: 'Caisse Principale',
+    location: 'Comptoir Principal',
+    status: 'active',
+    initialBalance: 500,
+    currentBalance: 450,
+    assignedUserId: 'e1',
+    assignedUserName: 'Ahmed Tounsi',
+    notes: 'Caisse principale du magasin',
+    createdAt: getDate(-180)
+  },
+  {
+    id: 'cr2',
+    name: 'Caisse Comptoir 2',
+    location: 'Comptoir Secondaire',
+    status: 'active',
+    initialBalance: 300,
+    currentBalance: 300,
+    assignedUserId: 'e2',
+    assignedUserName: 'Sarra Trabelsi',
+    notes: 'Caisse secondaire pour les périodes de forte affluence',
+    createdAt: getDate(-150)
+  },
+  {
+    id: 'cr3',
+    name: 'Caisse Succursale Nord',
+    location: 'Succursale Ariana',
+    status: 'inactive',
+    initialBalance: 200,
+    currentBalance: 200,
+    notes: 'Caisse de la succursale Ariana (fermée temporairement)',
+    createdAt: getDate(-90)
+  }
+];
+
 export const mockCashSessions: CashSession[] = [
-  { id: 'cs1', openedBy: 'Ahmed Tounsi', startTime: getDate(0) + 'T08:00:00', openingBalance: 250, expectedBalance: 450, status: 'open' }
+  {
+    id: 'cs1',
+    registerId: 'cr1',
+    registerName: 'Caisse Principale',
+    openedBy: 'Ahmed Tounsi',
+    startTime: getDate(0) + 'T08:00:00',
+    openingBalance: 250,
+    expectedBalance: 450,
+    status: 'open'
+  }
 ];
 
 export const mockCashTransactions: CashTransaction[] = [
