@@ -600,7 +600,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
     projectTimeEntries, addProjectTimeEntry, updateProjectTimeEntry, deleteProjectTimeEntry,
     projectExpenses, addProjectExpense, updateProjectExpense, deleteProjectExpense,
     projectMilestones, addProjectMilestone, updateProjectMilestone, deleteProjectMilestone,
-    clients, employees, formatCurrency, settings
+    clients, employees, formatCurrency, settings, t
   } = useApp();
 
   // Map view prop to tab
@@ -2200,12 +2200,12 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   };
 
   const tabs: { id: ProjectsTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard', label: 'Tableau de Bord', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'projects', label: 'Projets', icon: <FolderKanban className="w-4 h-4" /> },
-    { id: 'tasks', label: 'Tâches', icon: <ListTodo className="w-4 h-4" /> },
-    { id: 'timesheet', label: 'Temps', icon: <Timer className="w-4 h-4" /> },
-    { id: 'budget', label: 'Budget', icon: <Wallet className="w-4 h-4" /> },
-    { id: 'reports', label: 'Rapports', icon: <FileText className="w-4 h-4" /> },
+    { id: 'dashboard', label: t('project_dashboard'), icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'projects', label: t('projects_list'), icon: <FolderKanban className="w-4 h-4" /> },
+    { id: 'tasks', label: t('tasks'), icon: <ListTodo className="w-4 h-4" /> },
+    { id: 'timesheet', label: t('time_tracking'), icon: <Timer className="w-4 h-4" /> },
+    { id: 'budget', label: t('budget_costs'), icon: <Wallet className="w-4 h-4" /> },
+    { id: 'reports', label: t('reports'), icon: <FileText className="w-4 h-4" /> },
   ];
 
   return (
@@ -2214,9 +2214,9 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <FolderKanban className="w-7 h-7 text-indigo-600" /> Gestion de Projets
+            <FolderKanban className="w-7 h-7 text-indigo-600" /> {t('project_management')}
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Planifier, suivre et contrôler vos projets</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('project_management_subtitle')}</p>
         </div>
       </div>
 
