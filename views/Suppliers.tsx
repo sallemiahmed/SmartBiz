@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Mail, Phone, Store, Pencil, X, Save, Trash2, Eye, ArrowUp, ArrowDown, AlertTriangle, RotateCcw } from 'lucide-react';
-import { Supplier } from '../types';
+import { Search, Plus, Filter, Mail, Phone, Store, Pencil, X, Save, Trash2, Eye, ArrowUp, ArrowDown, AlertTriangle, RotateCcw, Users, UserPlus } from 'lucide-react';
+import { Supplier, SupplierContact } from '../types';
 import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
+import SearchableSelect from '../components/SearchableSelect';
 
 const Suppliers: React.FC = () => {
-  const { suppliers, addSupplier, updateSupplier, deleteSupplier, formatCurrency, t } = useApp();
+  const { suppliers, addSupplier, updateSupplier, deleteSupplier, employees, formatCurrency, t } = useApp();
   
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,10 +21,12 @@ const Suppliers: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Selection States
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-  
+  const [selectedContact, setSelectedContact] = useState<SupplierContact | null>(null);
+
   // New Supplier Form State
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
     company: '',
@@ -32,7 +35,21 @@ const Suppliers: React.FC = () => {
     email: '',
     phone: '',
     status: 'active',
-    totalPurchased: 0
+    totalPurchased: 0,
+    contacts: []
+  });
+
+  // Contact Form State
+  const [contactForm, setContactForm] = useState<Partial<SupplierContact>>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    mobile: '',
+    role: 'other',
+    jobTitle: '',
+    department: '',
+    isPrimary: false
   });
 
   // Unique categories for filter
@@ -101,6 +118,80 @@ const Suppliers: React.FC = () => {
     } else if (selectedSupplier) {
       setSelectedSupplier({ ...selectedSupplier, [name]: value });
     }
+  };
+
+  // --- Contact Management ---
+  const handleAddContact = () => {
+    setSelectedContact(null);
+    setContactForm({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      mobile: '',
+      role: 'other',
+      jobTitle: '',
+      department: '',
+      isPrimary: false
+    });
+    setIsContactModalOpen(true);
+  };
+
+  const handleEditContact = (contact: SupplierContact) => {
+    setSelectedContact(contact);
+    setContactForm(contact);
+    setIsContactModalOpen(true);
+  };
+
+  const handleSaveContact = () => {
+    if (!selectedSupplier) return;
+
+    const contacts = selectedSupplier.contacts || [];
+
+    if (selectedContact) {
+      // Edit existing contact
+      const updatedContacts = contacts.map(c =>
+        c.id === selectedContact.id ? { ...contactForm, id: c.id, supplierId: selectedSupplier.id, createdAt: c.createdAt, updatedAt: new Date().toISOString() } as SupplierContact : c
+      );
+      updateSupplier({ ...selectedSupplier, contacts: updatedContacts });
+      setSelectedSupplier({ ...selectedSupplier, contacts: updatedContacts });
+    } else {
+      // Add new contact
+      const newContact: SupplierContact = {
+        ...contactForm,
+        id: `sc${Date.now()}`,
+        supplierId: selectedSupplier.id,
+        createdAt: new Date().toISOString()
+      } as SupplierContact;
+
+      const updatedContacts = [...contacts, newContact];
+      updateSupplier({ ...selectedSupplier, contacts: updatedContacts });
+      setSelectedSupplier({ ...selectedSupplier, contacts: updatedContacts });
+    }
+
+    setIsContactModalOpen(false);
+    setSelectedContact(null);
+  };
+
+  const handleDeleteContact = (contactId: string) => {
+    if (!selectedSupplier || !confirm('Êtes-vous sûr de vouloir supprimer ce contact ?')) return;
+
+    const contacts = selectedSupplier.contacts || [];
+    const updatedContacts = contacts.filter(c => c.id !== contactId);
+    updateSupplier({ ...selectedSupplier, contacts: updatedContacts });
+    setSelectedSupplier({ ...selectedSupplier, contacts: updatedContacts });
+  };
+
+  const getRoleLabel = (role: SupplierContact['role']) => {
+    const labels: Record<SupplierContact['role'], string> = {
+      decision_maker: 'Décideur',
+      technical: 'Technique',
+      sales: 'Commercial',
+      accounting: 'Comptabilité',
+      logistics: 'Logistique',
+      other: 'Autre'
+    };
+    return labels[role] || role;
   };
 
   // --- Process Data ---
@@ -416,6 +507,26 @@ const Suppliers: React.FC = () => {
                     <option value="inactive">{t('inactive')}</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable Achat</label>
+                  <SearchableSelect
+                    options={[
+                      { value: '', label: 'Aucun' },
+                      ...employees.map(emp => ({ value: emp.id, label: `${emp.firstName} ${emp.lastName}` }))
+                    ]}
+                    value={newSupplier.purchaseRepId || ''}
+                    onChange={(value) => {
+                      const emp = employees.find(e => e.id === value);
+                      setNewSupplier(prev => ({
+                        ...prev,
+                        purchaseRepId: value || undefined,
+                        purchaseRepName: emp ? `${emp.firstName} ${emp.lastName}` : undefined
+                      }));
+                    }}
+                    placeholder="Sélectionner un responsable..."
+                    className="w-full rounded-lg"
+                  />
+                </div>
               </div>
               <div className="mt-6 flex justify-end gap-3">
                 <button
@@ -591,10 +702,85 @@ const Suppliers: React.FC = () => {
                    <span className="text-gray-500 dark:text-gray-400">{t('total_purchased')}</span>
                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedSupplier.totalPurchased)}</span>
                  </div>
+                 {selectedSupplier.purchaseRepName && (
+                   <div className="flex justify-between border-t border-gray-100 dark:border-gray-700 pt-2">
+                     <span className="text-gray-500 dark:text-gray-400">Responsable Achat</span>
+                     <span className="font-medium text-gray-900 dark:text-white">{selectedSupplier.purchaseRepName}</span>
+                   </div>
+                 )}
+              </div>
+
+              {/* Contacts Section */}
+              <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Contacts ({(selectedSupplier.contacts || []).length})
+                  </h3>
+                  <button
+                    onClick={handleAddContact}
+                    className="text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-1"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Ajouter
+                  </button>
+                </div>
+
+                {(selectedSupplier.contacts || []).length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-4">Aucun contact enregistré</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(selectedSupplier.contacts || []).map(contact => (
+                      <div key={contact.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {contact.firstName} {contact.lastName}
+                              </h4>
+                              {contact.isPrimary && (
+                                <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs rounded">
+                                  Principal
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{contact.jobTitle || getRoleLabel(contact.role)}</p>
+                            <div className="mt-1 space-y-0.5">
+                              {contact.email && (
+                                <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                  <Mail className="w-3 h-3" /> {contact.email}
+                                </p>
+                              )}
+                              {(contact.phone || contact.mobile) && (
+                                <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                  <Phone className="w-3 h-3" /> {contact.mobile || contact.phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleEditContact(contact)}
+                              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-gray-500" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteContact(contact.id)}
+                              className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="mt-6">
-                <button 
+                <button
                   onClick={() => setIsViewModalOpen(false)}
                   className="w-full py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
@@ -618,19 +804,155 @@ const Suppliers: React.FC = () => {
                {t('delete_supplier_msg')}
              </p>
              <div className="flex gap-3 justify-center">
-               <button 
+               <button
                  onClick={() => setIsDeleteModalOpen(false)}
                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                >
                  {t('cancel')}
                </button>
-               <button 
+               <button
                  onClick={handleDeleteConfirm}
                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
                >
                  {t('yes_delete')}
                </button>
              </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Modal */}
+      {isContactModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md border border-gray-200 dark:border-gray-700 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {selectedContact ? 'Modifier le contact' : 'Nouveau contact'}
+              </h2>
+              <button onClick={() => setIsContactModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom *</label>
+                    <input
+                      type="text"
+                      value={contactForm.firstName || ''}
+                      onChange={(e) => setContactForm({ ...contactForm, firstName: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
+                    <input
+                      type="text"
+                      value={contactForm.lastName || ''}
+                      onChange={(e) => setContactForm({ ...contactForm, lastName: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
+                  <input
+                    type="email"
+                    value={contactForm.email || ''}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Téléphone</label>
+                    <input
+                      type="tel"
+                      value={contactForm.phone || ''}
+                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mobile</label>
+                    <input
+                      type="tel"
+                      value={contactForm.mobile || ''}
+                      onChange={(e) => setContactForm({ ...contactForm, mobile: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rôle</label>
+                  <select
+                    value={contactForm.role || 'other'}
+                    onChange={(e) => setContactForm({ ...contactForm, role: e.target.value as SupplierContact['role'] })}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                  >
+                    <option value="decision_maker">Décideur</option>
+                    <option value="sales">Commercial</option>
+                    <option value="technical">Technique</option>
+                    <option value="accounting">Comptabilité</option>
+                    <option value="logistics">Logistique</option>
+                    <option value="other">Autre</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fonction</label>
+                    <input
+                      type="text"
+                      value={contactForm.jobTitle || ''}
+                      onChange={(e) => setContactForm({ ...contactForm, jobTitle: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Département</label>
+                    <input
+                      type="text"
+                      value={contactForm.department || ''}
+                      onChange={(e) => setContactForm({ ...contactForm, department: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isPrimary"
+                    checked={contactForm.isPrimary || false}
+                    onChange={(e) => setContactForm({ ...contactForm, isPrimary: e.target.checked })}
+                    className="w-4 h-4 text-indigo-600 rounded"
+                  />
+                  <label htmlFor="isPrimary" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Contact principal
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsContactModalOpen(false)}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveContact}
+                className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {selectedContact ? 'Mettre à jour' : 'Ajouter'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import {
   Client, ClientContact, ClientInteraction, Prospect, ProspectInteraction, Supplier, Product, Invoice, Purchase, Warehouse, StockMovement,
-  StockTransfer, BankAccount, BankTransaction, CashSession, CashTransaction,
+  StockTransfer, BankAccount, BankTransaction, CashRegister, CashSession, CashTransaction,
   Technician, ServiceItem, ServiceJob, ServiceSale, AppSettings, InvoiceItem,
   SalesDocumentType, PurchaseDocumentType, InventorySession, InventoryItem,
   Vehicle, FleetMission, FleetMaintenance, FleetExpense, FleetDocument,
@@ -19,7 +19,7 @@ import { loadTranslations } from '../services/translations';
 import {
   mockClients, mockSuppliers, mockInventory, mockInvoices, mockPurchases,
   mockWarehouses, mockStockMovements, mockBankAccounts, mockBankTransactions,
-  mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs,
+  mockCashRegisters, mockCashSessions, mockTechnicians, mockServiceCatalog, mockServiceJobs,
   mockVehicles, mockFleetMissions, mockEmployees, mockContracts, mockPayroll,
   mockLeaves, mockExpenses, mockMaintenanceContracts, mockContactInteractions,
   mockDepartments, mockPositions, mockPayrollRuns, mockPayslips, mockPayrollElements,
@@ -110,8 +110,13 @@ interface AppContextType {
   addBankTransaction: (transaction: BankTransaction) => void;
   deleteBankTransaction: (id: string) => void;
 
+  cashRegisters: CashRegister[];
+  addCashRegister: (register: CashRegister) => void;
+  updateCashRegister: (register: CashRegister) => void;
+  deleteCashRegister: (id: string) => void;
+
   cashSessions: CashSession[];
-  openCashSession: (openingBalance: number) => void;
+  openCashSession: (registerId: string, openingBalance: number) => void;
   closeCashSession: (closingBalance: number, notes?: string) => void;
 
   cashTransactions: CashTransaction[];
@@ -333,6 +338,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [inventorySessions, setInventorySessions] = useState<InventorySession[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
+  const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
   const [cashSessions, setCashSessions] = useState<CashSession[]>([]);
   const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -396,6 +402,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setInventorySessions([]);
       setBankAccounts(mockBankAccounts);
       setBankTransactions(mockBankTransactions);
+      setCashRegisters(mockCashRegisters);
       setCashSessions(mockCashSessions);
       setCashTransactions([]);
       setTechnicians(mockTechnicians);
@@ -966,8 +973,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
        }
   };
 
-  const openCashSession = async (openingBalance: number) => {
-      const newSession: CashSession = { id: `cs-${Date.now()}`, openedBy: 'Current User', startTime: new Date().toISOString(), openingBalance, expectedBalance: openingBalance, status: 'open' };
+  // Cash Register Management
+  const addCashRegister = async (register: CashRegister) => {
+    setCashRegisters(prev => [...prev, register]);
+  };
+
+  const updateCashRegister = async (register: CashRegister) => {
+    setCashRegisters(prev => prev.map(r => r.id === register.id ? register : r));
+  };
+
+  const deleteCashRegister = async (id: string) => {
+    // Check if there are open sessions
+    const hasOpenSession = cashSessions.some(s => s.registerId === id && s.status === 'open');
+    if (hasOpenSession) {
+      throw new Error('Cannot delete cash register with open session');
+    }
+    setCashRegisters(prev => prev.filter(r => r.id !== id));
+  };
+
+  const openCashSession = async (registerId: string, openingBalance: number) => {
+      const register = cashRegisters.find(r => r.id === registerId);
+      if (!register) throw new Error('Cash register not found');
+
+      // Check if there's already an open session for this register
+      const existingSession = cashSessions.find(s => s.registerId === registerId && s.status === 'open');
+      if (existingSession) throw new Error('Cash register already has an open session');
+
+      const newSession: CashSession = {
+        id: `cs-${Date.now()}`,
+        registerId,
+        registerName: register.name,
+        openedBy: 'Current User',
+        startTime: new Date().toISOString(),
+        openingBalance,
+        expectedBalance: openingBalance,
+        status: 'open'
+      };
       // await db.cashSessions.add(newSession);
       setCashSessions(prev => [newSession, ...prev]);
   };
@@ -1327,6 +1368,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     inventorySessions, createInventorySession, updateInventorySession, commitInventorySession,
     bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount,
     bankTransactions, addBankTransaction, deleteBankTransaction,
+    cashRegisters, addCashRegister, updateCashRegister, deleteCashRegister,
     cashSessions, openCashSession, closeCashSession, cashTransactions, addCashTransaction,
     technicians, addTechnician, updateTechnician, deleteTechnician,
     serviceCatalog, addServiceItem, updateServiceItem, deleteServiceItem,

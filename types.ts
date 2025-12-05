@@ -158,6 +158,23 @@ export interface ClientTransaction {
   linkedDocumentId?: string;
 }
 
+export interface SupplierContact {
+  id: string;
+  supplierId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  mobile?: string;
+  role: 'decision_maker' | 'technical' | 'sales' | 'accounting' | 'logistics' | 'other';
+  jobTitle?: string;
+  department?: string;
+  isPrimary: boolean; // Primary contact for this supplier
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Supplier {
   id: string;
   company: string;
@@ -167,6 +184,13 @@ export interface Supplier {
   status: 'active' | 'inactive';
   category: string;
   totalPurchased: number;
+  address?: string;
+  taxId?: string;
+  customFields?: Record<string, any>;
+  // Contact management
+  contacts?: SupplierContact[];
+  purchaseRepId?: string; // Assigned purchase representative (Employee ID)
+  purchaseRepName?: string;
 }
 
 export interface Warehouse {
@@ -311,8 +335,23 @@ export interface BankTransaction {
   status: 'pending' | 'cleared' | 'reconciled';
 }
 
+export interface CashRegister {
+  id: string;
+  name: string;
+  location: string;
+  status: 'active' | 'inactive';
+  initialBalance: number;
+  currentBalance: number;
+  assignedUserId?: string;
+  assignedUserName?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface CashSession {
   id: string;
+  registerId: string; // Cash register ID
+  registerName?: string; // Cash register name for display
   openedBy: string;
   startTime: string;
   endTime?: string;
