@@ -729,8 +729,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     
     // Optimistic update
     setInvoices(prev => [newDoc, ...prev]);
-    // Async DB update
-    db.invoices.add(newDoc).catch(console.error);
+    // Async DB update - disabled for mock data mode
+    // db.invoices.add(newDoc).catch(console.error);
     
     // If Delivery or Return, update stock
     if (type === 'delivery' || type === 'return') {
@@ -817,7 +817,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       } as Purchase;
 
       setPurchases(prev => [newDoc, ...prev]);
-      db.purchases.add(newDoc).catch(console.error);
+      // db.purchases.add(newDoc).catch(console.error); // Disabled for mock data mode
 
       if (type === 'delivery' || type === 'return') {
         items.forEach(item => {
@@ -889,7 +889,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       });
       
       const transfer = { id: `tr-${Date.now()}`, productId: data.productId, productName: products.find(p => p.id === data.productId)?.name || 'Product', fromWarehouseId: data.fromWarehouseId, toWarehouseId: data.toWarehouseId, quantity: data.quantity, date: new Date().toISOString(), reference: data.reference, notes: data.notes };
-      db.stockTransfers.add(transfer).catch(console.error);
+      // db.stockTransfers.add(transfer).catch(console.error); // Disabled for mock data mode
       setStockTransfers(prev => [transfer, ...prev]);
   };
 
