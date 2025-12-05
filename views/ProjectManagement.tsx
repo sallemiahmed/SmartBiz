@@ -7,13 +7,177 @@ import {
   Edit2, Trash2, Eye, MoreVertical, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMilestone } from '../types';
+import { Project, ProjectTask, ProjectTimeEntry, ProjectExpense, ProjectMilestone, Client, Employee } from '../types';
 
 type ProjectsTab = 'dashboard' | 'projects' | 'tasks' | 'timesheet' | 'budget' | 'reports';
 
 interface ProjectManagementProps {
   view?: string;
 }
+
+// Extracted Modal Components
+interface ProjectModalProps {
+  editingProject: string | null;
+  projectForm: Partial<Project>;
+  setProjectForm: (form: Partial<Project>) => void;
+  clients: Client[];
+  employees: Employee[];
+  onClose: () => void;
+  onSave: () => void;
+}
+
+const ProjectModalComponent: React.FC<ProjectModalProps> = React.memo(({
+  editingProject,
+  projectForm,
+  setProjectForm,
+  clients,
+  employees,
+  onClose,
+  onSave
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h2 className="text-xl font-bold dark:text-white">
+          {editingProject ? 'Modifier le Projet' : 'Nouveau Projet'}
+        </h2>
+        <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="p-6 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du Projet *</label>
+            <input
+              type="text"
+              id="project-name"
+              name="project-name"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.name || ''}
+              onChange={e => setProjectForm({ ...projectForm, name: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client</label>
+            <select
+              id="project-client"
+              name="project-client"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.clientId || ''}
+              onChange={e => setProjectForm({ ...projectForm, clientId: e.target.value })}
+            >
+              <option value="">Projet interne</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.company}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Chef de Projet</label>
+            <select
+              id="project-manager"
+              name="project-manager"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.managerId || ''}
+              onChange={e => setProjectForm({ ...projectForm, managerId: e.target.value })}
+            >
+              <option value="">Non assigné</option>
+              {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de Début *</label>
+            <input
+              type="date"
+              id="project-start-date"
+              name="project-start-date"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.startDate || ''}
+              onChange={e => setProjectForm({ ...projectForm, startDate: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de Fin</label>
+            <input
+              type="date"
+              id="project-end-date"
+              name="project-end-date"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.endDate || ''}
+              onChange={e => setProjectForm({ ...projectForm, endDate: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget</label>
+            <input
+              type="number"
+              id="project-budget"
+              name="project-budget"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.budget || ''}
+              onChange={e => setProjectForm({ ...projectForm, budget: parseFloat(e.target.value) || 0 })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
+            <select
+              id="project-status"
+              name="project-status"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.status}
+              onChange={e => setProjectForm({ ...projectForm, status: e.target.value as Project['status'] })}
+            >
+              <option value="planning">Planification</option>
+              <option value="in_progress">En cours</option>
+              <option value="on_hold">En pause</option>
+              <option value="completed">Terminé</option>
+              <option value="cancelled">Annulé</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priorité</label>
+            <select
+              id="project-priority"
+              name="project-priority"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.priority}
+              onChange={e => setProjectForm({ ...projectForm, priority: e.target.value as Project['priority'] })}
+            >
+              <option value="low">Basse</option>
+              <option value="medium">Moyenne</option>
+              <option value="high">Haute</option>
+              <option value="critical">Critique</option>
+            </select>
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <textarea
+              id="project-description"
+              name="project-description"
+              rows={3}
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+              value={projectForm.description || ''}
+              onChange={e => setProjectForm({ ...projectForm, description: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          Annuler
+        </button>
+        <button
+          onClick={onSave}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          {editingProject ? 'Mettre à jour' : 'Créer'}
+        </button>
+      </div>
+    </div>
+  </div>
+));
 
 const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   const {
@@ -1621,136 +1785,8 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
     );
   };
 
-  // Project Modal
-  const ProjectModal = React.memo(() => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold dark:text-white">
-            {editingProject ? 'Modifier le Projet' : 'Nouveau Projet'}
-          </h2>
-          <button onClick={() => { setShowProjectModal(false); resetProjectForm(); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du Projet *</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.name || ''}
-                onChange={e => setProjectForm({ ...projectForm, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.clientId || ''}
-                onChange={e => setProjectForm({ ...projectForm, clientId: e.target.value })}
-              >
-                <option value="">Projet interne</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.company}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Chef de Projet</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.managerId || ''}
-                onChange={e => setProjectForm({ ...projectForm, managerId: e.target.value })}
-              >
-                <option value="">Non assigné</option>
-                {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de Début *</label>
-              <input
-                type="date"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.startDate || ''}
-                onChange={e => setProjectForm({ ...projectForm, startDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de Fin</label>
-              <input
-                type="date"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.endDate || ''}
-                onChange={e => setProjectForm({ ...projectForm, endDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget</label>
-              <input
-                type="number"
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.budget || ''}
-                onChange={e => setProjectForm({ ...projectForm, budget: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.status}
-                onChange={e => setProjectForm({ ...projectForm, status: e.target.value as Project['status'] })}
-              >
-                <option value="planning">Planification</option>
-                <option value="in_progress">En cours</option>
-                <option value="on_hold">En pause</option>
-                <option value="completed">Terminé</option>
-                <option value="cancelled">Annulé</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priorité</label>
-              <select
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.priority}
-                onChange={e => setProjectForm({ ...projectForm, priority: e.target.value as Project['priority'] })}
-              >
-                <option value="low">Basse</option>
-                <option value="medium">Moyenne</option>
-                <option value="high">Haute</option>
-                <option value="critical">Critique</option>
-              </select>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-              <textarea
-                rows={3}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                value={projectForm.description || ''}
-                onChange={e => setProjectForm({ ...projectForm, description: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-          <button
-            onClick={() => { setShowProjectModal(false); resetProjectForm(); }}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={handleSaveProject}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            {editingProject ? 'Mettre à jour' : 'Créer'}
-          </button>
-        </div>
-      </div>
-    </div>
-  ));
-
   // Task Modal
-  const TaskModal = React.memo(() => (
+  const TaskModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -1867,10 +1903,10 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  ));
+  );
 
   // Time Entry Modal
-  const TimeEntryModal = React.memo(() => (
+  const TimeEntryModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -1974,10 +2010,10 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  ));
+  );
 
   // Expense Modal
-  const ExpenseModal = React.memo(() => (
+  const ExpenseModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -2070,7 +2106,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       </div>
     </div>
-  ));
+  );
 
   const tabs: { id: ProjectsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Tableau de Bord', icon: <BarChart3 className="w-4 h-4" /> },
@@ -2122,7 +2158,17 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
       </div>
 
       {/* Modals */}
-      {showProjectModal && <ProjectModal />}
+      {showProjectModal && (
+        <ProjectModalComponent
+          editingProject={editingProject}
+          projectForm={projectForm}
+          setProjectForm={setProjectForm}
+          clients={clients}
+          employees={employees}
+          onClose={() => { setShowProjectModal(false); resetProjectForm(); }}
+          onSave={handleSaveProject}
+        />
+      )}
       {showTaskModal && <TaskModal />}
       {showTimeEntryModal && <TimeEntryModal />}
       {showExpenseModal && <ExpenseModal />}
