@@ -345,10 +345,39 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   };
 
   // Dashboard Tab
-  const DashboardTab = () => (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  const DashboardTab = () => {
+    const pendingExpenses = projectExpenses.filter(e => e.status === 'pending');
+    const totalPendingAmount = pendingExpenses.reduce((acc, e) => acc + e.amount, 0);
+
+    return (
+      <div className="space-y-6">
+        {/* Pending Expenses Alert */}
+        {pendingExpenses.length > 0 && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-yellow-900 dark:text-yellow-300">
+                    {pendingExpenses.length} dépense(s) en attente d'approbation
+                  </h4>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                    Montant total: {formatCurrency(totalPendingAmount)} - Ces dépenses doivent être approuvées pour être imputées au budget des projets.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTab('budget')}
+                className="px-3 py-1.5 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700 flex items-center gap-1 whitespace-nowrap"
+              >
+                Gérer <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
@@ -422,7 +451,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
             return (
               <div key={project.id} className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700">
                 <div className="flex justify-between items-start mb-2">
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono text-gray-400">{project.code}</span>
                       <h4 className="font-medium dark:text-white">{project.name}</h4>
@@ -434,6 +463,17 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
                     <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(project.status)}`}>
                       En cours
                     </span>
+                    <button
+                      onClick={() => {
+                        setEditingProject(project);
+                        setProjectForm(project);
+                        setShowProjectModal(true);
+                      }}
+                      className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Modifier le projet"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                    </button>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-gray-500">
@@ -492,8 +532,9 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
           </div>
         </div>
       )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   // Projects Tab
   const ProjectsTab = () => (
@@ -542,8 +583,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
           return (
             <div
               key={project.id}
-              className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => setSelectedProject(project)}
+              className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
@@ -553,12 +593,38 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
                     <p className="text-xs text-gray-500 mt-1">{project.clientName}</p>
                   )}
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(project.status)}`}>
-                  {project.status === 'planning' ? 'Planification' :
-                   project.status === 'in_progress' ? 'En cours' :
-                   project.status === 'on_hold' ? 'En pause' :
-                   project.status === 'completed' ? 'Terminé' : 'Annulé'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(project.status)}`}>
+                    {project.status === 'planning' ? 'Planification' :
+                     project.status === 'in_progress' ? 'En cours' :
+                     project.status === 'on_hold' ? 'En pause' :
+                     project.status === 'completed' ? 'Terminé' : 'Annulé'}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingProject(project);
+                      setProjectForm(project);
+                      setShowProjectModal(true);
+                    }}
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    title="Modifier le projet"
+                  >
+                    <Edit2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
+                        deleteProject(project.id);
+                      }
+                    }}
+                    className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    title="Supprimer le projet"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
+                  </button>
+                </div>
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">{project.description}</p>
@@ -825,96 +891,255 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   );
 
   // Budget Tab
-  const BudgetTab = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="font-bold text-lg dark:text-white">Suivi des Coûts et Budget</h3>
-        <button
-          onClick={() => setShowExpenseModal(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700"
-        >
-          <Plus className="w-4 h-4" /> Nouvelle Dépense
-        </button>
-      </div>
+  const BudgetTab = () => {
+    const pendingExpenses = projectExpenses.filter(e => e.status === 'pending');
+    const approvedExpenses = projectExpenses.filter(e => e.status === 'approved' || e.status === 'reimbursed');
+    const totalPending = pendingExpenses.reduce((acc, e) => acc + e.amount, 0);
+    const totalApproved = approvedExpenses.reduce((acc, e) => acc + e.amount, 0);
 
-      {/* Budget Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Budget Total</p>
-          <h3 className="text-2xl font-bold mt-1 dark:text-white">{formatCurrency(stats.totalBudget)}</h3>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Dépenses Réelles</p>
-          <h3 className="text-2xl font-bold mt-1 text-orange-500">{formatCurrency(stats.totalSpent)}</h3>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Restant</p>
-          <h3 className={`text-2xl font-bold mt-1 ${stats.totalBudget - stats.totalSpent < 0 ? 'text-red-500' : 'text-green-500'}`}>
-            {formatCurrency(stats.totalBudget - stats.totalSpent)}
-          </h3>
-        </div>
-      </div>
+    const handleApproveExpense = (expense: ProjectExpense) => {
+      updateProjectExpense({
+        ...expense,
+        status: 'approved',
+        approvedBy: 'Current User',
+        approvedAt: new Date().toISOString()
+      });
+    };
 
-      {/* Expenses List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h4 className="font-bold dark:text-white">Dépenses du Projet</h4>
+    const handleRejectExpense = (expense: ProjectExpense) => {
+      if (confirm('Êtes-vous sûr de vouloir rejeter cette dépense ?')) {
+        updateProjectExpense({
+          ...expense,
+          status: 'rejected',
+          approvedBy: 'Current User',
+          approvedAt: new Date().toISOString()
+        });
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="font-bold text-lg dark:text-white">Suivi des Coûts et Budget</h3>
+          <button
+            onClick={() => setShowExpenseModal(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700"
+          >
+            <Plus className="w-4 h-4" /> Nouvelle Dépense
+          </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-              <tr>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Projet</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Catégorie</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Description</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Montant</th>
-                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Statut</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {projectExpenses.map(expense => (
-                <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="px-4 py-3 text-sm dark:text-white">{expense.date}</td>
-                  <td className="px-4 py-3 text-sm dark:text-white">{expense.projectName}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs">
-                      {expense.category === 'materials' ? 'Matériaux' :
-                       expense.category === 'equipment' ? 'Équipement' :
-                       expense.category === 'travel' ? 'Déplacement' :
-                       expense.category === 'subcontractor' ? 'Sous-traitance' :
-                       expense.category === 'software' ? 'Logiciel' : 'Autre'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{expense.description}</td>
-                  <td className="px-4 py-3 text-sm text-right font-medium dark:text-white">
-                    {formatCurrency(expense.amount)}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`px-2 py-0.5 rounded text-xs ${
-                      expense.status === 'approved' || expense.status === 'reimbursed' ? 'bg-green-100 text-green-700' :
-                      expense.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {expense.status === 'pending' ? 'En attente' :
-                       expense.status === 'approved' ? 'Approuvé' :
-                       expense.status === 'reimbursed' ? 'Remboursé' : 'Rejeté'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        {/* Budget Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Budget Total</p>
+            <h3 className="text-2xl font-bold mt-1 dark:text-white">{formatCurrency(stats.totalBudget)}</h3>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Dépenses Approuvées</p>
+            <h3 className="text-2xl font-bold mt-1 text-orange-500">{formatCurrency(totalApproved)}</h3>
+            <p className="text-xs text-gray-400 mt-1">{approvedExpenses.length} dépense(s)</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-yellow-200 dark:border-yellow-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">En Attente</p>
+            <h3 className="text-2xl font-bold mt-1 text-yellow-500">{formatCurrency(totalPending)}</h3>
+            <p className="text-xs text-gray-400 mt-1">{pendingExpenses.length} dépense(s)</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Restant</p>
+            <h3 className={`text-2xl font-bold mt-1 ${stats.totalBudget - stats.totalSpent < 0 ? 'text-red-500' : 'text-green-500'}`}>
+              {formatCurrency(stats.totalBudget - stats.totalSpent)}
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              {stats.totalBudget > 0 ? Math.round(((stats.totalBudget - stats.totalSpent) / stats.totalBudget) * 100) : 0}% disponible
+            </p>
+          </div>
         </div>
-        {projectExpenses.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Aucune dépense enregistrée</p>
+
+        {/* Pending Expenses for Approval */}
+        {pendingExpenses.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-yellow-200 dark:border-yellow-700 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              <h4 className="font-bold dark:text-white">Dépenses en Attente d'Approbation ({pendingExpenses.length})</h4>
+            </div>
+            <div className="space-y-3">
+              {pendingExpenses.map(expense => {
+                const project = projects.find(p => p.id === expense.projectId);
+                return (
+                  <div key={expense.id} className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-100 dark:border-yellow-800">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h5 className="font-medium dark:text-white">{expense.description}</h5>
+                          <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs">
+                            {expense.category === 'materials' ? 'Matériaux' :
+                             expense.category === 'equipment' ? 'Équipement' :
+                             expense.category === 'travel' ? 'Déplacement' :
+                             expense.category === 'subcontractor' ? 'Sous-traitance' :
+                             expense.category === 'software' ? 'Logiciel' : 'Autre'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-2">
+                          Projet: <span className="font-medium">{expense.projectName}</span>
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span>Date: {expense.date}</span>
+                          {expense.vendorName && <span>Fournisseur: {expense.vendorName}</span>}
+                          {expense.invoiceNumber && <span>Facture: {expense.invoiceNumber}</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 ml-4">
+                        <div className="text-right mr-3">
+                          <p className="text-xl font-bold dark:text-white">{formatCurrency(expense.amount)}</p>
+                          {project && (
+                            <p className="text-xs text-gray-500">
+                              Budget: {formatCurrency(project.budget)}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleApproveExpense(expense)}
+                          className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Approuver
+                        </button>
+                        <button
+                          onClick={() => handleRejectExpense(expense)}
+                          className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 flex items-center gap-1"
+                        >
+                          <X className="w-4 h-4" /> Rejeter
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
+
+        {/* Expenses List */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h4 className="font-bold dark:text-white">Toutes les Dépenses</h4>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Projet</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Catégorie</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Description</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Montant</th>
+                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Statut</th>
+                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {projectExpenses.map(expense => {
+                  const project = projects.find(p => p.id === expense.projectId);
+                  const budgetImpact = project ? (expense.amount / project.budget) * 100 : 0;
+
+                  return (
+                    <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-sm dark:text-white">{expense.date}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <div>
+                          <p className="font-medium dark:text-white">{expense.projectName}</p>
+                          {expense.status === 'approved' && project && (
+                            <p className="text-xs text-gray-500">
+                              Impact: {budgetImpact.toFixed(1)}% du budget
+                            </p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs">
+                          {expense.category === 'materials' ? 'Matériaux' :
+                           expense.category === 'equipment' ? 'Équipement' :
+                           expense.category === 'travel' ? 'Déplacement' :
+                           expense.category === 'subcontractor' ? 'Sous-traitance' :
+                           expense.category === 'software' ? 'Logiciel' : 'Autre'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        <div>
+                          <p>{expense.description}</p>
+                          {expense.vendorName && (
+                            <p className="text-xs text-gray-400">Fournisseur: {expense.vendorName}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-medium dark:text-white">
+                        {formatCurrency(expense.amount)}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            expense.status === 'approved' || expense.status === 'reimbursed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            expense.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          }`}>
+                            {expense.status === 'pending' ? 'En attente' :
+                             expense.status === 'approved' ? 'Approuvé' :
+                             expense.status === 'reimbursed' ? 'Remboursé' : 'Rejeté'}
+                          </span>
+                          {expense.approvedBy && (
+                            <p className="text-xs text-gray-400">par {expense.approvedBy}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {expense.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveExpense(expense)}
+                                className="p-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50"
+                                title="Approuver et imputer au budget"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleRejectExpense(expense)}
+                                className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50"
+                                title="Rejeter"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
+                                deleteProjectExpense(expense.id);
+                              }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {projectExpenses.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Aucune dépense enregistrée</p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Reports Tab
   const ReportsTab = () => {

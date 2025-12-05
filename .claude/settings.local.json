@@ -8,7 +8,11 @@
       "Bash(npm install)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(ss:*)"
     ],
     "deny": [],
     "ask": []
