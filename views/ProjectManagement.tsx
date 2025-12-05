@@ -52,6 +52,7 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
+  const [viewingProjectDetail, setViewingProjectDetail] = useState<Project | null>(null);
 
   // Stats calculations
   const stats = useMemo(() => {
@@ -344,6 +345,370 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
     return { completedTasks, totalTasks, totalHours, totalExpenses, laborCost, totalCost: totalExpenses + laborCost };
   };
 
+  // Project Detail View
+  const ProjectDetailView = ({ project }: { project: Project }) => {
+    const projectStats = getProjectStats(project.id);
+    const tasks = projectTasks.filter(t => t.projectId === project.id);
+    const timeEntries = projectTimeEntries.filter(e => e.projectId === project.id);
+    const expenses = projectExpenses.filter(e => e.projectId === project.id);
+    const pendingExpenses = expenses.filter(e => e.status === 'pending');
+    const approvedExpenses = expenses.filter(e => e.status === 'approved' || e.status === 'reimbursed');
+
+    const progressPercent = projectStats.totalTasks > 0
+      ? Math.round((projectStats.completedTasks / projectStats.totalTasks) * 100)
+      : project.progress;
+    const budgetUsed = project.budget > 0 ? (projectStats.totalCost / project.budget) * 100 : 0;
+
+    return (
+      <div className="space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setViewingProjectDetail(null)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="Retour aux projets"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180 text-gray-600 dark:text-gray-400" />
+          </button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-mono text-gray-400">{project.code}</span>
+              <h2 className="text-2xl font-bold dark:text-white">{project.name}</h2>
+              <span className={`px-3 py-1 rounded text-sm font-medium ${getStatusColor(project.status)}`}>
+                {project.status === 'planning' ? 'Planification' :
+                 project.status === 'in_progress' ? 'En cours' :
+                 project.status === 'on_hold' ? 'En pause' :
+                 project.status === 'completed' ? 'Terminé' : 'Annulé'}
+              </span>
+            </div>
+            {project.clientName && <p className="text-sm text-gray-500 mt-1">{project.clientName}</p>}
+            {project.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{project.description}</p>}
+          </div>
+          <button
+            onClick={() => {
+              setEditingProject(project);
+              setProjectForm(project);
+              setShowProjectModal(true);
+            }}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700"
+          >
+            <Edit2 className="w-4 h-4" /> Modifier
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Avancement</p>
+                <h3 className="text-2xl font-bold mt-1 dark:text-white">{progressPercent}%</h3>
+                <p className="text-xs text-gray-400 mt-1">{projectStats.completedTasks}/{projectStats.totalTasks} tâches complétées</p>
+              </div>
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${progressPercent}%` }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Budget</p>
+                <h3 className="text-2xl font-bold mt-1 dark:text-white">{formatCurrency(project.budget)}</h3>
+                <p className={`text-xs mt-1 ${budgetUsed > 100 ? 'text-red-500' : 'text-gray-400'}`}>
+                  {budgetUsed.toFixed(0)}% utilisé
+                </p>
+              </div>
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg">
+                <Wallet className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${budgetUsed > 100 ? 'bg-red-500' : budgetUsed > 80 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                  style={{ width: `${Math.min(budgetUsed, 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Temps Consommé</p>
+                <h3 className="text-2xl font-bold mt-1 dark:text-white">{projectStats.totalHours.toFixed(1)}h</h3>
+                <p className="text-xs text-gray-400 mt-1">{timeEntries.length} entrée(s)</p>
+              </div>
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+                <Clock className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Dépenses</p>
+                <h3 className="text-2xl font-bold mt-1 dark:text-white">{formatCurrency(projectStats.totalCost)}</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  {approvedExpenses.length} approuvée(s), {pendingExpenses.length} en attente
+                </p>
+              </div>
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
+                <DollarSign className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tasks Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-lg dark:text-white flex items-center gap-2">
+              <ListTodo className="w-5 h-5 text-indigo-600" /> Tâches du Projet
+            </h3>
+            <button
+              onClick={() => {
+                resetTaskForm();
+                setTaskForm({ ...taskForm, projectId: project.id });
+                setShowTaskModal(true);
+              }}
+              className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700"
+            >
+              <Plus className="w-4 h-4" /> Nouvelle Tâche
+            </button>
+          </div>
+          <div className="space-y-2">
+            {tasks.length === 0 ? (
+              <p className="text-center text-gray-400 py-8">Aucune tâche pour ce projet</p>
+            ) : (
+              tasks.map(task => {
+                const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+                return (
+                  <div key={task.id} className={`p-3 rounded-lg border ${isOverdue ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800' : 'bg-gray-50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-700'}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        <button
+                          onClick={() => {
+                            if (task.status !== 'completed') {
+                              updateProjectTask({ ...task, status: 'completed', completedDate: new Date().toISOString().split('T')[0], progress: 100 });
+                            }
+                          }}
+                          className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            task.status === 'completed'
+                              ? 'bg-green-500 border-green-500 text-white'
+                              : 'border-gray-300 dark:border-gray-600 hover:border-green-500'
+                          }`}
+                        >
+                          {task.status === 'completed' && <CheckCircle2 className="w-3 h-3" />}
+                        </button>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-mono text-gray-400">{task.code}</span>
+                            <h4 className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-400' : 'dark:text-white'}`}>
+                              {task.title}
+                            </h4>
+                            <span className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}></span>
+                            <span className={`px-2 py-0.5 rounded text-xs ${getTaskStatusColor(task.status)}`}>
+                              {task.status === 'todo' ? 'À faire' :
+                               task.status === 'in_progress' ? 'En cours' :
+                               task.status === 'review' ? 'En revue' :
+                               task.status === 'completed' ? 'Terminée' :
+                               task.status === 'blocked' ? 'Bloquée' : 'Annulée'}
+                            </span>
+                          </div>
+                          {task.description && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{task.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                            {task.assigneeName && (
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3 h-3" /> {task.assigneeName}
+                              </span>
+                            )}
+                            {task.dueDate && (
+                              <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-500' : ''}`}>
+                                <Calendar className="w-3 h-3" /> {task.dueDate}
+                              </span>
+                            )}
+                            {task.estimatedHours && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> {task.actualHours || 0}/{task.estimatedHours}h
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingTask(task);
+                          setTaskForm(task);
+                          setShowTaskModal(true);
+                        }}
+                        className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Time Entries Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-lg dark:text-white flex items-center gap-2">
+              <Timer className="w-5 h-5 text-indigo-600" /> Temps Consommé
+            </h3>
+            <button
+              onClick={() => {
+                setTimeEntryForm({ ...timeEntryForm, projectId: project.id });
+                setShowTimeEntryModal(true);
+              }}
+              className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700"
+            >
+              <Plus className="w-4 h-4" /> Enregistrer du Temps
+            </button>
+          </div>
+          {timeEntries.length === 0 ? (
+            <p className="text-center text-gray-400 py-8">Aucune entrée de temps pour ce projet</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Tâche</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Employé</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Heures</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Coût</th>
+                    <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Statut</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {timeEntries.map(entry => (
+                    <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-sm dark:text-white">{entry.date}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{entry.taskName || '-'}</td>
+                      <td className="px-4 py-3 text-sm dark:text-white">{entry.employeeName}</td>
+                      <td className="px-4 py-3 text-sm text-right dark:text-white">{entry.hours}h</td>
+                      <td className="px-4 py-3 text-sm text-right dark:text-white">
+                        {entry.totalCost ? formatCurrency(entry.totalCost) : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`px-2 py-0.5 rounded text-xs ${
+                          entry.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                          entry.status === 'submitted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                          entry.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                          'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                        }`}>
+                          {entry.status === 'draft' ? 'Brouillon' :
+                           entry.status === 'submitted' ? 'Soumis' :
+                           entry.status === 'approved' ? 'Approuvé' : 'Rejeté'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Expenses Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-lg dark:text-white flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-indigo-600" /> Dépenses du Projet
+            </h3>
+            <button
+              onClick={() => {
+                setExpenseForm({ ...expenseForm, projectId: project.id });
+                setShowExpenseModal(true);
+              }}
+              className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-indigo-700"
+            >
+              <Plus className="w-4 h-4" /> Nouvelle Dépense
+            </button>
+          </div>
+
+          {/* Budget Summary */}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Budget Total</p>
+              <p className="text-lg font-bold dark:text-white">{formatCurrency(project.budget)}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Dépensé</p>
+              <p className={`text-lg font-bold ${projectStats.totalCost > project.budget ? 'text-red-500' : 'dark:text-white'}`}>
+                {formatCurrency(projectStats.totalCost)}
+              </p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Restant</p>
+              <p className={`text-lg font-bold ${project.budget - projectStats.totalCost < 0 ? 'text-red-500' : 'text-green-500'}`}>
+                {formatCurrency(project.budget - projectStats.totalCost)}
+              </p>
+            </div>
+          </div>
+
+          {expenses.length === 0 ? (
+            <p className="text-center text-gray-400 py-8">Aucune dépense pour ce projet</p>
+          ) : (
+            <div className="space-y-2">
+              {expenses.map(expense => (
+                <div key={expense.id} className="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h5 className="font-medium dark:text-white">{expense.description}</h5>
+                        <span className="px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-xs">
+                          {expense.category === 'materials' ? 'Matériaux' :
+                           expense.category === 'equipment' ? 'Équipement' :
+                           expense.category === 'travel' ? 'Déplacement' :
+                           expense.category === 'subcontractor' ? 'Sous-traitance' :
+                           expense.category === 'software' ? 'Logiciel' : 'Autre'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-xs ${
+                          expense.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                          expense.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                          expense.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                          'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        }`}>
+                          {expense.status === 'pending' ? 'En attente' :
+                           expense.status === 'approved' ? 'Approuvé' :
+                           expense.status === 'rejected' ? 'Rejeté' : 'Remboursé'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>Date: {expense.date}</span>
+                        {expense.vendorName && <span>Fournisseur: {expense.vendorName}</span>}
+                        {expense.invoiceNumber && <span>Facture: {expense.invoiceNumber}</span>}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold dark:text-white">{formatCurrency(expense.amount)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Dashboard Tab
   const DashboardTab = () => {
     const pendingExpenses = projectExpenses.filter(e => e.status === 'pending');
@@ -537,7 +902,13 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
   };
 
   // Projects Tab
-  const ProjectsTab = () => (
+  const ProjectsTab = () => {
+    // If viewing project detail, show the detail view
+    if (viewingProjectDetail) {
+      return <ProjectDetailView project={viewingProjectDetail} />;
+    }
+
+    return (
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -600,6 +971,16 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
                      project.status === 'on_hold' ? 'En pause' :
                      project.status === 'completed' ? 'Terminé' : 'Annulé'}
                   </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewingProjectDetail(project);
+                    }}
+                    className="p-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                    title="Vue d'ensemble"
+                  >
+                    <Eye className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -688,7 +1069,8 @@ const ProjectManagement: React.FC<ProjectManagementProps> = ({ view }) => {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   // Tasks Tab
   const TasksTab = () => {
