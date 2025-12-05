@@ -4,6 +4,109 @@ import { Search, Plus, Pencil, Trash2, X, Tag, Clock, AlignLeft } from 'lucide-r
 import { useApp } from '../context/AppContext';
 import { ServiceItem } from '../types';
 
+interface ServiceModalProps {
+  isOpen: boolean;
+  editingItem: ServiceItem | null;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  t: (key: string) => string;
+}
+
+const ServiceModal = React.memo<ServiceModalProps>(({ isOpen, editingItem, onClose, onSubmit, t }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            {editingItem ? t('edit_service') : t('add_service')}
+          </h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('service_name')}</label>
+            <div className="relative">
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                    autoFocus
+                    id="name"
+                    name="name"
+                    defaultValue={editingItem?.name}
+                    required
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                    placeholder="e.g. Virus Removal"
+                />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('description')}</label>
+            <div className="relative">
+                <AlignLeft className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <textarea
+                    id="description"
+                    name="description"
+                    defaultValue={editingItem?.description}
+                    required
+                    rows={3}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white resize-none"
+                    placeholder="Service details..."
+                />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('base_price')}</label>
+              <input
+                type="number"
+                step="0.01"
+                id="basePrice"
+                name="basePrice"
+                defaultValue={editingItem?.basePrice}
+                required
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('duration')} (min)</label>
+              <input
+                type="number"
+                id="durationMinutes"
+                name="durationMinutes"
+                defaultValue={editingItem?.durationMinutes}
+                required
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+                placeholder="30"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+                {t('cancel')}
+            </button>
+            <button
+                type="submit"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+                {t('save')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
+ServiceModal.displayName = 'ServiceModal';
+
 const ServiceCatalog: React.FC = () => {
   const { serviceCatalog, addServiceItem, updateServiceItem, deleteServiceItem, formatCurrency, t } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
@@ -148,90 +251,13 @@ const ServiceCatalog: React.FC = () => {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                {editingItem ? t('edit_service') : t('add_service')}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('service_name')}</label>
-                <div className="relative">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input 
-                        autoFocus
-                        name="name" 
-                        defaultValue={editingItem?.name} 
-                        required 
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" 
-                        placeholder="e.g. Virus Removal"
-                    />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('description')}</label>
-                <div className="relative">
-                    <AlignLeft className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <textarea 
-                        name="description" 
-                        defaultValue={editingItem?.description} 
-                        required 
-                        rows={3}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white resize-none" 
-                        placeholder="Service details..."
-                    />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('base_price')}</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    name="basePrice" 
-                    defaultValue={editingItem?.basePrice} 
-                    required 
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" 
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('duration')} (min)</label>
-                  <input 
-                    type="number" 
-                    name="durationMinutes" 
-                    defaultValue={editingItem?.durationMinutes} 
-                    required 
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white" 
-                    placeholder="30"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button 
-                    type="button" 
-                    onClick={() => setIsModalOpen(false)} 
-                    className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                >
-                    {t('cancel')}
-                </button>
-                <button 
-                    type="submit" 
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                    {t('save')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ServiceModal
+        isOpen={isModalOpen}
+        editingItem={editingItem}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        t={t}
+      />
     </div>
   );
 };

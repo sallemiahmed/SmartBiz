@@ -56,7 +56,6 @@ const Clients: React.FC = () => {
     phone: '',
     status: 'active',
     category: 'Corporate',
-    totalSpent: 0,
     address: '',
     taxId: '',
     customFields: {}
@@ -181,7 +180,6 @@ const Clients: React.FC = () => {
       phone: '',
       status: 'active',
       category: 'Corporate',
-      totalSpent: 0,
       address: '',
       taxId: '',
       customFields: {}
@@ -917,12 +915,6 @@ const Clients: React.FC = () => {
                 </th>
                 <th className="px-6 py-4">{t('contact_details')}</th>
                 <th className="px-6 py-4">Category</th>
-                <th 
-                  className="px-6 py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => handleSort('totalSpent')}
-                >
-                  {t('total_spent')} <SortIcon columnKey="totalSpent" />
-                </th>
                 <th className="px-6 py-4">{t('status')}</th>
                 <th className="px-6 py-4 text-right">{t('actions')}</th>
               </tr>
@@ -955,9 +947,6 @@ const Clients: React.FC = () => {
                     <span className="text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
                       {client.category}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                    {formatCurrency(client.totalSpent)}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -1437,10 +1426,6 @@ const Clients: React.FC = () => {
                       </div>
                     );
                   })}
-                  <div className="flex justify-between pt-2">
-                    <span className="text-gray-500 dark:text-gray-400">{t('total_spent')}</span>
-                    <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedClient.totalSpent)}</span>
-                  </div>
                 </div>
               ) : (
                 /* Contacts Tab */

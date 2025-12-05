@@ -2,9 +2,780 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Plus, Filter, Pencil, Trash2, History, X, Package, AlertCircle, LayoutGrid, ImageIcon, Upload, ArrowUp, ArrowDown, RotateCcw, ShoppingBag, CheckCircle, FileDown, TrendingUp, DollarSign, Download, Printer, Calendar, BarChart3, PieChart as PieChartIcon, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
-import { Product, StockMovement } from '../types';
+import { Product, StockMovement, Warehouse, Supplier } from '../types';
 import { useApp } from '../context/AppContext';
 import Pagination from '../components/Pagination';
+
+// ===== EXTRACTED MODAL COMPONENTS =====
+
+interface HistoryModalProps {
+  isOpen: boolean;
+  product: Product | null;
+  productHistory: StockMovement[];
+  onClose: () => void;
+  t: (key: string) => string;
+}
+
+const HistoryModal = React.memo<HistoryModalProps>(({ isOpen, product, productHistory, onClose, t }) => {
+  if (!isOpen || !product) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl h-[80vh] flex flex-col border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <History className="w-5 h-5 text-blue-600" />
+              {t('product_history')}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{product.name} ({product.sku})</p>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-auto p-0">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0 z-10">
+              <tr>
+                <th className="px-6 py-4">{t('date')}</th>
+                <th className="px-6 py-4">{t('movement_type')}</th>
+                <th className="px-6 py-4">{t('reference')}</th>
+                <th className="px-6 py-4">{t('warehouse')}</th>
+                <th className="px-6 py-4 text-right">{t('quantity')}</th>
+                <th className="px-6 py-4">{t('reason')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {productHistory.map((move) => (
+                <tr key={move.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                    {new Date(move.date).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase
+                        ${move.quantity > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
+                    `}>
+                      {t(move.type)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-mono text-xs text-indigo-600 dark:text-indigo-400">
+                    {move.reference || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                    {move.warehouseName}
+                  </td>
+                  <td className={`px-6 py-4 text-right font-bold ${move.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {move.quantity > 0 ? '+' : ''}{move.quantity}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 italic">
+                    {move.notes || '-'}
+                  </td>
+                </tr>
+              ))}
+              {productHistory.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center text-gray-500 dark:text-gray-400">
+                    No movement history found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+          >
+            {t('close')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+HistoryModal.displayName = 'HistoryModal';
+
+interface DeleteModalProps {
+  isOpen: boolean;
+  product: Product | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  t: (key: string) => string;
+}
+
+const DeleteModal = React.memo<DeleteModalProps>(({ isOpen, product, onClose, onConfirm, t }) => {
+  if (!isOpen || !product) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-gray-700 overflow-hidden p-6 text-center">
+        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-500">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('delete_confirm_title')}</h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
+          {t('delete_confirm_msg')} <span className="font-bold text-gray-900 dark:text-white">{product.name}</span>
+        </p>
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+          >
+            {t('yes_delete')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+DeleteModal.displayName = 'DeleteModal';
+
+interface ImportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCSVUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDownloadTemplate: () => void;
+  importErrors: string[];
+  importSuccessCount: number | null;
+  t: (key: string) => string;
+}
+
+const ImportModal = React.memo<ImportModalProps>(({
+  isOpen,
+  onClose,
+  onCSVUpload,
+  onDownloadTemplate,
+  importErrors,
+  importSuccessCount,
+  t
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('import_csv')}</h3>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-500" /></button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center bg-gray-50 dark:bg-gray-900/50">
+            <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Upload your CSV file here</p>
+            <label className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+              Select File
+              <input
+                id="csv-upload-input"
+                name="csv-upload"
+                type="file"
+                accept=".csv"
+                onChange={onCSVUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {importSuccessCount !== null && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Successfully imported {importSuccessCount} products.
+            </div>
+          )}
+
+          {importErrors.length > 0 && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-xs max-h-32 overflow-y-auto">
+              <p className="font-bold mb-1">Errors:</p>
+              <ul className="list-disc list-inside space-y-1">
+                {importErrors.map((err, idx) => <li key={idx}>{err}</li>)}
+              </ul>
+            </div>
+          )}
+
+          <div className="text-center">
+            <button
+              onClick={onDownloadTemplate}
+              className="text-sm text-indigo-600 hover:underline"
+            >
+              {t('download_template')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+ImportModal.displayName = 'ImportModal';
+
+interface RestockModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  suppliers: Supplier[];
+  products: Product[];
+  selectedSupplier: string;
+  onSupplierChange: (supplierId: string) => void;
+  restockSelection: Record<string, number>;
+  onToggleItem: (productId: string) => void;
+  onQuantityChange: (productId: string, qty: number) => void;
+  t: (key: string) => string;
+}
+
+const RestockModal = React.memo<RestockModalProps>(({
+  isOpen,
+  onClose,
+  onSubmit,
+  suppliers,
+  products,
+  selectedSupplier,
+  onSupplierChange,
+  restockSelection,
+  onToggleItem,
+  onQuantityChange,
+  t
+}) => {
+  if (!isOpen) return null;
+
+  const lowStockProducts = products.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl p-6 flex flex-col max-h-[90vh]">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5 text-orange-600" />
+            {t('restock_low_stock')}
+          </h2>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-500" /></button>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('select_supplier')}</label>
+          <select
+            id="restock-supplier-select"
+            name="restock-supplier"
+            value={selectedSupplier}
+            onChange={(e) => onSupplierChange(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
+          >
+            {suppliers.map(s => <option key={s.id} value={s.id}>{s.company}</option>)}
+          </select>
+        </div>
+
+        <div className="flex-1 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 sticky top-0">
+              <tr>
+                <th className="px-4 py-2 w-10"></th>
+                <th className="px-4 py-2">{t('product')}</th>
+                <th className="px-4 py-2">{t('stock_level')}</th>
+                <th className="px-4 py-2">{t('order_qty')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {lowStockProducts.map(p => (
+                <tr key={p.id} className={restockSelection[p.id] ? 'bg-orange-50 dark:bg-orange-900/10' : ''}>
+                  <td className="px-4 py-2">
+                    <input
+                      id={`restock-checkbox-${p.id}`}
+                      name={`restock-checkbox-${p.id}`}
+                      type="checkbox"
+                      checked={!!restockSelection[p.id]}
+                      onChange={() => onToggleItem(p.id)}
+                      className="rounded text-orange-600 focus:ring-orange-500"
+                    />
+                  </td>
+                  <td className="px-4 py-2 font-medium dark:text-white">{p.name}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-0.5 rounded text-xs ${p.status === 'out_of_stock' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
+                      {p.stock}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      id={`restock-qty-${p.id}`}
+                      name={`restock-qty-${p.id}`}
+                      type="number"
+                      min="0"
+                      value={restockSelection[p.id] || 0}
+                      onChange={(e) => onQuantityChange(p.id, parseInt(e.target.value) || 0)}
+                      disabled={!restockSelection[p.id]}
+                      className="w-20 px-2 py-1 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                  </td>
+                </tr>
+              ))}
+              {lowStockProducts.length === 0 && (
+                <tr><td colSpan={4} className="p-8 text-center text-gray-500">All products are well stocked!</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            onClick={onSubmit}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2"
+          >
+            <CheckCircle className="w-4 h-4" /> {t('generate_order')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+RestockModal.displayName = 'RestockModal';
+
+interface AddProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  formData: Partial<Product>;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onWarehouseStockChange: (whId: string, value: string) => void;
+  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: () => void;
+  warehouses: Warehouse[];
+  categories: string[];
+  t: (key: string) => string;
+}
+
+const AddProductModal = React.memo<AddProductModalProps>(({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  onInputChange,
+  onWarehouseStockChange,
+  onImageUpload,
+  onRemoveImage,
+  warehouses,
+  categories,
+  t
+}) => {
+  if (!isOpen) return null;
+
+  const totalStock = Object.values(formData.warehouseStock || {}).reduce((a: number, b) => a + Number(b), 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('add_product')}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={onSubmit} className="p-6 overflow-y-auto">
+          {/* Image Upload */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Image</label>
+            <div className="flex items-start gap-4">
+              <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 relative group">
+                {formData.image ? (
+                  <>
+                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={onRemoveImage}
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </>
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-2">
+                  <Upload className="w-4 h-4" />
+                  Upload Image
+                  <input
+                    id="add-product-image"
+                    name="add-product-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={onImageUpload}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Recommended: Square JPG/PNG, Max 2MB.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
+              <input
+                id="add-product-name"
+                name="name"
+                type="text"
+                value={formData.name || ''}
+                onChange={onInputChange}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
+              <input
+                id="add-product-sku"
+                name="sku"
+                type="text"
+                value={formData.sku || ''}
+                onChange={onInputChange}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
+              <input
+                id="add-product-category"
+                name="category"
+                type="text"
+                value={formData.category || ''}
+                onChange={onInputChange}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                list="category-suggestions"
+                required
+              />
+              <datalist id="category-suggestions">
+                {categories.map(c => <option key={c} value={c} />)}
+              </datalist>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <input
+                  id="add-product-cost"
+                  name="cost"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.cost || ''}
+                  onChange={onInputChange}
+                  className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <input
+                  id="add-product-price"
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price || ''}
+                  onChange={onInputChange}
+                  className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stock Distribution */}
+          <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+            <div className="flex justify-between items-center mb-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Stock Distribution (Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{totalStock}</span>)
+              </label>
+              <span className="text-xs text-gray-400">Edit quantities per warehouse</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-1">
+              {warehouses.map(wh => (
+                <div key={wh.id} className="bg-gray-50 dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate" title={wh.name}>{wh.name}</span>
+                      {wh.isDefault && <span className="text-[9px] bg-indigo-100 text-indigo-600 px-1 rounded flex-shrink-0">Def</span>}
+                    </div>
+                    <span className="text-[10px] text-gray-400 truncate block">{wh.location}</span>
+                  </div>
+                  <input
+                    id={`add-warehouse-stock-${wh.id}`}
+                    name={`add-warehouse-stock-${wh.id}`}
+                    type="number"
+                    min="0"
+                    value={formData.warehouseStock?.[wh.id] ?? 0}
+                    onChange={(e) => onWarehouseStockChange(wh.id, e.target.value)}
+                    className="w-16 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              {t('add_product')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
+AddProductModal.displayName = 'AddProductModal';
+
+interface EditProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  formData: Partial<Product>;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onWarehouseStockChange: (whId: string, value: string) => void;
+  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: () => void;
+  warehouses: Warehouse[];
+  categories: string[];
+  t: (key: string) => string;
+}
+
+const EditProductModal = React.memo<EditProductModalProps>(({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  onInputChange,
+  onWarehouseStockChange,
+  onImageUpload,
+  onRemoveImage,
+  warehouses,
+  categories,
+  t
+}) => {
+  if (!isOpen) return null;
+
+  const totalStock = Object.values(formData.warehouseStock || {}).reduce((a: number, b) => a + Number(b), 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('edit_product')}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={onSubmit} className="p-6 overflow-y-auto">
+          {/* Image Upload */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Image</label>
+            <div className="flex items-start gap-4">
+              <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 relative group">
+                {formData.image ? (
+                  <>
+                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={onRemoveImage}
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </>
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-2">
+                  <Upload className="w-4 h-4" />
+                  Upload Image
+                  <input
+                    id="edit-product-image"
+                    name="edit-product-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={onImageUpload}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Recommended: Square JPG/PNG, Max 2MB.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
+              <input
+                id="edit-product-name"
+                name="name"
+                type="text"
+                value={formData.name || ''}
+                onChange={onInputChange}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
+              <input
+                id="edit-product-sku"
+                name="sku"
+                type="text"
+                value={formData.sku || ''}
+                onChange={onInputChange}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
+              <input
+                id="edit-product-category"
+                name="category"
+                type="text"
+                value={formData.category || ''}
+                onChange={onInputChange}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                list="category-suggestions"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <input
+                  id="edit-product-cost"
+                  name="cost"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.cost || ''}
+                  onChange={onInputChange}
+                  className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <input
+                  id="edit-product-price"
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price || ''}
+                  onChange={onInputChange}
+                  className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stock Distribution */}
+          <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+            <div className="flex justify-between items-center mb-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Stock Distribution (Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{totalStock}</span>)
+              </label>
+              <span className="text-xs text-gray-400">Edit quantities per warehouse</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-1">
+              {warehouses.map(wh => (
+                <div key={wh.id} className="bg-gray-50 dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate" title={wh.name}>{wh.name}</span>
+                      {wh.isDefault && <span className="text-[9px] bg-indigo-100 text-indigo-600 px-1 rounded flex-shrink-0">Def</span>}
+                    </div>
+                    <span className="text-[10px] text-gray-400 truncate block">{wh.location}</span>
+                  </div>
+                  <input
+                    id={`edit-warehouse-stock-${wh.id}`}
+                    name={`edit-warehouse-stock-${wh.id}`}
+                    type="number"
+                    min="0"
+                    value={formData.warehouseStock?.[wh.id] ?? 0}
+                    onChange={(e) => onWarehouseStockChange(wh.id, e.target.value)}
+                    className="w-16 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none dark:text-white"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+              {t('save_changes')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+});
+
+EditProductModal.displayName = 'EditProductModal';
 
 const Inventory: React.FC = () => {
   const { products, warehouses, suppliers, stockMovements, invoices, clients, addProduct, addProducts, updateProduct, deleteProduct, createPurchaseDocument, addStockMovement, formatCurrency, t } = useApp();
@@ -493,73 +1264,6 @@ const Inventory: React.FC = () => {
     return sortConfig.direction === 'asc' ? <ArrowUp className="w-4 h-4 ml-1 inline text-indigo-500" /> : <ArrowDown className="w-4 h-4 ml-1 inline text-indigo-500" />;
   };
 
-  const renderStockDistribution = () => (
-    <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
-      <div className="flex justify-between items-center mb-3">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Stock Distribution (Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{formData.stock || 0}</span>)
-        </label>
-        <span className="text-xs text-gray-400">Edit quantities per warehouse</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-1">
-        {warehouses.map(wh => (
-          <div key={wh.id} className="bg-gray-50 dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2">
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate" title={wh.name}>{wh.name}</span>
-                {wh.isDefault && <span className="text-[9px] bg-indigo-100 text-indigo-600 px-1 rounded flex-shrink-0">Def</span>}
-              </div>
-              <span className="text-[10px] text-gray-400 truncate block">{wh.location}</span>
-            </div>
-            <input 
-              type="number"
-              min="0"
-              value={formData.warehouseStock?.[wh.id] ?? 0}
-              onChange={(e) => handleWarehouseStockChange(wh.id, e.target.value)}
-              className="w-16 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none dark:text-white"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderImageUpload = () => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Image</label>
-      <div className="flex items-start gap-4">
-        <div className={`
-          w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
-          flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 relative group
-        `}>
-          {formData.image ? (
-            <>
-              <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-              <button 
-                type="button"
-                onClick={handleRemoveImage}
-                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </>
-          ) : (
-            <ImageIcon className="w-8 h-8 text-gray-400" />
-          )}
-        </div>
-        <div className="flex-1">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-2">
-            <Upload className="w-4 h-4" />
-            Upload Image
-            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-          </label>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Recommended: Square JPG/PNG, Max 2MB.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 
   // History Table Data
   const productHistory = useMemo(() => {
@@ -1008,85 +1712,13 @@ const Inventory: React.FC = () => {
       </div>
 
       {/* --- MODALS --- */}
-      
-      {/* HISTORY MODAL */}
-      {isHistoryModalOpen && selectedProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl h-[80vh] flex flex-col border border-gray-200 dark:border-gray-700">
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-                      <div>
-                          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                              <History className="w-5 h-5 text-blue-600" />
-                              {t('product_history')}
-                          </h2>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{selectedProduct.name} ({selectedProduct.sku})</p>
-                      </div>
-                      <button onClick={() => setIsHistoryModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                          <X className="w-5 h-5" />
-                      </button>
-                  </div>
-                  
-                  <div className="flex-1 overflow-auto p-0">
-                      <table className="w-full text-sm text-left">
-                          <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium sticky top-0 z-10">
-                              <tr>
-                                  <th className="px-6 py-4">{t('date')}</th>
-                                  <th className="px-6 py-4">{t('movement_type')}</th>
-                                  <th className="px-6 py-4">{t('reference')}</th>
-                                  <th className="px-6 py-4">{t('warehouse')}</th>
-                                  <th className="px-6 py-4 text-right">{t('quantity')}</th>
-                                  <th className="px-6 py-4">{t('reason')}</th>
-                              </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                              {productHistory.map((move) => (
-                                  <tr key={move.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                                          {new Date(move.date).toLocaleString()}
-                                      </td>
-                                      <td className="px-6 py-4">
-                                          <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase
-                                              ${move.quantity > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
-                                          `}>
-                                              {t(move.type)}
-                                          </span>
-                                      </td>
-                                      <td className="px-6 py-4 font-mono text-xs text-indigo-600 dark:text-indigo-400">
-                                          {move.reference || '-'}
-                                      </td>
-                                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                                          {move.warehouseName}
-                                      </td>
-                                      <td className={`px-6 py-4 text-right font-bold ${move.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                          {move.quantity > 0 ? '+' : ''}{move.quantity}
-                                      </td>
-                                      <td className="px-6 py-4 text-gray-500 italic">
-                                          {move.notes || '-'}
-                                      </td>
-                                  </tr>
-                              ))}
-                              {productHistory.length === 0 && (
-                                  <tr>
-                                      <td colSpan={6} className="p-12 text-center text-gray-500 dark:text-gray-400">
-                                          No movement history found.
-                                      </td>
-                                  </tr>
-                              )}
-                          </tbody>
-                      </table>
-                  </div>
-                  
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end">
-                      <button 
-                          onClick={() => setIsHistoryModalOpen(false)}
-                          className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                          {t('close')}
-                      </button>
-                  </div>
-              </div>
-          </div>
-      )}
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        product={selectedProduct}
+        productHistory={productHistory}
+        onClose={() => setIsHistoryModalOpen(false)}
+        t={t}
+      />
         </>
       ) : (
         // Revenue Tab Content
@@ -1417,390 +2049,66 @@ const Inventory: React.FC = () => {
         </div>
       )}
 
-      {/* ADD Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('add_product')}</h2>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAddSubmit} className="p-6 overflow-y-auto">
-              {renderImageUpload()}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={formData.sku}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                    list="category-suggestions"
-                    required
-                  />
-                  <datalist id="category-suggestions">
-                    {categories.map(c => <option key={c} value={c} />)}
-                  </datalist>
-                </div>
-              </div>
+      {/* Modals */}
+      <AddProductModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddSubmit}
+        formData={formData}
+        onInputChange={handleInputChange}
+        onWarehouseStockChange={handleWarehouseStockChange}
+        onImageUpload={handleImageUpload}
+        onRemoveImage={handleRemoveImage}
+        warehouses={warehouses}
+        categories={categories}
+        t={t}
+      />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      name="cost"
-                      min="0"
-                      step="0.01"
-                      value={formData.cost}
-                      onChange={handleInputChange}
-                      className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      name="price"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleEditSubmit}
+        formData={formData}
+        onInputChange={handleInputChange}
+        onWarehouseStockChange={handleWarehouseStockChange}
+        onImageUpload={handleImageUpload}
+        onRemoveImage={handleRemoveImage}
+        warehouses={warehouses}
+        categories={categories}
+        t={t}
+      />
 
-              {renderStockDistribution()}
+      <RestockModal
+        isOpen={isRestockModalOpen}
+        onClose={() => setIsRestockModalOpen(false)}
+        onSubmit={handleRestockSubmit}
+        suppliers={suppliers}
+        products={products}
+        selectedSupplier={selectedRestockSupplier}
+        onSupplierChange={setSelectedRestockSupplier}
+        restockSelection={restockSelection}
+        onToggleItem={toggleRestockItem}
+        onQuantityChange={handleRestockSelectionChange}
+        t={t}
+      />
 
-              <div className="mt-8 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  {t('add_product')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onCSVUpload={handleCSVUpload}
+        onDownloadTemplate={handleDownloadTemplate}
+        importErrors={importErrors}
+        importSuccessCount={importSuccessCount}
+        t={t}
+      />
 
-      {/* EDIT Modal */}
-      {isEditModalOpen && selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl border border-gray-200 dark:border-gray-700 flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('edit_product')}</h2>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleEditSubmit} className="p-6 overflow-y-auto">
-              {renderImageUpload()}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('product_name')}</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('sku')}</label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={formData.sku}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('category')}</label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                    list="category-suggestions"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('cost')}</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      name="cost"
-                      min="0"
-                      step="0.01"
-                      value={formData.cost}
-                      onChange={handleInputChange}
-                      className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('price')}</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      name="price"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      className="w-full pl-6 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {renderStockDistribution()}
-
-              <div className="mt-8 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors"
-                >
-                  <Pencil className="w-4 h-4" />
-                  {t('save_changes')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Restock Wizard Modal */}
-      {isRestockModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl p-6 flex flex-col max-h-[90vh]">
-                  <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                          <ShoppingBag className="w-5 h-5 text-orange-600" />
-                          {t('restock_low_stock')}
-                      </h2>
-                      <button onClick={() => setIsRestockModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
-                  </div>
-
-                  <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('select_supplier')}</label>
-                      <select 
-                          value={selectedRestockSupplier}
-                          onChange={(e) => setSelectedRestockSupplier(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white"
-                      >
-                          {suppliers.map(s => <option key={s.id} value={s.id}>{s.company}</option>)}
-                      </select>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <table className="w-full text-sm text-left">
-                          <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 sticky top-0">
-                              <tr>
-                                  <th className="px-4 py-2 w-10"></th>
-                                  <th className="px-4 py-2">{t('product')}</th>
-                                  <th className="px-4 py-2">{t('stock_level')}</th>
-                                  <th className="px-4 py-2">{t('order_qty')}</th>
-                              </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                              {products
-                                  .filter(p => p.status === 'low_stock' || p.status === 'out_of_stock')
-                                  .map(p => (
-                                  <tr key={p.id} className={restockSelection[p.id] ? 'bg-orange-50 dark:bg-orange-900/10' : ''}>
-                                      <td className="px-4 py-2">
-                                          <input 
-                                              type="checkbox" 
-                                              checked={!!restockSelection[p.id]}
-                                              onChange={() => toggleRestockItem(p.id)}
-                                              className="rounded text-orange-600 focus:ring-orange-500"
-                                          />
-                                      </td>
-                                      <td className="px-4 py-2 font-medium dark:text-white">{p.name}</td>
-                                      <td className="px-4 py-2">
-                                          <span className={`px-2 py-0.5 rounded text-xs ${p.status === 'out_of_stock' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
-                                              {p.stock}
-                                          </span>
-                                      </td>
-                                      <td className="px-4 py-2">
-                                          <input 
-                                              type="number" 
-                                              min="0"
-                                              value={restockSelection[p.id] || 0}
-                                              onChange={(e) => handleRestockSelectionChange(p.id, parseInt(e.target.value) || 0)}
-                                              disabled={!restockSelection[p.id]}
-                                              className="w-20 px-2 py-1 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                          />
-                                      </td>
-                                  </tr>
-                              ))}
-                              {products.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock').length === 0 && (
-                                  <tr><td colSpan={4} className="p-8 text-center text-gray-500">All products are well stocked!</td></tr>
-                              )}
-                          </tbody>
-                      </table>
-                  </div>
-
-                  <div className="mt-6 flex justify-end gap-3">
-                      <button 
-                          onClick={() => setIsRestockModalOpen(false)}
-                          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
-                      >
-                          {t('cancel')}
-                      </button>
-                      <button 
-                          onClick={handleRestockSubmit}
-                          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2"
-                      >
-                          <CheckCircle className="w-4 h-4" /> {t('generate_order')}
-                      </button>
-                  </div>
-              </div>
-          </div>
-      )}
-
-      {/* Import Modal */}
-      {isImportModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
-                  <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('import_csv')}</h3>
-                      <button onClick={() => setIsImportModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                      <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center bg-gray-50 dark:bg-gray-900/50">
-                          <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Upload your CSV file here</p>
-                          <label className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                              Select File
-                              <input type="file" accept=".csv" onChange={handleCSVUpload} className="hidden" />
-                          </label>
-                      </div>
-
-                      {importSuccessCount !== null && (
-                          <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4" />
-                              Successfully imported {importSuccessCount} products.
-                          </div>
-                      )}
-
-                      {importErrors.length > 0 && (
-                          <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-xs max-h-32 overflow-y-auto">
-                              <p className="font-bold mb-1">Errors:</p>
-                              <ul className="list-disc list-inside space-y-1">
-                                  {importErrors.map((err, idx) => <li key={idx}>{err}</li>)}
-                              </ul>
-                          </div>
-                      )}
-                      
-                      <div className="text-center">
-                          <button 
-                              onClick={handleDownloadTemplate}
-                              className="text-sm text-indigo-600 hover:underline"
-                          >
-                              {t('download_template')}
-                          </button>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-gray-700 overflow-hidden p-6 text-center">
-             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-500">
-               <AlertCircle className="w-6 h-6" />
-             </div>
-             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('delete_confirm_title')}</h3>
-             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-               {t('delete_confirm_msg')} <span className="font-bold text-gray-900 dark:text-white">{selectedProduct.name}</span>
-             </p>
-             <div className="flex gap-3 justify-center">
-               <button 
-                 onClick={() => setIsDeleteModalOpen(false)}
-                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-               >
-                 {t('cancel')}
-               </button>
-               <button 
-                 onClick={handleDeleteConfirm}
-                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
-               >
-                 {t('yes_delete')}
-               </button>
-             </div>
-          </div>
-        </div>
-      )}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        product={selectedProduct}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        t={t}
+      />
     </div>
   );
 };
