@@ -16,10 +16,11 @@ interface SalesProps {
 }
 
 const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
-  const { clients, products, serviceCatalog, warehouses, createSalesDocument, formatCurrency, settings, t } = useApp();
-  
+  const { clients, products, serviceCatalog, warehouses, projects, createSalesDocument, formatCurrency, settings, t } = useApp();
+
   // Form State
   const [clientId, setClientId] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
   const [warehouseId, setWarehouseId] = useState(warehouses.find(w => w.isDefault)?.id || warehouses[0]?.id || '');
@@ -85,10 +86,13 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
     if (items.length === 0) return alert(t('add_items_error'));
 
     const client = clients.find(c => c.id === clientId);
-    
+    const project = projectId ? projects.find(p => p.id === projectId) : undefined;
+
     createSalesDocument(mode, {
       clientId,
       clientName: client?.company || 'Unknown',
+      projectId: projectId || undefined,
+      projectName: project?.name,
       date,
       dueDate: dueDate || date,
       amount: total,
@@ -246,7 +250,7 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('client')}</label>
-              <SearchableSelect 
+              <SearchableSelect
                 options={clients.map(c => ({ value: c.id, label: c.company }))}
                 value={clientId}
                 onChange={setClientId}
@@ -254,7 +258,23 @@ const Sales: React.FC<SalesProps> = ({ mode = 'invoice', onCancel }) => {
                 className="w-full rounded-lg"
               />
             </div>
-            
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Projet (optionnel)</label>
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'Aucun projet' },
+                  ...projects
+                    .filter(p => !clientId || p.clientId === clientId)
+                    .map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
+                ]}
+                value={projectId}
+                onChange={setProjectId}
+                placeholder="Sélectionner un projet..."
+                className="w-full rounded-lg"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('date')}</label>

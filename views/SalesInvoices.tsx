@@ -227,6 +227,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
               <tr>
                 <th className="px-6 py-4">{t('ref_num')}</th>
                 <th className="px-6 py-4">{t('client')}</th>
+                <th className="px-6 py-4">Projet</th>
                 <th className="px-6 py-4">{t('date')}</th>
                 <th className="px-6 py-4">{t('due_date')}</th>
                 <th className="px-6 py-4">{t('amount')}</th>
@@ -243,6 +244,7 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew }) => {
                 <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                   <td className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400">{doc.number}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{doc.clientName}</td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">{doc.projectName || '-'}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.date}</td>
                   <td className="px-6 py-4 text-gray-500">{doc.dueDate || '-'}</td>
                   <td className="px-6 py-4">
