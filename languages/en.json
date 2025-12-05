@@ -284,6 +284,7 @@
   "pending": "Pending",
   "overdue": "Overdue",
   "draft": "Draft",
+  "validated": "Validated",
   "completed": "Completed",
   "received": "Received",
   "in_stock": "In Stock",
