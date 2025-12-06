@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Send, CheckCircle, Calculator, AlertCircle, Calendar } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Send, CheckCircle, Calculator, AlertCircle, Calendar, XCircle } from 'lucide-react';
 import { Purchase, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -17,6 +17,10 @@ interface ViewModalProps {
   onPrint: () => void;
   onOpenQuoteModal: () => void;
   onConvertToPO: () => void;
+  onAccept: () => void;
+  onReject: () => void;
+  onCreatePO: () => void;
+  linkedPO: Purchase | null;
   formatCurrency: (amount: number) => string;
   getStatusColor: (status: string) => string;
   t: (key: string) => string;
@@ -29,6 +33,10 @@ const ViewModal = React.memo<ViewModalProps>(({
   onPrint,
   onOpenQuoteModal,
   onConvertToPO,
+  onAccept,
+  onReject,
+  onCreatePO,
+  linkedPO,
   formatCurrency,
   getStatusColor,
   t
@@ -89,6 +97,31 @@ const ViewModal = React.memo<ViewModalProps>(({
               <span className="text-indigo-600 dark:text-indigo-400">{formatCurrency(rfq.amount)}</span>
             </div>
           )}
+
+          {linkedPO && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                Commande Fournisseur Liée
+              </h4>
+              <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">N° Commande:</span>
+                  <span className="font-mono font-medium text-green-600 dark:text-green-400">{linkedPO.number}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">Date:</span>
+                  <span className="text-gray-900 dark:text-white">{linkedPO.date}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">Statut:</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(linkedPO.status)}`}>
+                    {t(linkedPO.status)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -109,15 +142,34 @@ const ViewModal = React.memo<ViewModalProps>(({
                 {t('enter_prices')}
               </button>
               {rfq.status === 'responded' && (
-                <button
-                  onClick={onConvertToPO}
-                  className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  {t('convert_to_po')}
-                </button>
+                <>
+                  <button
+                    onClick={onAccept}
+                    className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Accepté
+                  </button>
+                  <button
+                    onClick={onReject}
+                    className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Rejeté
+                  </button>
+                </>
               )}
             </>
+          )}
+
+          {rfq.status === 'accepted' && !linkedPO && (
+            <button
+              onClick={onCreatePO}
+              className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Créer Commande
+            </button>
           )}
 
           <button
@@ -275,16 +327,21 @@ DeleteModal.displayName = 'DeleteModal';
 
 const RequestForQuotation: React.FC<RequestForQuotationProps> = ({ onAddNew }) => {
   const { purchases, deletePurchase, createPurchaseDocument, updatePurchase, formatCurrency, settings, t } = useApp();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedRFQ, setSelectedRFQ] = useState<Purchase | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   // Price Entry / Quote Modal
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [quotedPrices, setQuotedPrices] = useState<Record<string, number>>({});
+
+  // Find linked Purchase Order if RFQ is accepted
+  const linkedPO = selectedRFQ
+    ? purchases.find(p => p.type === 'order' && p.linkedDocumentId === selectedRFQ.id) || null
+    : null;
 
   // Filter only RFQs
   const rfqs = purchases.filter(p => p.type === 'rfq');
@@ -378,6 +435,53 @@ const RequestForQuotation: React.FC<RequestForQuotationProps> = ({ onAddNew }) =
 
     setIsViewModalOpen(false);
     alert(t('success'));
+  };
+
+  const handleAccept = () => {
+    if (!selectedRFQ) return;
+
+    // Only update RFQ status to accepted (no PO created yet)
+    updatePurchase({
+      ...selectedRFQ,
+      status: 'accepted'
+    });
+
+    setIsViewModalOpen(false);
+    alert('Offre acceptée. Vous pouvez maintenant créer la commande fournisseur.');
+  };
+
+  const handleCreatePO = () => {
+    if (!selectedRFQ) return;
+
+    // Create Purchase Order from accepted RFQ
+    createPurchaseDocument('order', {
+      supplierId: selectedRFQ.supplierId,
+      supplierName: selectedRFQ.supplierName,
+      date: new Date().toISOString().split('T')[0],
+      amount: selectedRFQ.amount,
+      currency: selectedRFQ.currency,
+      exchangeRate: selectedRFQ.exchangeRate,
+      warehouseId: selectedRFQ.warehouseId,
+      taxRate: selectedRFQ.taxRate,
+      notes: `Généré depuis la demande de prix ${selectedRFQ.number}`,
+      linkedDocumentId: selectedRFQ.id
+    }, selectedRFQ.items);
+
+    setIsViewModalOpen(false);
+    alert('Commande fournisseur créée avec succès et liée à la demande de prix.');
+  };
+
+  const handleReject = () => {
+    if (!selectedRFQ) return;
+
+    // Update RFQ status to rejected (no PO created)
+    updatePurchase({
+      ...selectedRFQ,
+      status: 'rejected'
+    });
+
+    setIsViewModalOpen(false);
+    alert('Offre rejetée. Aucune commande fournisseur n\'a été générée.');
   };
 
   const getStatusColor = (status: string) => {
@@ -499,6 +603,10 @@ const RequestForQuotation: React.FC<RequestForQuotationProps> = ({ onAddNew }) =
           onPrint={handlePrint}
           onOpenQuoteModal={handleOpenQuoteModal}
           onConvertToPO={convertToPO}
+          onAccept={handleAccept}
+          onReject={handleReject}
+          onCreatePO={handleCreatePO}
+          linkedPO={linkedPO}
           formatCurrency={formatCurrency}
           getStatusColor={getStatusColor}
           t={t}
