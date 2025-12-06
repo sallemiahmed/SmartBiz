@@ -193,10 +193,10 @@ function AppContent() {
         return <Purchases mode="rfq" />;
     }
     if (currentView === 'purchases-order') {
-      return <PurchaseOrders onAddNew={() => handleNavigate('purchases-order-create' as AppView)} />;
+      return <PurchaseOrders onAddNew={() => handleNavigate('purchases-order-create' as AppView)} onEdit={handleEditPurchaseOrder} />;
     }
     if (currentView === 'purchases-order-create' as AppView) {
-      return <Purchases mode="order" />;
+      return <Purchases mode="order" editingOrder={editingPurchaseOrder} onCancel={() => { setEditingPurchaseOrder(null); handleNavigate('purchases-order'); }} />;
     }
     if (currentView === 'purchases-delivery') {
       return <PurchaseDeliveries onAddNew={() => handleNavigate('purchases-delivery-create' as AppView)} />;
