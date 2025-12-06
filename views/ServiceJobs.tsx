@@ -19,6 +19,7 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [technicianFilter, setTechnicianFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
   const [selectedJob, setSelectedJob] = useState<ServiceJob | null>(null);
   
@@ -33,12 +34,13 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
 
   // Filtering
   const filteredJobs = useMemo(() => serviceJobs.filter(job => {
-    const matchesSearch = job.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = job.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           job.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (job.deviceInfo || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  }), [serviceJobs, searchTerm, statusFilter]);
+    const matchesTechnician = technicianFilter === 'all' || job.technicianId === technicianFilter;
+    return matchesSearch && matchesStatus && matchesTechnician;
+  }), [serviceJobs, searchTerm, statusFilter, technicianFilter]);
 
   // Helpers
   const getStatusColor = (status: string) => {
@@ -260,7 +262,7 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                 className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
             />
         </div>
-        <select 
+        <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white min-w-[140px]"
@@ -270,6 +272,16 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
             <option value="in_progress">{t('in_progress')}</option>
             <option value="completed">{t('completed')}</option>
             <option value="invoiced">{t('invoiced')}</option>
+        </select>
+        <select
+            value={technicianFilter}
+            onChange={(e) => setTechnicianFilter(e.target.value)}
+            className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white min-w-[160px]"
+        >
+            <option value="all">Tous les techniciens</option>
+            {technicians.map(tech => (
+              <option key={tech.id} value={tech.id}>{tech.name}</option>
+            ))}
         </select>
       </div>
 

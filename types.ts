@@ -33,6 +33,7 @@ export interface ClientContact {
 
 export interface Client {
   id: string;
+  code: string; // Auto-generated client code
   company: string;
   name: string;
   email: string;
@@ -177,6 +178,7 @@ export interface SupplierContact {
 
 export interface Supplier {
   id: string;
+  code: string; // Auto-generated supplier code
   company: string;
   contactName: string;
   email: string;
@@ -532,6 +534,7 @@ export interface Vehicle {
 
 export interface FleetMission {
   id: string;
+  reference: string;
   vehicleId: string;
   vehicleName: string;
   driverName: string;

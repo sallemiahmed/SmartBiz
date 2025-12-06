@@ -56,12 +56,12 @@ const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const client = clients.find(c => c.id === formData.clientId);
-        
+
         const newJob: ServiceJob = {
             id: `job-${Date.now()}`,
             ticketNumber: `JOB-${Date.now().toString().slice(-6)}`,
             clientId: formData.clientId || '',
-            clientName: client?.company || 'Unknown',
+            clientName: formData.clientId ? (client?.company || 'Unknown') : 'Client non spécifié',
             date: new Date().toISOString().split('T')[0],
             status: 'pending',
             priority: formData.priority as any,
@@ -96,15 +96,14 @@ const CreateServiceJobInline: React.FC<{ onCancel: () => void }> = ({ onCancel }
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 pb-2 mb-4">Customer Info</h3>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">{t('client')}</label>
+                                <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">{t('client')} <span className="text-xs text-gray-500">(Optionnel)</span></label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <select 
-                                        required 
+                                    <select
                                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                                         onChange={e => setFormData({...formData, clientId: e.target.value})}
                                     >
-                                        <option value="">Select Client...</option>
+                                        <option value="">Client non spécifié</option>
                                         {clients.map(c => <option key={c.id} value={c.id}>{c.company} ({c.name})</option>)}
                                     </select>
                                 </div>

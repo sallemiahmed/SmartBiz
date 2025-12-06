@@ -778,7 +778,7 @@ const EditProductModal = React.memo<EditProductModalProps>(({
 EditProductModal.displayName = 'EditProductModal';
 
 const Inventory: React.FC = () => {
-  const { products, warehouses, suppliers, stockMovements, invoices, clients, addProduct, addProducts, updateProduct, deleteProduct, createPurchaseDocument, addStockMovement, formatCurrency, t } = useApp();
+  const { products, warehouses, suppliers, stockMovements, invoices, purchases, clients, addProduct, addProducts, updateProduct, deleteProduct, createPurchaseDocument, addStockMovement, formatCurrency, t } = useApp();
 
   // State initialization
   const [activeTab, setActiveTab] = useState<'products' | 'revenue'>('products');
@@ -1186,6 +1186,27 @@ const Inventory: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     if (selectedProduct) {
+      // Check if product appears in sales documents
+      const usedInSales = invoices.some(doc =>
+        doc.items.some(item => item.productId === selectedProduct.id)
+      );
+
+      // Check if product appears in purchase documents
+      const usedInPurchases = purchases.some(doc =>
+        doc.items.some(item => item.productId === selectedProduct.id)
+      );
+
+      // Check if product has stock movements
+      const hasStockMovements = stockMovements.some(
+        movement => movement.productId === selectedProduct.id
+      );
+
+      if (usedInSales || usedInPurchases || hasStockMovements) {
+        alert('Impossible de supprimer ce produit : il a été acheté, vendu ou possède des mouvements de stock. Veuillez d\'abord supprimer l\'historique associé.');
+        setIsDeleteModalOpen(false);
+        return;
+      }
+
       deleteProduct(selectedProduct.id);
       setIsDeleteModalOpen(false);
       setSelectedProduct(null);
