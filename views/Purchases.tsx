@@ -390,7 +390,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
         exchangeRate: exchangeRate,
         additionalCosts: mode === 'invoice' ? 0 : additionalCosts,
         fiscalStamp: fiscalStampAmount,
-        status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed',
+        status: mode === 'order' || mode === 'pr' ? 'pending' : mode === 'invoice' ? 'draft' : 'completed',
         warehouseId: selectedWarehouse,
         paymentTerms,
         paymentMethod,
