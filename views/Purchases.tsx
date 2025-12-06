@@ -198,7 +198,9 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
   const subtotal = cart.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0);
   const taxAmount = subtotal * (taxRate / 100);
   const fiscalStampAmount = (mode === 'invoice' && settings.enableFiscalStamp) ? settings.fiscalStampValue : 0;
-  const total = subtotal + taxAmount + additionalCosts + fiscalStampAmount;
+  // Don't include additional costs for invoices
+  const additionalCostsToApply = mode === 'invoice' ? 0 : additionalCosts;
+  const total = subtotal + taxAmount + additionalCostsToApply + fiscalStampAmount;
 
   // RAS Calculations (Retenue à la Source)
   const supplier = suppliers.find(s => s.id === selectedSupplier);
@@ -355,7 +357,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
         amount: total,
         currency: selectedCurrency,
         exchangeRate: exchangeRate,
-        additionalCosts: additionalCosts,
+        additionalCosts: mode === 'invoice' ? 0 : additionalCosts,
         fiscalStamp: fiscalStampAmount,
         warehouseId: selectedWarehouse,
         paymentTerms,
@@ -386,7 +388,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
         amount: total,
         currency: selectedCurrency,
         exchangeRate: exchangeRate,
-        additionalCosts: additionalCosts,
+        additionalCosts: mode === 'invoice' ? 0 : additionalCosts,
         fiscalStamp: fiscalStampAmount,
         status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed',
         warehouseId: selectedWarehouse,
@@ -782,20 +784,22 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
                 <span>{formatCurrency(subtotal, selectedCurrency)}</span>
               </div>
 
-              <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
-                <span className="flex items-center gap-1">
-                  {t('additional_expenses')}
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={additionalCosts}
-                    onChange={(e) => setAdditionalCosts(parseFloat(e.target.value) || 0)}
-                    className="w-20 px-1 py-0.5 ml-2 text-right text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white"
-                  />
-                </span>
-                <span>{formatCurrency(additionalCosts, selectedCurrency)}</span>
-              </div>
+              {mode !== 'invoice' && (
+                <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+                  <span className="flex items-center gap-1">
+                    {t('additional_expenses')}
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={additionalCosts}
+                      onChange={(e) => setAdditionalCosts(parseFloat(e.target.value) || 0)}
+                      className="w-20 px-1 py-0.5 ml-2 text-right text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white"
+                    />
+                  </span>
+                  <span>{formatCurrency(additionalCosts, selectedCurrency)}</span>
+                </div>
+              )}
 
               <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
                 <span className="flex items-center gap-1">
@@ -1044,7 +1048,7 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
                  <span className="text-gray-500">Items:</span>
                  <span className="font-medium text-gray-900 dark:text-white">{cart.length}</span>
                </div>
-               {additionalCosts > 0 && (
+               {additionalCosts > 0 && mode !== 'invoice' && (
                  <div className="flex justify-between text-sm text-gray-500">
                    <span>Extra Costs:</span>
                    <span>{formatCurrency(additionalCosts, selectedCurrency)}</span>
