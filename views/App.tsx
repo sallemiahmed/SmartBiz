@@ -72,6 +72,7 @@ function AppContent() {
     }
   }, [currentView, setIsLoading]);
 
+  // Handler pour éditer une facture fournisseur
   const handleEditPurchaseInvoice = React.useCallback((invoice: any) => {
     setEditingPurchaseInvoice(invoice);
     handleNavigate('purchases-invoice-create' as AppView);
@@ -205,7 +206,12 @@ function AppContent() {
       return <Purchases mode="delivery" />;
     }
     if (currentView === 'purchases-invoice') {
-      return <PurchaseInvoices onAddNew={() => handleNavigate('purchases-invoice-create' as AppView)} onEdit={handleEditPurchaseInvoice} />;
+      return (
+        <PurchaseInvoices
+          onAddNew={() => handleNavigate('purchases-invoice-create' as AppView)}
+          onEdit={handleEditPurchaseInvoice}
+        />
+      );
     }
     if (currentView === 'purchases-invoice-create' as AppView) {
       return <Purchases mode="invoice" editingInvoice={editingPurchaseInvoice} onCancel={() => { setEditingPurchaseInvoice(null); handleNavigate('purchases-invoice'); }} />;

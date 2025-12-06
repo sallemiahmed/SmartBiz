@@ -25,8 +25,20 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editi
     formatCurrency, settings, addProduct, t, purchases
   } = useApp();
 
+  // Récupérer la facture à éditer depuis sessionStorage si elle existe
+  const [sessionInvoice, setSessionInvoice] = React.useState<Purchase | null>(() => {
+    if (mode === 'invoice') {
+      const stored = sessionStorage.getItem('editingPurchaseInvoice');
+      if (stored) {
+        sessionStorage.removeItem('editingPurchaseInvoice'); // Nettoyer après lecture
+        return JSON.parse(stored);
+      }
+    }
+    return null;
+  });
+
   // Use a generic editingDocument that works for both invoices and orders
-  const editingDocument = editingInvoice || editingOrder;
+  const editingDocument = editingInvoice || editingOrder || sessionInvoice;
 
   // Mode Specific Titles
   const getPageTitle = () => {

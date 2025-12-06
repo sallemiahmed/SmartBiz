@@ -7,11 +7,19 @@ import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseInvoicesProps {
   onAddNew: () => void;
-  onEdit: (invoice: Purchase) => void;
+  onEdit?: (invoice: Purchase) => void;
 }
 
 const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit }) => {
   const { purchases, deletePurchase, updatePurchase, t, formatCurrency, settings } = useApp();
+
+  // Fonction d'édition locale qui ne dépend pas du prop
+  const handleEdit = (invoice: Purchase) => {
+    // Stocker la facture à éditer dans sessionStorage
+    sessionStorage.setItem('editingPurchaseInvoice', JSON.stringify(invoice));
+    // Naviguer vers la page de création/édition
+    onAddNew(); // Réutilise la navigation existante
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -186,7 +194,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
                       {doc.status === 'draft' && (
                         <>
                           <button
-                            onClick={() => onEdit(doc)}
+                            onClick={() => handleEdit(doc)}
                             className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
                             title={t('edit')}
                           >
