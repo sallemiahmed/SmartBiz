@@ -48,6 +48,9 @@ const Clients: React.FC = () => {
   const [isClientInteractionModalOpen, setIsClientInteractionModalOpen] = useState(false);
   const [isClientOpportunityModalOpen, setIsClientOpportunityModalOpen] = useState(false);
 
+  // Client code state - regenerated when needed
+  const [clientCode, setClientCode] = useState(`CLI-${Date.now().toString().slice(-8)}`);
+
   // New Client Form State
   const [newClient, setNewClient] = useState<Partial<Client>>({
     name: '',
@@ -169,7 +172,7 @@ const Clients: React.FC = () => {
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const id = `${Date.now()}`;
-    const clientToAdd = { ...newClient, id } as Client;
+    const clientToAdd = { ...newClient, id, code: clientCode } as Client;
     addClient(clientToAdd);
     setIsAddModalOpen(false);
     // Reset form
@@ -197,6 +200,18 @@ const Clients: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     if (selectedClient) {
+      // Check if client has any related documents
+      const hasInvoices = invoices.some(doc =>
+        (doc.type === 'invoice' || doc.type === 'order' || doc.type === 'estimate' || doc.type === 'delivery') &&
+        doc.clientId === selectedClient.id
+      );
+
+      if (hasInvoices) {
+        alert('Impossible de supprimer ce client : il possède des factures, commandes, devis ou livraisons associés. Veuillez d\'abord supprimer ou réaffecter ces documents.');
+        setIsDeleteModalOpen(false);
+        return;
+      }
+
       deleteClient(selectedClient.id);
       setIsDeleteModalOpen(false);
       setSelectedClient(null);
@@ -820,7 +835,7 @@ const Clients: React.FC = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('client_desc')}</p>
         </div>
         <button
-          onClick={() => activeTab === 'clients' ? setIsAddModalOpen(true) : (resetProspectForm(), setIsProspectModalOpen(true))}
+          onClick={() => activeTab === 'clients' ? (setClientCode(`CLI-${Date.now().toString().slice(-8)}`), setIsAddModalOpen(true)) : (resetProspectForm(), setIsProspectModalOpen(true))}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
@@ -929,7 +944,10 @@ const Clients: React.FC = () => {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900 dark:text-white">{client.company}</div>
-                        <div className="text-xs text-gray-500">{client.name}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {client.code && <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded">{client.code}</span>}
+                          <span className="text-xs text-gray-500">{client.name}</span>
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -1019,6 +1037,12 @@ const Clients: React.FC = () => {
             </div>
             <form onSubmit={handleAddSubmit} className="p-6 overflow-y-auto">
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Code Client</label>
+                  <div className="w-full p-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                    {clientCode}
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_name')}</label>
                   <input
@@ -1283,6 +1307,11 @@ const Clients: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedClient.company}</h3>
                     <div className="flex gap-2 mt-1 flex-wrap">
+                      {selectedClient.code && (
+                        <span className="px-2 py-1 rounded text-xs font-mono font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                          {selectedClient.code}
+                        </span>
+                      )}
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         selectedClient.status === 'active'
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'

@@ -189,6 +189,9 @@ const MissionModal = React.memo<MissionModalProps>(({
   addFleetMission,
   t
 }) => {
+  // Generate reference when modal opens
+  const [missionReference] = useState(() => `MISS-${Date.now().toString().slice(-8)}`);
+
   const [missionFormData, setMissionFormData] = useState<Partial<FleetMission>>({
     status: 'planned',
     startDate: new Date().toISOString().split('T')[0],
@@ -230,6 +233,7 @@ const MissionModal = React.memo<MissionModalProps>(({
 
     addFleetMission({
       id: `miss-${Date.now()}`,
+      reference: missionReference,
       vehicleName: vehicle ? `${vehicle.make} ${vehicle.model}` : 'Unknown',
       ...missionFormData as any
     });
@@ -250,6 +254,12 @@ const MissionModal = React.memo<MissionModalProps>(({
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
         <h3 className="text-lg font-bold mb-4 dark:text-white">{t('new_mission')}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm mb-1 dark:text-gray-300">Référence</label>
+            <div className="w-full p-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
+              {missionReference}
+            </div>
+          </div>
           <div>
             <label className="block text-sm mb-1 dark:text-gray-300">{t('vehicle')}</label>
             <select

@@ -6,7 +6,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 
 const Suppliers: React.FC = () => {
-  const { suppliers, addSupplier, updateSupplier, deleteSupplier, employees, settings, formatCurrency, t } = useApp();
+  const { suppliers, addSupplier, updateSupplier, deleteSupplier, purchases, employees, settings, formatCurrency, t } = useApp();
   
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,6 +26,9 @@ const Suppliers: React.FC = () => {
   // Selection States
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [selectedContact, setSelectedContact] = useState<SupplierContact | null>(null);
+
+  // Supplier code state - regenerated when needed
+  const [supplierCode, setSupplierCode] = useState(`FOUR-${Date.now().toString().slice(-8)}`);
 
   // New Supplier Form State
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
@@ -82,7 +85,7 @@ const Suppliers: React.FC = () => {
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const id = `s${Date.now()}`;
-    const supplierToAdd = { ...newSupplier, id } as Supplier;
+    const supplierToAdd = { ...newSupplier, id, code: supplierCode } as Supplier;
     addSupplier(supplierToAdd);
     setIsAddModalOpen(false);
     // Reset form
@@ -108,6 +111,19 @@ const Suppliers: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     if (selectedSupplier) {
+      // Check if supplier has any related purchase documents
+      const hasPurchaseDocs = purchases.some(doc =>
+        (doc.type === 'invoice' || doc.type === 'order' || doc.type === 'pr' ||
+         doc.type === 'delivery' || doc.type === 'return' || doc.type === 'rfq') &&
+        doc.supplierId === selectedSupplier.id
+      );
+
+      if (hasPurchaseDocs) {
+        alert('Impossible de supprimer ce fournisseur : il possède des factures fournisseur, commandes fournisseur, demandes d\'achat ou réceptions/retours de marchandises associés. Veuillez d\'abord supprimer ou réaffecter ces documents.');
+        setIsDeleteModalOpen(false);
+        return;
+      }
+
       deleteSupplier(selectedSupplier.id);
       setIsDeleteModalOpen(false);
       setSelectedSupplier(null);
@@ -253,8 +269,8 @@ const Suppliers: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('supplier_management')} 🏪</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('supplier_desc')}</p>
         </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
+        <button
+          onClick={() => { setSupplierCode(`FOUR-${Date.now().toString().slice(-8)}`); setIsAddModalOpen(true); }}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -347,7 +363,10 @@ const Suppliers: React.FC = () => {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900 dark:text-white">{supplier.company}</div>
-                        <div className="text-xs text-gray-500">{supplier.contactName}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {supplier.code && <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded">{supplier.code}</span>}
+                          <span className="text-xs text-gray-500">{supplier.contactName}</span>
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -439,6 +458,12 @@ const Suppliers: React.FC = () => {
             </div>
             <form onSubmit={handleAddSubmit} className="p-6 overflow-y-auto">
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Code Fournisseur</label>
+                  <div className="w-full p-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                    {supplierCode}
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('company_name')}</label>
                   <input
@@ -741,13 +766,20 @@ const Suppliers: React.FC = () => {
                  </div>
                  <div>
                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedSupplier.company}</h3>
-                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      selectedSupplier.status === 'active' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
-                    }`}>
-                      {t(selectedSupplier.status)}
-                    </span>
+                   <div className="flex gap-2 mt-1 flex-wrap">
+                     {selectedSupplier.code && (
+                       <span className="px-2 py-1 rounded text-xs font-mono font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                         {selectedSupplier.code}
+                       </span>
+                     )}
+                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedSupplier.status === 'active'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                      }`}>
+                        {t(selectedSupplier.status)}
+                      </span>
+                   </div>
                  </div>
               </div>
 

@@ -37,6 +37,9 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
     return matchesSearch && matchesStatus;
   });
 
+  // Calculate total HT (subtotal before tax) for filtered invoices
+  const totalHT = filteredDocs.reduce((sum, doc) => sum + (doc.subtotal || 0), 0);
+
   const handlePrint = () => {
     if (selectedDoc) {
       printInvoice(selectedDoc, settings);
@@ -89,6 +92,17 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
     const updatedDoc = {
       ...doc,
       status: 'validated' as any
+    };
+
+    updatePurchase(updatedDoc);
+  };
+
+  const handleRevertToDraft = (doc: Purchase) => {
+    if (doc.status !== 'validated') return;
+
+    const updatedDoc = {
+      ...doc,
+      status: 'draft' as any
     };
 
     updatePurchase(updatedDoc);
@@ -158,6 +172,18 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
           </div>
         </div>
 
+        {/* Total HT Summary */}
+        <div className="px-6 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Total HT ({filteredDocs.length} facture{filteredDocs.length > 1 ? 's' : ''})
+            </span>
+            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+              {formatCurrency(totalHT)}
+            </span>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
@@ -208,6 +234,15 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
                             <CheckCircle className="w-4 h-4" />
                           </button>
                         </>
+                      )}
+                      {doc.status === 'validated' && (
+                        <button
+                          onClick={() => handleRevertToDraft(doc)}
+                          className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg"
+                          title="Modifier (Retour au brouillon)"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
                       )}
                       <button
                         onClick={() => deletePurchase(doc.id)}
