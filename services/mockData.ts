@@ -1445,11 +1445,80 @@ export const mockPurchases: Purchase[] = [
     items: [{id: 'p1', description: 'Laptop Dell Latitude', quantity: 10, price: 2300}], 
     warehouseId: 'wh1', subtotal: 23000, taxRate: 19 
   },
-  { 
-    id: 'po2', number: 'BCF-2024-002', type: 'order', supplierId: 's2', supplierName: 'Sotipapier', 
-    date: getDate(-10), amount: 4500, status: 'pending', currency: 'TND', exchangeRate: 1, 
-    items: [{id: 'p3', description: 'Papier A4', quantity: 100, price: 45}], 
-    warehouseId: 'wh1', subtotal: 4500, taxRate: 19 
+  {
+    id: 'po2', number: 'BCF-2024-002', type: 'order', supplierId: 's2', supplierName: 'Sotipapier',
+    date: getDate(-10), amount: 4500, status: 'pending', currency: 'TND', exchangeRate: 1,
+    items: [{id: 'p3', description: 'Papier A4', quantity: 100, price: 45}],
+    warehouseId: 'wh1', subtotal: 4500, taxRate: 19
+  },
+  // Factures Fournisseurs
+  {
+    id: 'pinv1', number: 'FF-2024-001', type: 'invoice', supplierId: 's1', supplierName: 'MyTek',
+    date: getDate(-25), amount: 11970, amountPaid: 0, status: 'draft', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 5, price: 2300},
+      {id: 'p2', description: 'Écran Samsung 24"', quantity: 3, price: 450}
+    ],
+    warehouseId: 'wh1', subtotal: 11970, taxRate: 19, fiscalStamp: 1,
+    paymentTerms: 'Net 30', paymentMethod: 'Virement bancaire',
+    notes: 'Facture en brouillon - À valider après vérification'
+  },
+  {
+    id: 'pinv2', number: 'FF-2024-002', type: 'invoice', supplierId: 's2', supplierName: 'Sotipapier',
+    date: getDate(-18), amount: 5355, amountPaid: 0, status: 'validated', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'p3', description: 'Papier A4 (Carton)', quantity: 50, price: 60},
+      {id: 'p4', description: 'Enveloppes (Paquet)', quantity: 20, price: 15},
+      {id: 'p5', description: 'Stylos (Boîte 50u)', quantity: 10, price: 45}
+    ],
+    warehouseId: 'wh1', subtotal: 4500, taxRate: 19, fiscalStamp: 1,
+    paymentTerms: 'Net 60', paymentMethod: 'Chèque',
+    notes: 'Facture validée - En attente de paiement'
+  },
+  {
+    id: 'pinv3', number: 'FF-2024-003', type: 'invoice', supplierId: 's3', supplierName: 'TotalEnergies',
+    date: getDate(-12), amount: 5950, amountPaid: 3000, status: 'partial', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'fuel1', description: 'Carburant - Bon N°001234', quantity: 250, price: 2.20},
+      {id: 'fuel2', description: 'Carburant - Bon N°001235', quantity: 300, price: 2.20}
+    ],
+    warehouseId: 'wh1', subtotal: 5000, taxRate: 19, fiscalStamp: 0,
+    paymentTerms: 'Net 30', paymentMethod: 'Virement bancaire',
+    notes: 'Premier versement de 3000 TND effectué le ' + getDate(-5)
+  },
+  {
+    id: 'pinv4', number: 'FF-2024-004', type: 'invoice', supplierId: 's1', supplierName: 'MyTek',
+    date: getDate(-30), amount: 27370, amountPaid: 27370, status: 'completed', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'p1', description: 'Laptop Dell Latitude 5520', quantity: 10, price: 2300},
+      {id: 'p2', description: 'Écran Samsung 24"', quantity: 5, price: 450},
+      {id: 'kbd1', description: 'Clavier + Souris sans fil', quantity: 10, price: 45}
+    ],
+    warehouseId: 'wh1', subtotal: 23000, taxRate: 19, fiscalStamp: 1,
+    paymentTerms: 'Net 30', paymentMethod: 'Virement bancaire',
+    notes: 'Facture payée intégralement le ' + getDate(-15)
+  },
+  {
+    id: 'pinv5', number: 'FF-2024-005', type: 'invoice', supplierId: 's2', supplierName: 'Sotipapier',
+    date: getDate(-5), amount: 1785, amountPaid: 0, status: 'validated', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'p3', description: 'Papier A4 (Carton)', quantity: 20, price: 60},
+      {id: 'p5', description: 'Stylos (Boîte 50u)', quantity: 10, price: 45}
+    ],
+    warehouseId: 'wh1', subtotal: 1500, taxRate: 19, fiscalStamp: 1,
+    paymentTerms: 'Net 30', paymentMethod: 'Espèces',
+    notes: 'Livraison urgente effectuée'
+  },
+  {
+    id: 'pinv6', number: 'FF-2024-006', type: 'invoice', supplierId: 's1', supplierName: 'MyTek',
+    date: getDate(-2), amount: 8925, amountPaid: 0, status: 'draft', currency: 'TND', exchangeRate: 1,
+    items: [
+      {id: 'p2', description: 'Écran Samsung 24"', quantity: 15, price: 450},
+      {id: 'cable1', description: 'Câbles HDMI (Lot 10)', quantity: 5, price: 75}
+    ],
+    warehouseId: 'wh1', subtotal: 7500, taxRate: 19, fiscalStamp: 0,
+    paymentTerms: 'Net 60', paymentMethod: 'Virement bancaire',
+    notes: 'Facture en cours de vérification - Articles à contrôler'
   }
 ];
 

@@ -3,7 +3,8 @@ import { Invoice, Purchase, AppSettings, ServiceJob, Client, InventorySession } 
 
 export const printInvoice = (document: Invoice | Purchase, settings: AppSettings, entity?: Client | any) => {
   const isRTL = settings.language === 'ar';
-  
+  const isRFQ = document.type === 'rfq';
+
   // Calculate Totals
   const subtotal = document.subtotal || document.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const taxRate = document.taxRate || 0;
@@ -94,8 +95,8 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
           <tr>
             <th>Description</th>
             <th style="width: 80px; text-align: center;">Qty</th>
-            <th style="width: 100px; text-align: right;">Price</th>
-            <th style="width: 100px; text-align: right;">Total</th>
+            ${!isRFQ ? '<th style="width: 100px; text-align: right;">Price</th>' : ''}
+            ${!isRFQ ? '<th style="width: 100px; text-align: right;">Total</th>' : ''}
           </tr>
         </thead>
         <tbody>
@@ -103,14 +104,14 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
             <tr>
               <td>${item.description}</td>
               <td style="text-align: center;">${item.quantity}</td>
-              <td style="text-align: right;">${item.price.toFixed(3)}</td>
-              <td style="text-align: right;">${(item.price * item.quantity).toFixed(3)}</td>
+              ${!isRFQ ? `<td style="text-align: right;">${item.price.toFixed(3)}</td>` : ''}
+              ${!isRFQ ? `<td style="text-align: right;">${(item.price * item.quantity).toFixed(3)}</td>` : ''}
             </tr>
           `).join('')}
         </tbody>
       </table>
 
-      <div class="totals">
+      ${!isRFQ ? `<div class="totals">
         <div class="total-row">
           <span>Subtotal</span>
           <span>${subtotal.toFixed(3)}</span>
@@ -138,7 +139,7 @@ export const printInvoice = (document: Invoice | Purchase, settings: AppSettings
           <span>Total (${document.currency || settings.currency})</span>
           <span>${document.amount.toFixed(3)}</span>
         </div>
-      </div>
+      </div>` : ''}
 
       <div class="footer">
         <p>${document.notes || 'Thank you for your business!'}</p>

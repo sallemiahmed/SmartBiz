@@ -16,6 +16,7 @@ interface ViewModalProps {
   onPrint: () => void;
   onGenerateInvoice: () => void;
   onReceiveGoods: () => void;
+  linkedRFQ: Purchase | null;
   formatCurrency: (amount: number) => string;
   getStatusColor: (status: string) => string;
   t: (key: string) => string;
@@ -27,6 +28,7 @@ const ViewModal = React.memo<ViewModalProps>(({
   onPrint,
   onGenerateInvoice,
   onReceiveGoods,
+  linkedRFQ,
   formatCurrency,
   getStatusColor,
   t
@@ -117,6 +119,31 @@ const ViewModal = React.memo<ViewModalProps>(({
             <span className="text-gray-900 dark:text-white">{t('total')}</span>
             <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedOrder.amount)}</span>
           </div>
+
+          {linkedRFQ && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                Demande de Prix Liée
+              </h4>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">N° Demande:</span>
+                  <span className="font-mono font-medium text-blue-600 dark:text-blue-400">{linkedRFQ.number}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">Date:</span>
+                  <span className="text-gray-900 dark:text-white">{linkedRFQ.date}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm mt-1">
+                  <span className="text-gray-600 dark:text-gray-400">Statut:</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(linkedRFQ.status)}`}>
+                    {t(linkedRFQ.status)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -300,16 +327,21 @@ DeleteModal.displayName = 'DeleteModal';
 
 const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew, onEdit }) => {
   const { purchases, deletePurchase, createPurchaseDocument, updatePurchase, formatCurrency, settings, t } = useApp();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Purchase | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   // Reception Modal State
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [receiveQuantities, setReceiveQuantities] = useState<Record<string, number>>({});
+
+  // Find linked RFQ if Purchase Order was created from an RFQ
+  const linkedRFQ = selectedOrder && selectedOrder.linkedDocumentId
+    ? purchases.find(p => p.id === selectedOrder.linkedDocumentId && p.type === 'rfq') || null
+    : null;
 
   // Filter only purchase orders
   const purchaseOrders = purchases.filter(p => p.type === 'order');
@@ -556,6 +588,7 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew, onEdit }) => 
           onPrint={handlePrint}
           onGenerateInvoice={handleGenerateInvoice}
           onReceiveGoods={handleOpenReceiveModal}
+          linkedRFQ={linkedRFQ}
           formatCurrency={formatCurrency}
           getStatusColor={getStatusColor}
           t={t}
