@@ -57,6 +57,8 @@ function AppContent() {
   const [isDark, setIsDark] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [autoOpenDocId, setAutoOpenDocId] = useState<string | null>(null);
+  const [editingPurchaseInvoice, setEditingPurchaseInvoice] = useState<any>(null);
+  const [editingPurchaseOrder, setEditingPurchaseOrder] = useState<any>(null);
 
   const { settings, setIsLoading } = useApp();
 
@@ -69,6 +71,16 @@ function AppContent() {
       }, 100);
     }
   }, [currentView, setIsLoading]);
+
+  const handleEditPurchaseInvoice = React.useCallback((invoice: any) => {
+    setEditingPurchaseInvoice(invoice);
+    handleNavigate('purchases-invoice-create' as AppView);
+  }, [handleNavigate]);
+
+  const handleEditPurchaseOrder = React.useCallback((order: any) => {
+    setEditingPurchaseOrder(order);
+    handleNavigate('purchases-order-create' as AppView);
+  }, [handleNavigate]);
 
   useEffect(() => {
     if (isDark) {
@@ -193,10 +205,10 @@ function AppContent() {
       return <Purchases mode="delivery" />;
     }
     if (currentView === 'purchases-invoice') {
-      return <PurchaseInvoices onAddNew={() => handleNavigate('purchases-invoice-create' as AppView)} />;
+      return <PurchaseInvoices onAddNew={() => handleNavigate('purchases-invoice-create' as AppView)} onEdit={handleEditPurchaseInvoice} />;
     }
     if (currentView === 'purchases-invoice-create' as AppView) {
-      return <Purchases mode="invoice" />;
+      return <Purchases mode="invoice" editingInvoice={editingPurchaseInvoice} onCancel={() => { setEditingPurchaseInvoice(null); handleNavigate('purchases-invoice'); }} />;
     }
     if (currentView === 'purchases-return') {
         return <Returns mode="supplier" onAddNew={() => handleNavigate('purchases-return-create' as AppView)} />;
