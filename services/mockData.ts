@@ -29,6 +29,7 @@ export const mockSalesReps = [
 export const mockClients: Client[] = [
   {
     id: 'c1',
+    code: 'CLI-10001234',
     company: 'SFBT',
     name: 'M. Kamel Ben Ammar',
     email: 'achat@sfbt.tn',
@@ -50,6 +51,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c2',
+    code: 'CLI-10001235',
     company: 'Poulina Group Holding',
     name: 'Mme. Samia Trabelsi',
     email: 'contact@poulina.com',
@@ -69,6 +71,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c3',
+    code: 'CLI-10001236',
     company: 'Clinique Les Jasmins',
     name: 'Dr. Faouzi Mahjoub',
     email: 'info@cliniquejasmins.tn',
@@ -88,6 +91,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c4',
+    code: 'CLI-10001237',
     company: 'Vermeg',
     name: 'Amine Jlassi',
     email: 'it@vermeg.com',
@@ -108,6 +112,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c5',
+    code: 'CLI-10001238',
     company: 'Magasin Général',
     name: 'Service Achat',
     email: 'appro@mg.tn',
@@ -127,6 +132,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c6',
+    code: 'CLI-10001239',
     company: 'Tunisie Telecom',
     name: 'M. Ridha Chouchane',
     email: 'enterprise@tunisietelecom.tn',
@@ -146,6 +152,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c7',
+    code: 'CLI-10001240',
     company: 'Banque de Tunisie',
     name: 'Mme. Amel Ksouri',
     email: 'achats@bt.com.tn',
@@ -164,6 +171,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c8',
+    code: 'CLI-10001241',
     company: 'Délice Holding',
     name: 'M. Sofiane Rebai',
     email: 'contact@delice.tn',
@@ -183,6 +191,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c9',
+    code: 'CLI-10001242',
     company: 'Startup XYZ',
     name: 'M. Yassine Gargouri',
     email: 'yassine@startupxyz.tn',
@@ -201,6 +210,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 'c10',
+    code: 'CLI-10001243',
     company: 'Hôtel Laico',
     name: 'Mme. Rim Hajji',
     email: 'procurement@laicotunis.com',
@@ -1186,6 +1196,7 @@ export const mockClientInteractions: ClientInteraction[] = [
 export const mockSuppliers: Supplier[] = [
   {
     id: 's1',
+    code: 'FOUR-20001001',
     company: 'MyTek',
     contactName: 'Service Pro',
     email: 'pro@mytek.tn',
@@ -1230,6 +1241,7 @@ export const mockSuppliers: Supplier[] = [
   },
   {
     id: 's2',
+    code: 'FOUR-20001002',
     company: 'Sotipapier',
     contactName: 'Ali Gharbi',
     email: 'ali@sotipapier.com',
@@ -1273,6 +1285,7 @@ export const mockSuppliers: Supplier[] = [
   },
   {
     id: 's3',
+    code: 'FOUR-20001003',
     company: 'TotalEnergies',
     contactName: 'Service Carte',
     email: 'cartes@total.tn',
@@ -1303,6 +1316,7 @@ export const mockSuppliers: Supplier[] = [
   },
   {
     id: 's4',
+    code: 'FOUR-20001004',
     company: 'Tunisie Cables',
     contactName: 'Mounir',
     email: 'sales@tuncable.com',
@@ -1345,7 +1359,20 @@ export const mockInventory: Product[] = [
   { id: 'p4', name: 'Chaise Bureau Ergonomique', sku: 'FUR-CH-01', category: 'Mobilier', price: 450, cost: 280, stock: 8, warehouseStock: { 'wh1': 8 }, status: 'in_stock', marginPercent: 37.7 },
   { id: 'p5', name: 'Disque Dur SSD 1TB Samsung', sku: 'SSD-1TB-SAM', category: 'Composants', price: 380, cost: 290, stock: 0, warehouseStock: { 'wh1': 0 }, status: 'out_of_stock', marginPercent: 23.6 },
   { id: 'p6', name: 'Onduleur Eaton 5E 1100VA', sku: 'UPS-EAT-1100', category: 'Electricité', price: 290, cost: 210, stock: 20, warehouseStock: { 'wh1': 15, 'wh2': 5 }, status: 'in_stock', marginPercent: 27.5 },
-  { id: 'p7', name: 'Routeur Cisco ISR 1100', sku: 'NET-CIS-1100', category: 'Réseau', price: 1800, cost: 1400, stock: 3, warehouseStock: { 'wh1': 3 }, status: 'low_stock', marginPercent: 22.2 }
+  { id: 'p7', name: 'Routeur Cisco ISR 1100', sku: 'NET-CIS-1100', category: 'Réseau', price: 1800, cost: 1400, stock: 3, warehouseStock: { 'wh1': 3 }, status: 'low_stock', marginPercent: 22.2 },
+  { id: 'p8', name: 'Écran Dell 24" Full HD', sku: 'DELL-MON-24', category: 'Informatique', price: 650, cost: 480, stock: 25, warehouseStock: { 'wh1': 15, 'wh2': 6, 'wh3': 4 }, status: 'in_stock', marginPercent: 26.1 },
+  { id: 'p9', name: 'Clavier Logitech K780', sku: 'LOG-KB-780', category: 'Périphériques', price: 95, cost: 65, stock: 45, warehouseStock: { 'wh1': 30, 'wh2': 10, 'wh3': 5 }, status: 'in_stock', marginPercent: 31.5 },
+  { id: 'p10', name: 'Souris Logitech MX Master 3', sku: 'LOG-MS-MX3', category: 'Périphériques', price: 120, cost: 85, stock: 18, warehouseStock: { 'wh1': 12, 'wh2': 4, 'wh3': 2 }, status: 'low_stock', marginPercent: 29.1 },
+  { id: 'p11', name: 'Switch TP-Link 24 Ports', sku: 'TPL-SW-24', category: 'Réseau', price: 380, cost: 280, stock: 8, warehouseStock: { 'wh1': 6, 'wh2': 2 }, status: 'in_stock', marginPercent: 26.3 },
+  { id: 'p12', name: 'Câble HDMI 2m', sku: 'CAB-HDMI-2M', category: 'Câbles', price: 25, cost: 12, stock: 120, warehouseStock: { 'wh1': 80, 'wh2': 25, 'wh3': 15 }, status: 'in_stock', marginPercent: 52.0 },
+  { id: 'p13', name: 'Disque Dur Externe 2TB Seagate', sku: 'SEA-HDD-2TB', category: 'Stockage', price: 280, cost: 210, stock: 14, warehouseStock: { 'wh1': 10, 'wh2': 4 }, status: 'in_stock', marginPercent: 25.0 },
+  { id: 'p14', name: 'Webcam Logitech C920', sku: 'LOG-WC-920', category: 'Périphériques', price: 180, cost: 135, stock: 1, warehouseStock: { 'wh1': 1 }, status: 'low_stock', marginPercent: 25.0 },
+  { id: 'p15', name: 'Casque Jabra Evolve 40', sku: 'JAB-HS-E40', category: 'Audio', price: 165, cost: 120, stock: 22, warehouseStock: { 'wh1': 15, 'wh2': 7 }, status: 'in_stock', marginPercent: 27.2 },
+  { id: 'p16', name: 'Hub USB-C 7 Ports', sku: 'HUB-USBC-7P', category: 'Accessoires', price: 75, cost: 45, stock: 35, warehouseStock: { 'wh1': 25, 'wh2': 6, 'wh3': 4 }, status: 'in_stock', marginPercent: 40.0 },
+  { id: 'p17', name: 'Sacoche Laptop 15.6"', sku: 'BAG-LAP-15', category: 'Accessoires', price: 55, cost: 30, stock: 28, warehouseStock: { 'wh1': 18, 'wh2': 6, 'wh3': 4 }, status: 'in_stock', marginPercent: 45.4 },
+  { id: 'p18', name: 'Multiprise Parasurtension 6P', sku: 'PWR-SPT-6P', category: 'Électricité', price: 45, cost: 28, stock: 0, warehouseStock: { 'wh1': 0 }, status: 'out_of_stock', marginPercent: 37.7 },
+  { id: 'p19', name: 'Toner HP 26A Noir', sku: 'HP-TNR-26A', category: 'Consommables', price: 180, cost: 125, stock: 16, warehouseStock: { 'wh1': 12, 'wh2': 4 }, status: 'low_stock', marginPercent: 30.5 },
+  { id: 'p20', name: 'Ramette Papier A4 80g', sku: 'PAP-A4-80G', category: 'Bureautique', price: 12, cost: 8, stock: 280, warehouseStock: { 'wh1': 180, 'wh2': 60, 'wh3': 40 }, status: 'in_stock', marginPercent: 33.3 }
 ];
 
 // --- SALES DOCUMENTS ---
@@ -1524,8 +1551,54 @@ export const mockPurchases: Purchase[] = [
 
 // --- MOVEMENTS ---
 export const mockStockMovements: StockMovement[] = [
-  { id: 'sm1', productId: 'p1', productName: 'Laptop Dell', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-20), quantity: 10, type: 'purchase', unitCost: 2300 },
-  { id: 'sm2', productId: 'p1', productName: 'Laptop Dell', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-15), quantity: -5, type: 'sale', reference: 'FAC-2024-001' }
+  // Achats (Entrées de stock)
+  { id: 'sm1', productId: 'p1', productName: 'Laptop Dell Latitude 5520', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-20), quantity: 10, type: 'purchase', unitCost: 2300, reference: 'BC-2024-001' },
+  { id: 'sm2', productId: 'p8', productName: 'Écran Dell 24" Full HD', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-18), quantity: 20, type: 'purchase', unitCost: 480, reference: 'BC-2024-002' },
+  { id: 'sm3', productId: 'p9', productName: 'Clavier Logitech K780', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-18), quantity: 50, type: 'purchase', unitCost: 65, reference: 'BC-2024-002' },
+  { id: 'sm4', productId: 'p12', productName: 'Câble HDMI 2m', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-17), quantity: 100, type: 'purchase', unitCost: 12, reference: 'BC-2024-003' },
+  { id: 'sm5', productId: 'p20', productName: 'Ramette Papier A4 80g', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-16), quantity: 200, type: 'purchase', unitCost: 8, reference: 'BC-2024-004' },
+  { id: 'sm6', productId: 'p6', productName: 'Onduleur Eaton 5E 1100VA', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-14), quantity: 25, type: 'purchase', unitCost: 210, reference: 'BC-2024-005' },
+  { id: 'sm7', productId: 'p13', productName: 'Disque Dur Externe 2TB Seagate', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-12), quantity: 15, type: 'purchase', unitCost: 210, reference: 'BC-2024-006' },
+  { id: 'sm8', productId: 'p15', productName: 'Casque Jabra Evolve 40', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-10), quantity: 30, type: 'purchase', unitCost: 120, reference: 'BC-2024-007' },
+
+  // Ventes (Sorties de stock)
+  { id: 'sm9', productId: 'p1', productName: 'Laptop Dell Latitude 5520', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-15), quantity: -5, type: 'sale', reference: 'FAC-2024-001' },
+  { id: 'sm10', productId: 'p8', productName: 'Écran Dell 24" Full HD', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-15), quantity: -8, type: 'sale', reference: 'FAC-2024-001' },
+  { id: 'sm11', productId: 'p9', productName: 'Clavier Logitech K780', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-14), quantity: -12, type: 'sale', reference: 'FAC-2024-002' },
+  { id: 'sm12', productId: 'p12', productName: 'Câble HDMI 2m', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-14), quantity: -15, type: 'sale', reference: 'FAC-2024-002' },
+  { id: 'sm13', productId: 'p20', productName: 'Ramette Papier A4 80g', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-13), quantity: -25, type: 'sale', reference: 'FAC-2024-003' },
+  { id: 'sm14', productId: 'p6', productName: 'Onduleur Eaton 5E 1100VA', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-11), quantity: -8, type: 'sale', reference: 'FAC-2024-004' },
+  { id: 'sm15', productId: 'p13', productName: 'Disque Dur Externe 2TB Seagate', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-9), quantity: -3, type: 'sale', reference: 'FAC-2024-005' },
+  { id: 'sm16', productId: 'p15', productName: 'Casque Jabra Evolve 40', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-8), quantity: -10, type: 'sale', reference: 'FAC-2024-006' },
+  { id: 'sm17', productId: 'p10', productName: 'Souris Logitech MX Master 3', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-7), quantity: -6, type: 'sale', reference: 'FAC-2024-007' },
+
+  // Transferts entre entrepôts (Sortie source + Entrée destination)
+  { id: 'sm18', productId: 'p1', productName: 'Laptop Dell Latitude 5520', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-12), quantity: -3, type: 'transfer_out', reference: 'TRF-001', transferTo: 'wh2' },
+  { id: 'sm19', productId: 'p1', productName: 'Laptop Dell Latitude 5520', warehouseId: 'wh2', warehouseName: 'Magasin Sfax', date: getDate(-12), quantity: 3, type: 'transfer_in', reference: 'TRF-001', transferFrom: 'wh1' },
+  { id: 'sm20', productId: 'p8', productName: 'Écran Dell 24" Full HD', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-11), quantity: -7, type: 'transfer_out', reference: 'TRF-002', transferTo: 'wh2' },
+  { id: 'sm21', productId: 'p8', productName: 'Écran Dell 24" Full HD', warehouseId: 'wh2', warehouseName: 'Magasin Sfax', date: getDate(-11), quantity: 7, type: 'transfer_in', reference: 'TRF-002', transferFrom: 'wh1' },
+  { id: 'sm22', productId: 'p9', productName: 'Clavier Logitech K780', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-10), quantity: -8, type: 'transfer_out', reference: 'TRF-003', transferTo: 'wh3' },
+  { id: 'sm23', productId: 'p9', productName: 'Clavier Logitech K780', warehouseId: 'wh3', warehouseName: 'Agence Sousse', date: getDate(-10), quantity: 8, type: 'transfer_in', reference: 'TRF-003', transferFrom: 'wh1' },
+  { id: 'sm24', productId: 'p12', productName: 'Câble HDMI 2m', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-9), quantity: -5, type: 'transfer_out', reference: 'TRF-004', transferTo: 'wh2' },
+  { id: 'sm25', productId: 'p12', productName: 'Câble HDMI 2m', warehouseId: 'wh2', warehouseName: 'Magasin Sfax', date: getDate(-9), quantity: 5, type: 'transfer_in', reference: 'TRF-004', transferFrom: 'wh1' },
+  { id: 'sm26', productId: 'p20', productName: 'Ramette Papier A4 80g', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-8), quantity: -25, type: 'transfer_out', reference: 'TRF-005', transferTo: 'wh3' },
+  { id: 'sm27', productId: 'p20', productName: 'Ramette Papier A4 80g', warehouseId: 'wh3', warehouseName: 'Agence Sousse', date: getDate(-8), quantity: 25, type: 'transfer_in', reference: 'TRF-005', transferFrom: 'wh1' },
+
+  // Ajustements de stock (inventaire, casse, vol, etc.)
+  { id: 'sm28', productId: 'p2', productName: 'Imprimante HP LaserJet Pro', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-6), quantity: -1, type: 'adjustment', reference: 'ADJ-001', reason: 'Appareil défectueux' },
+  { id: 'sm29', productId: 'p14', productName: 'Webcam Logitech C920', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-5), quantity: -2, type: 'adjustment', reference: 'ADJ-002', reason: 'Casse lors manipulation' },
+  { id: 'sm30', productId: 'p10', productName: 'Souris Logitech MX Master 3', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-4), quantity: 2, type: 'adjustment', reference: 'ADJ-003', reason: 'Correction après inventaire' },
+  { id: 'sm31', productId: 'p19', productName: 'Toner HP 26A Noir', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-3), quantity: -1, type: 'adjustment', reference: 'ADJ-004', reason: 'Utilisation interne' },
+
+  // Retours clients
+  { id: 'sm32', productId: 'p8', productName: 'Écran Dell 24" Full HD', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-2), quantity: 1, type: 'return', reference: 'RET-001', reason: 'Pixel mort - échange' },
+  { id: 'sm33', productId: 'p10', productName: 'Souris Logitech MX Master 3', warehouseId: 'wh2', warehouseName: 'Magasin Sfax', date: getDate(-1), quantity: 1, type: 'return', reference: 'RET-002', reason: 'Client insatisfait' },
+
+  // Mouvements récents pour distribution entrepôts
+  { id: 'sm34', productId: 'p1', productName: 'Laptop Dell Latitude 5520', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-13), quantity: -1, type: 'transfer_out', reference: 'TRF-006', transferTo: 'wh3' },
+  { id: 'sm35', productId: 'p1', productName: 'Laptop Dell Latitude 5520', warehouseId: 'wh3', warehouseName: 'Agence Sousse', date: getDate(-13), quantity: 1, type: 'transfer_in', reference: 'TRF-006', transferFrom: 'wh1' },
+  { id: 'sm36', productId: 'p6', productName: 'Onduleur Eaton 5E 1100VA', warehouseId: 'wh1', warehouseName: 'Dépôt Central', date: getDate(-7), quantity: -3, type: 'transfer_out', reference: 'TRF-007', transferTo: 'wh2' },
+  { id: 'sm37', productId: 'p6', productName: 'Onduleur Eaton 5E 1100VA', warehouseId: 'wh2', warehouseName: 'Magasin Sfax', date: getDate(-7), quantity: 3, type: 'transfer_in', reference: 'TRF-007', transferFrom: 'wh1' }
 ];
 
 // --- FINANCE ---
@@ -1612,7 +1685,104 @@ export const mockServiceCatalog: ServiceItem[] = [
 ];
 
 export const mockServiceJobs: ServiceJob[] = [
-  { id: 'job1', ticketNumber: 'SAV-1001', clientId: 'c4', clientName: 'Vermeg', date: getDate(-2), status: 'in_progress', priority: 'high', technicianId: 't1', technicianName: 'Karim Jaziri', deviceInfo: 'Server Rack HP', problemDescription: 'Surchauffe anormale', estimatedCost: 250, services: [{serviceId: 'srv2', name: 'Nettoyage', price: 80}], usedParts: [] }
+  {
+    id: 'job1',
+    ticketNumber: 'SAV-1001',
+    clientId: 'c4',
+    clientName: 'Vermeg',
+    date: getDate(-2),
+    status: 'in_progress',
+    priority: 'high',
+    technicianId: 't1',
+    technicianName: 'Karim Jaziri',
+    deviceInfo: 'Server Rack HP ProLiant DL380',
+    problemDescription: 'Surchauffe anormale des serveurs, ventilateurs bruyants',
+    estimatedCost: 350,
+    services: [{serviceId: 'srv2', name: 'Nettoyage complet', price: 80}, {serviceId: 'srv3', name: 'Diagnostic thermique', price: 120}],
+    usedParts: [{productId: 'p1', name: 'Ventilateur serveur 120mm', quantity: 2, price: 75}]
+  },
+  {
+    id: 'job2',
+    ticketNumber: 'SAV-1002',
+    clientId: 'c3',
+    clientName: 'Clinique Les Jasmins',
+    date: getDate(-5),
+    status: 'completed',
+    priority: 'critical',
+    technicianId: 't2',
+    technicianName: 'Sofiane Bouazizi',
+    deviceInfo: 'Imprimante HP LaserJet Pro M404',
+    problemDescription: 'Bourrage papier récurrent, qualité impression dégradée',
+    estimatedCost: 180,
+    services: [{serviceId: 'srv1', name: 'Réparation', price: 120}],
+    usedParts: [{productId: 'p2', name: 'Kit rouleau', quantity: 1, price: 60}],
+    resolutionNotes: 'Remplacement kit rouleau et nettoyage complet effectués'
+  },
+  {
+    id: 'job3',
+    ticketNumber: 'SAV-1003',
+    clientId: 'c1',
+    clientName: 'SFBT',
+    date: getDate(-1),
+    status: 'pending',
+    priority: 'medium',
+    deviceInfo: 'PC Dell OptiPlex 7090',
+    problemDescription: 'Lenteur système, disque dur bruyant',
+    estimatedCost: 450,
+    services: [],
+    usedParts: []
+  },
+  {
+    id: 'job4',
+    ticketNumber: 'SAV-1004',
+    clientId: 'c6',
+    clientName: 'Tunisie Telecom',
+    date: getDate(-7),
+    status: 'invoiced',
+    priority: 'high',
+    technicianId: 't1',
+    technicianName: 'Karim Jaziri',
+    deviceInfo: 'Switch Cisco Catalyst 2960',
+    problemDescription: 'Perte de connexion intermittente sur ports 10-15',
+    estimatedCost: 680,
+    services: [{serviceId: 'srv3', name: 'Diagnostic réseau', price: 150}, {serviceId: 'srv1', name: 'Réparation', price: 280}],
+    usedParts: [{productId: 'p3', name: 'Module SFP+', quantity: 2, price: 125}],
+    resolutionNotes: 'Remplacement modules défectueux, reconfiguration switch',
+    linkedInvoiceId: 'inv123'
+  },
+  {
+    id: 'job5',
+    ticketNumber: 'SAV-1005',
+    clientId: 'c2',
+    clientName: 'Poulina Group Holding',
+    date: getDate(0),
+    status: 'in_progress',
+    priority: 'medium',
+    technicianId: 't2',
+    technicianName: 'Sofiane Bouazizi',
+    deviceInfo: 'Onduleur APC Smart-UPS 3000VA',
+    problemDescription: 'Alarme batterie faible, autonomie réduite',
+    estimatedCost: 520,
+    services: [{serviceId: 'srv1', name: 'Maintenance préventive', price: 90}],
+    usedParts: [{productId: 'p4', name: 'Batterie 12V 9Ah', quantity: 4, price: 85}]
+  },
+  {
+    id: 'job6',
+    ticketNumber: 'SAV-1006',
+    clientId: 'c7',
+    clientName: 'Banque de Tunisie',
+    date: getDate(-3),
+    status: 'completed',
+    priority: 'critical',
+    technicianId: 't1',
+    technicianName: 'Karim Jaziri',
+    deviceInfo: 'Serveur Dell PowerEdge R740',
+    problemDescription: 'Serveur ne démarre plus, LED erreur RAID',
+    estimatedCost: 890,
+    services: [{serviceId: 'srv3', name: 'Diagnostic urgence', price: 200}, {serviceId: 'srv1', name: 'Réparation', price: 350}],
+    usedParts: [{productId: 'p5', name: 'Disque SAS 2TB', quantity: 2, price: 170}],
+    resolutionNotes: 'Remplacement 2 disques défaillants, reconstruction RAID 5 effectuée avec succès'
+  }
 ];
 
 export const mockServiceSales: ServiceSale[] = [];
@@ -1625,7 +1795,9 @@ export const mockVehicles: Vehicle[] = [
 ];
 
 export const mockFleetMissions: FleetMission[] = [
-  { id: 'm1', vehicleId: 'v2', vehicleName: 'Renault Clio 4', driverName: 'Walid Jlassi', startDate: getDate(0), startTime: '08:00', endDate: getDate(0), endTime: '18:00', destination: 'Sousse - Client Meeting', status: 'in_progress', startMileage: 98000 }
+  { id: 'm1', reference: 'MISS-30001101', vehicleId: 'v2', vehicleName: 'Renault Clio 4', driverName: 'Walid Jlassi', startDate: getDate(0), startTime: '08:00', endDate: getDate(0), endTime: '18:00', destination: 'Sousse - Client Meeting', status: 'in_progress', startMileage: 98000 },
+  { id: 'm2', reference: 'MISS-30001102', vehicleId: 'v1', vehicleName: 'Peugeot Partner', driverName: 'Ahmed Trabelsi', startDate: getDate(-2), startTime: '09:00', endDate: getDate(-2), endTime: '17:00', destination: 'Sfax - Livraison Matériel', status: 'completed', startMileage: 145000, endMileage: 145320 },
+  { id: 'm3', reference: 'MISS-30001103', vehicleId: 'v1', vehicleName: 'Peugeot Partner', driverName: 'Mohamed Dridi', startDate: getDate(2), startTime: '07:30', endDate: getDate(2), endTime: '19:00', destination: 'Bizerte - Installation Client', status: 'pending', startMileage: 145320 }
 ];
 
 export const mockFleetMaintenances: FleetMaintenance[] = [];

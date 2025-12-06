@@ -15,7 +15,7 @@ interface ServiceJobsProps {
 }
 
 const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
-  const { serviceJobs, updateServiceJob, deleteServiceJob, technicians, clients, serviceCatalog, products, createSalesDocument, formatCurrency, warehouses, t, settings } = useApp();
+  const { serviceJobs, updateServiceJob, deleteServiceJob, technicians, clients, serviceCatalog, products, createSalesDocument, formatCurrency, warehouses, invoices, t, settings } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -99,7 +99,7 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
 
     const totalAmount = allItems.reduce((acc, i) => acc + (i.price * i.quantity), 0);
 
-    createSalesDocument('invoice', {
+    const createdInvoice = createSalesDocument('invoice', {
         clientId: selectedJob.clientId,
         clientName: selectedJob.clientName,
         date: new Date().toISOString().split('T')[0],
@@ -110,7 +110,7 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
         linkedDocumentId: selectedJob.id
     }, allItems);
 
-    updateServiceJob({ ...selectedJob, status: 'invoiced' });
+    updateServiceJob({ ...selectedJob, status: 'invoiced', linkedInvoiceId: createdInvoice.id });
     setIsModalOpen(false);
     alert(t('success'));
   };
@@ -571,6 +571,30 @@ const ServiceJobs: React.FC<ServiceJobsProps> = ({ onAddNew }) => {
                                 />
                             </div>
                         </div>
+
+                        {/* Linked Invoice */}
+                        {selectedJob.linkedInvoiceId && (() => {
+                            const linkedInvoice = invoices.find(inv => inv.id === selectedJob.linkedInvoiceId);
+                            return linkedInvoice ? (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="text-sm font-bold text-blue-900 dark:text-blue-200 mb-1">Facture Liée</h4>
+                                            <div className="text-sm text-blue-700 dark:text-blue-300">
+                                                <div>N° Facture: <span className="font-mono font-semibold">{linkedInvoice.number}</span></div>
+                                                <div>Date: {linkedInvoice.date}</div>
+                                                <div>Montant: {formatCurrency(linkedInvoice.amount)}</div>
+                                                <div>Statut: <span className={`px-2 py-0.5 rounded text-xs ${
+                                                    linkedInvoice.status === 'paid' ? 'bg-green-100 text-green-700' :
+                                                    linkedInvoice.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-gray-100 text-gray-700'
+                                                }`}>{linkedInvoice.status}</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null;
+                        })()}
                     </div>
                 ) : (
                     <div className="space-y-6">

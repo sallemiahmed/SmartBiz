@@ -415,7 +415,8 @@ export interface ServiceJob {
   resolutionNotes?: string;
   resolutionHours?: number;
   rating?: number;
-  linkedMissionId?: string; 
+  linkedMissionId?: string;
+  linkedInvoiceId?: string;
 }
 
 export interface ServiceSaleItem {

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Eye, Trash2, X, FileText, Printer, CheckCircle, FileDown, Send, CreditCard, Landmark, Wallet, Calendar, Filter, User, RotateCcw } from 'lucide-react';
-import { Invoice } from '../types';
+import { Invoice, ServiceJob } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 
@@ -12,7 +12,7 @@ interface SalesInvoicesProps {
 }
 
 const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, onDocOpened }) => {
-  const { invoices, deleteInvoice, updateInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients } = useApp();
+  const { invoices, deleteInvoice, updateInvoice, t, formatCurrency, settings, recordDocPayment, bankAccounts, cashSessions, clients, serviceJobs, technicians } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -394,6 +394,58 @@ const SalesInvoices: React.FC<SalesInvoicesProps> = ({ onAddNew, autoOpenDocId, 
                       </div>
                   )}
               </div>
+
+              {/* Linked Service Job Display */}
+              {selectedDoc.linkedDocumentId && (() => {
+                const linkedJob = serviceJobs.find(job => job.id === selectedDoc.linkedDocumentId);
+                if (!linkedJob) return null;
+
+                const technician = technicians.find(t => t.id === linkedJob.technicianId);
+                const getStatusBadge = (status: string) => {
+                  switch(status) {
+                    case 'pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+                    case 'in_progress': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+                    case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+                    case 'invoiced': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+                    default: return 'bg-gray-100 text-gray-700';
+                  }
+                };
+
+                return (
+                  <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm font-medium text-blue-900 dark:text-blue-300">{t('linked_service_job')}</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">{t('ticket_number')}:</span>
+                        <span className="font-mono font-medium text-blue-700 dark:text-blue-400">{linkedJob.ticketNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">{t('device')}:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{linkedJob.deviceType}</span>
+                      </div>
+                      {technician && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">{t('technician')}:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{technician.name}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">{t('status')}:</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(linkedJob.status)}`}>
+                          {t(linkedJob.status)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">{t('date')}:</span>
+                        <span className="text-gray-900 dark:text-white">{linkedJob.createdAt}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="mt-6 flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">

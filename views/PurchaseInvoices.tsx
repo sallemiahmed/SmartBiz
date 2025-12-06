@@ -1,25 +1,16 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Edit, Filter, CheckCircle } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Filter, CheckCircle } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseInvoicesProps {
   onAddNew: () => void;
-  onEdit?: (invoice: Purchase) => void;
 }
 
-const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit }) => {
+const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
   const { purchases, deletePurchase, updatePurchase, t, formatCurrency, settings } = useApp();
-
-  // Fonction d'édition locale qui ne dépend pas du prop
-  const handleEdit = (invoice: Purchase) => {
-    // Stocker la facture à éditer dans sessionStorage
-    sessionStorage.setItem('editingPurchaseInvoice', JSON.stringify(invoice));
-    // Naviguer vers la page de création/édition
-    onAddNew(); // Réutilise la navigation existante
-  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -97,16 +88,6 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
     updatePurchase(updatedDoc);
   };
 
-  const handleRevertToDraft = (doc: Purchase) => {
-    if (doc.status !== 'validated') return;
-
-    const updatedDoc = {
-      ...doc,
-      status: 'draft' as any
-    };
-
-    updatePurchase(updatedDoc);
-  };
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -218,30 +199,12 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
                         <Eye className="w-4 h-4" />
                       </button>
                       {doc.status === 'draft' && (
-                        <>
-                          <button
-                            onClick={() => handleEdit(doc)}
-                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
-                            title={t('edit')}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleValidateInvoice(doc)}
-                            className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg"
-                            title="Valider"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                      {doc.status === 'validated' && (
                         <button
-                          onClick={() => handleRevertToDraft(doc)}
-                          className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg"
-                          title="Modifier (Retour au brouillon)"
+                          onClick={() => handleValidateInvoice(doc)}
+                          className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg"
+                          title="Valider"
                         >
-                          <Edit className="w-4 h-4" />
+                          <CheckCircle className="w-4 h-4" />
                         </button>
                       )}
                       <button
