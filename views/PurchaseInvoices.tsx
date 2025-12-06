@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Edit } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Edit, Filter } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -14,6 +14,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
   const { purchases, deletePurchase, updatePurchase, t, formatCurrency, settings } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedDoc, setSelectedDoc] = useState<Purchase | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -22,8 +23,10 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
   const purchaseInvoices = purchases.filter(p => p.type === 'invoice');
 
   const filteredDocs = purchaseInvoices.filter(doc => {
-    return doc.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-           doc.supplierName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = doc.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          doc.supplierName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   const handlePrint = () => {
@@ -101,13 +104,27 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder={t('search_invoices')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+            >
+              <option value="all">{t('all_status')}</option>
+              <option value="pending">{t('pending')}</option>
+              <option value="partial">{t('partial')}</option>
+              <option value="completed">{t('completed')}</option>
+              <option value="draft">Draft</option>
+            </select>
           </div>
         </div>
 
