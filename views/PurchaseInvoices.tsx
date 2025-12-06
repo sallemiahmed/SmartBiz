@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Edit, Filter } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Edit, Filter, CheckCircle } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
@@ -75,12 +75,34 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
     setPaymentAmount('');
   };
 
+  const handleValidateInvoice = (doc: Purchase) => {
+    if (doc.status !== 'draft') return;
+
+    const updatedDoc = {
+      ...doc,
+      status: 'validated' as any
+    };
+
+    updatePurchase(updatedDoc);
+  };
+
   const getStatusColor = (status: string) => {
     switch(status) {
-      case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+      case 'validated': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
       case 'partial': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'pending': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch(status) {
+      case 'draft': return 'Brouillon';
+      case 'validated': return 'Validée';
+      case 'partial': return 'Payée partiellement';
+      case 'completed': return 'Payée totalement';
+      default: return status;
     }
   };
 
@@ -120,10 +142,10 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
               className="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
             >
               <option value="all">{t('all_status')}</option>
-              <option value="pending">{t('pending')}</option>
-              <option value="partial">{t('partial')}</option>
-              <option value="completed">{t('completed')}</option>
-              <option value="draft">Draft</option>
+              <option value="draft">Brouillon</option>
+              <option value="validated">Validée</option>
+              <option value="partial">Payée partiellement</option>
+              <option value="completed">Payée totalement</option>
             </select>
           </div>
         </div>
@@ -149,7 +171,7 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{formatCurrency(doc.amount)}</td>
                   <td className="px-6 py-4">
                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
-                       {t(doc.status)}
+                       {getStatusLabel(doc.status)}
                      </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -161,14 +183,23 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      {(doc.status === 'pending' || doc.status === 'draft') && (
-                        <button
-                          onClick={() => onEdit(doc)}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
-                          title={t('edit')}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
+                      {doc.status === 'draft' && (
+                        <>
+                          <button
+                            onClick={() => onEdit(doc)}
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
+                            title={t('edit')}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleValidateInvoice(doc)}
+                            className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg"
+                            title="Valider"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => deletePurchase(doc.id)}
@@ -258,7 +289,8 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit })
 
             <div className="mt-6 flex justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex gap-2">
-                {selectedDoc.amount - (selectedDoc.amountPaid || 0) > 0.01 && (
+                {selectedDoc.amount - (selectedDoc.amountPaid || 0) > 0.01 &&
+                 (selectedDoc.status === 'validated' || selectedDoc.status === 'partial') && (
                   <button
                     onClick={handleOpenPaymentModal}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
