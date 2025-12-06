@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ArrowLeft, Plus, Trash2, Save, ShoppingBag, 
   Search, FileText, CheckCircle, Package, Minus,
@@ -15,16 +15,26 @@ import { printInvoice } from '../utils/printGenerator';
 interface PurchasesProps {
   mode: PurchaseDocumentType;
   onCancel?: () => void;
+  editingInvoice?: Purchase | null;
+  editingOrder?: Purchase | null;
 }
 
-const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => {
-  const { 
-    suppliers, products, warehouses, createPurchaseDocument, 
-    formatCurrency, settings, addProduct, t, purchases 
+const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel, editingInvoice, editingOrder }) => {
+  const {
+    suppliers, products, warehouses, createPurchaseDocument, updatePurchase,
+    formatCurrency, settings, addProduct, t, purchases
   } = useApp();
+
+  // Use a generic editingDocument that works for both invoices and orders
+  const editingDocument = editingInvoice || editingOrder;
 
   // Mode Specific Titles
   const getPageTitle = () => {
+    if (editingDocument) {
+      if (mode === 'invoice') return t('edit_invoice') || 'Edit Invoice';
+      if (mode === 'order') return t('edit_order') || 'Edit Purchase Order';
+      return 'Edit Document';
+    }
     switch (mode) {
       case 'order': return t('purchase_order');
       case 'delivery': return t('goods_received_grn');
@@ -35,6 +45,11 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
   };
 
   const getButtonLabel = () => {
+    if (editingDocument) {
+      if (mode === 'invoice') return t('update_invoice') || 'Update Invoice';
+      if (mode === 'order') return t('update_order') || 'Update Order';
+      return 'Update';
+    }
     switch (mode) {
       case 'order': return t('create_po');
       case 'delivery': return t('confirm_receipt');
@@ -81,6 +96,53 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
   const [customItem, setCustomItem] = useState({ name: '', cost: '' });
   const [lastCreatedDoc, setLastCreatedDoc] = useState<Purchase | null>(null);
   const [lastDocNumber, setLastDocNumber] = useState('');
+
+  // Load editing document data (invoice or order)
+  useEffect(() => {
+    if (editingDocument) {
+      // Load supplier
+      setSelectedSupplier(editingDocument.supplierId);
+
+      // Load warehouse
+      setSelectedWarehouse(editingDocument.warehouseId);
+
+      // Load currency and exchange rate
+      setSelectedCurrency(editingDocument.currency);
+      setExchangeRate(editingDocument.exchangeRate);
+
+      // Load payment info
+      setPaymentTerms(editingDocument.paymentTerms || 'Net 30');
+      setPaymentMethod(editingDocument.paymentMethod || 'Bank Transfer');
+      setNotes(editingDocument.notes || '');
+
+      // Load tax and costs
+      setTaxRate(editingDocument.taxRate || 0);
+      setAdditionalCosts(editingDocument.additionalCosts || 0);
+
+      // Load items into cart
+      const loadedItems = editingDocument.items.map(item => {
+        const product = products.find(p => p.id === item.id);
+        return {
+          id: item.id,
+          sku: product?.sku || 'N/A',
+          name: item.description,
+          category: product?.category || 'General',
+          stock: product?.stock || 0,
+          warehouseStock: product?.warehouseStock || {},
+          price: product?.price || 0,
+          cost: product?.cost || item.price,
+          status: product?.status || 'in_stock',
+          marginPercent: 0,
+          cartId: `${item.id}-${Date.now()}-${Math.random()}`,
+          quantity: item.quantity,
+          unitCost: item.price,
+          isCustom: !product
+        } as any;
+      });
+
+      setCart(loadedItems);
+    }
+  }, [editingDocument, products]);
 
   // Derived Data
   const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
@@ -258,12 +320,12 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
 
   const handleCreateDoc = () => {
     if (cart.length === 0) return;
-    
+
     if (mode !== 'pr' && !selectedSupplier) {
       alert("Please select a supplier.");
       return;
     }
-    
+
     if (mode === 'pr' && !requesterName) {
         alert("Please enter a requester name.");
         return;
@@ -283,35 +345,68 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
 
     const supplierName = mode === 'pr' ? '' : suppliers.find(s => s.id === selectedSupplier)?.company || 'Unknown Supplier';
 
-    const createdDoc = createPurchaseDocument(mode, {
-      supplierId: selectedSupplier,
-      supplierName: supplierName,
-      requesterName: mode === 'pr' ? requesterName : undefined,
-      department: mode === 'pr' ? department : undefined,
-      date: new Date().toISOString().split('T')[0],
-      amount: total,
-      currency: selectedCurrency,
-      exchangeRate: exchangeRate,
-      additionalCosts: additionalCosts,
-      fiscalStamp: fiscalStampAmount,
-      status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed', 
-      warehouseId: selectedWarehouse,
-      paymentTerms,
-      paymentMethod,
-      notes,
-      taxRate: taxRate,
-      subtotal: subtotal,
-      linkedDocumentId: linkedOrderId || undefined,
-      // Retenue à la Source (RAS)
-      rasTaux: rasApplicable ? rasTaux : undefined,
-      rasMontant: rasApplicable ? rasMontant : undefined,
-      montantNetPaye: rasApplicable ? montantNetPaye : total,
-      rasTypeRevenu: rasApplicable ? supplier?.rasTypeRevenu : undefined
-    }, purchaseItems);
+    // Check if we're editing an existing document (invoice or order)
+    if (editingDocument) {
+      // Update existing document
+      const updatedDoc: Purchase = {
+        ...editingDocument,
+        supplierId: selectedSupplier,
+        supplierName: supplierName,
+        amount: total,
+        currency: selectedCurrency,
+        exchangeRate: exchangeRate,
+        additionalCosts: additionalCosts,
+        fiscalStamp: fiscalStampAmount,
+        warehouseId: selectedWarehouse,
+        paymentTerms,
+        paymentMethod,
+        notes,
+        taxRate: taxRate,
+        subtotal: subtotal,
+        items: purchaseItems,
+        // Retenue à la Source (RAS)
+        rasTaux: rasApplicable ? rasTaux : undefined,
+        rasMontant: rasApplicable ? rasMontant : undefined,
+        montantNetPaye: rasApplicable ? montantNetPaye : total,
+        rasTypeRevenu: rasApplicable ? supplier?.rasTypeRevenu : undefined
+      };
 
-    setLastCreatedDoc(createdDoc);
-    setLastDocNumber(createdDoc.number);
-    setShowSuccessModal(true);
+      updatePurchase(updatedDoc);
+      setLastCreatedDoc(updatedDoc);
+      setLastDocNumber(updatedDoc.number);
+      setShowSuccessModal(true);
+    } else {
+      // Create new document
+      const createdDoc = createPurchaseDocument(mode, {
+        supplierId: selectedSupplier,
+        supplierName: supplierName,
+        requesterName: mode === 'pr' ? requesterName : undefined,
+        department: mode === 'pr' ? department : undefined,
+        date: new Date().toISOString().split('T')[0],
+        amount: total,
+        currency: selectedCurrency,
+        exchangeRate: exchangeRate,
+        additionalCosts: additionalCosts,
+        fiscalStamp: fiscalStampAmount,
+        status: mode === 'order' || mode === 'pr' ? 'pending' : 'completed',
+        warehouseId: selectedWarehouse,
+        paymentTerms,
+        paymentMethod,
+        notes,
+        taxRate: taxRate,
+        subtotal: subtotal,
+        linkedDocumentId: linkedOrderId || undefined,
+        // Retenue à la Source (RAS)
+        rasTaux: rasApplicable ? rasTaux : undefined,
+        rasMontant: rasApplicable ? rasMontant : undefined,
+        montantNetPaye: rasApplicable ? montantNetPaye : total,
+        rasTypeRevenu: rasApplicable ? supplier?.rasTypeRevenu : undefined
+      }, purchaseItems);
+
+      setLastCreatedDoc(createdDoc);
+      setLastDocNumber(createdDoc.number);
+      setShowSuccessModal(true);
+    }
   };
 
   const handlePrint = () => {
@@ -332,6 +427,11 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
     setShowSuccessModal(false);
     setSelectedCurrency(settings.currency);
     setExchangeRate(1);
+
+    // If we were editing, return to the list
+    if (editingDocument && onCancel) {
+      onCancel();
+    }
   };
 
   return (
@@ -916,7 +1016,10 @@ const Purchases: React.FC<PurchasesProps> = ({ mode = 'invoice', onCancel }) => 
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {mode === 'order' ? 'Supplier Order created.' : mode === 'delivery' ? 'Goods Received Note logged & Stock updated.' : mode === 'pr' ? 'Internal Purchase Request created.' : 'Invoice logged & expenses updated.'}<br/>
+              {editingDocument
+                ? (mode === 'invoice' ? 'Invoice updated successfully.' : mode === 'order' ? 'Purchase Order updated successfully.' : 'Document updated successfully.')
+                : mode === 'order' ? 'Supplier Order created.' : mode === 'delivery' ? 'Goods Received Note logged & Stock updated.' : mode === 'pr' ? 'Internal Purchase Request created.' : 'Invoice logged & expenses updated.'
+              }<br/>
               Ref <span className="font-mono font-medium text-gray-900 dark:text-white">{lastDocNumber}</span>
             </p>
             

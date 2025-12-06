@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer, Truck, CheckCircle, Receipt } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Eye, Trash2, AlertTriangle, X, CreditCard, Printer, Truck, CheckCircle, Receipt, Edit } from 'lucide-react';
 import { Purchase, InvoiceItem } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseOrdersProps {
   onAddNew: () => void;
+  onEdit: (order: Purchase) => void;
 }
 
 // View Modal Component
@@ -297,7 +298,7 @@ const DeleteModal = React.memo<DeleteModalProps>(({
 
 DeleteModal.displayName = 'DeleteModal';
 
-const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
+const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew, onEdit }) => {
   const { purchases, deletePurchase, createPurchaseDocument, updatePurchase, formatCurrency, settings, t } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -509,14 +510,23 @@ const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ onAddNew }) => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => { setSelectedOrder(order); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
                         title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button 
+                      {(order.status === 'pending' || order.status === 'draft') && (
+                        <button
+                          onClick={() => onEdit(order)}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
+                          title={t('edit')}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
                         onClick={() => { setSelectedOrder(order); setIsDeleteModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                         title={t('delete')}

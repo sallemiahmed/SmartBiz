@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, X, FileText, Printer, DollarSign, Edit } from 'lucide-react';
 import { Purchase } from '../types';
 import { useApp } from '../context/AppContext';
 import { printInvoice } from '../utils/printGenerator';
 
 interface PurchaseInvoicesProps {
   onAddNew: () => void;
+  onEdit: (invoice: Purchase) => void;
 }
 
-const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
+const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew, onEdit }) => {
   const { purchases, deletePurchase, updatePurchase, t, formatCurrency, settings } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,14 +137,23 @@ const PurchaseInvoices: React.FC<PurchaseInvoicesProps> = ({ onAddNew }) => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => { setSelectedDoc(doc); setIsViewModalOpen(true); }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
                         title={t('view_details')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button 
+                      {(doc.status === 'pending' || doc.status === 'draft') && (
+                        <button
+                          onClick={() => onEdit(doc)}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
+                          title={t('edit')}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
                         onClick={() => deletePurchase(doc.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                         title={t('delete')}
